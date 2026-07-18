@@ -287,6 +287,7 @@
     <div class="settingRow">
       <span>Match format</span>
       <select id="formatSelect">
+		<option value="bo1">Bo1</option>
         <option value="bo3">Bo3</option>
         <option value="bo5">Bo5</option>
       </select>
@@ -338,6 +339,16 @@ const TEAM_ICONS = {"Flood Flashers": "data:image/png;base64,iVBORw0KGgoAAAANSUh
 
 const MAPS = ["Inferno", "Mirage", "Anubis", "Dust2", "Tuscan", "Cache", "Vertigo"];
 
+// Bo1: ban, ban, ban, ban, ban, ban -> 1 map remains as decider
+const SEQUENCE_BO1 = [
+	{ team: 'A', action: 'ban'},
+	{ team: 'B', action: 'ban'},
+	{ team: 'A', action: 'ban'},
+	{ team: 'B', action: 'ban'},
+	{ team: 'A', action: 'ban'},
+	{ team: 'B', action: 'ban'},
+ ];
+
 // Bo3: ban, ban, pick, pick, ban, ban -> 1 map remains as decider
 const SEQUENCE_BO3 = [
   { team: 'A', action: 'ban' },
@@ -359,6 +370,7 @@ const SEQUENCE_BO5 = [
 ];
 
 const FORMATS = {
+  bo1: SEQUENCE_BO1,
   bo3: SEQUENCE_BO3,
   bo5: SEQUENCE_BO5,
 };
