@@ -1,0 +1,3014 @@
+//----------------------------------------------------------------------------
+// BotProfile.db
+// Author: Ice
+// Add me: http://steamcommunity.com/id/wc2000
+// Date: 10th May 2026 (botprofile v22)
+// updated
+//
+//----------------------------------------------------------------------------
+
+//
+// All profiles begin with this data and overwrite their own
+//
+
+Default
+        Skill = 100
+        Aggression = 100
+        ReactionTime = 0.01                             // reaction time in milliseconds. 230ms or 0.23 is standard human reaction time (0.3 default)
+        AttackDelay = 0.10                              // compensate for a bots lack of ping. 50ms is standard server ping (0 default)
+        Teamwork = 100
+        AimFocusInitial = 0.01                  // initial focus spread in degrees (from desired center. 20 default)
+        AimFocusDecay = 0.01                   // how much focus shrinks per second (.25 = 25% of size after 1 sec. 0.7 default)
+        AimFocusOffsetScale = 0.01              // controls accuracy when tracking to target (0 == perfect, should always be < 1)
+        AimfocusInterval = 0.01                 // how often focus is adjusted (smaller intervals means better movement tracking)
+        WeaponPreference = CompWeps
+        Cost = 0
+        Difficulty = HARD
+        VoicePitch = 50
+        Skin = 0
+        LookAngleMaxAccelNormal = 8000.0        // how quickly a bot will move their cross hair look at you (2000.0 default)
+        LookAngleStiffnessNormal = 400.0        // how quickly a bot will lock onto you (100.0 default)
+        LookAngleDampingNormal = 50.0          // dampen how much will the bot scan the area while not engaged (25.0 default)
+        LookAngleMaxAccelAttacking = 12000.0 // how long a bot will keep an interest in their attacker (3000.0 default)
+        LookAngleStiffnessAttacking = 500.0 // how soon after spotting will a bot attack (150.0 default)
+        LookAngleDampingAttacking = 35.0        // dampen how much a bot will compensate for recoil (30.0 default)
+End
+
+//
+// Weapon preference templates
+// These templates inherit from Default and override with their values
+// The name of the template defines a type that is used by individual bot profiles
+//
+
+Template CompWeps
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = awp
+        WeaponPreference = p90
+        WeaponPreference = deagle
+        WeaponPreference = p250
+End
+
+Template Rifle
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = m4a1
+        WeaponPreference = ak47
+        WeaponPreference = famas
+        WeaponPreference = galilar
+        WeaponPreference = ump45
+End
+
+Template Punch
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = aug
+        WeaponPreference = sg556
+        WeaponPreference = famas
+        WeaponPreference = galilar
+        WeaponPreference = ump45
+End
+
+Template Sniper
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = awp
+        WeaponPreference = sg550
+        WeaponPreference = g3sg1
+        WeaponPreference = ssg08
+        WeaponPreference = m4a1
+        WeaponPreference = ak47
+        WeaponPreference = mp7
+End
+
+Template Power
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = m249
+        WeaponPreference = xm1014
+        WeaponPreference = nova
+        WeaponPreference = m4a1
+        WeaponPreference = ak47
+        WeaponPreference = mp7
+End
+
+Template Shotgun
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = xm1014
+        WeaponPreference = nova
+        WeaponPreference = mag7
+        WeaponPreference = sawedoff
+        WeaponPreference = m4a1
+        WeaponPreference = ak47
+
+End
+
+Template Spray
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = m4a1
+        WeaponPreference = ak47
+        WeaponPreference = p90
+        WeaponPreference = mp9
+        WeaponPreference = mac10
+        WeaponPreference = mp7
+        WeaponPreference = ump45
+End
+
+Template TwinkleClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = p250
+End
+
+Template PasheaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+	WeaponPreference = ak47
+        WeaponPreference = ump45
+        WeaponPreference = p250
+End
+
+Template IceClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = ak47
+	WeaponPreference = m4a1
+	WeaponPreference = ssg08
+	WeaponPreference = deagle
+End
+
+Template HesterClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template PhoebeClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template CherylClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template JiawenClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = p250
+End
+
+Template JackieClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = p250
+End
+
+Template AshleyClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = p250
+End
+
+Template HannahClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+	WeaponPreference = ssg08
+	WeaponPreference = deagle
+End
+
+Template ZhiweiClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = p90
+        WeaponPreference = deagle
+End
+
+Template HopeClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template DoreneClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template ValerieClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template RachelClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template AllieClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template MichelleClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template JericaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1_silencer
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template RuochenClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template YullyClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template CheleaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template CarrieClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template XinjieClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template VeraClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template ZhiyiClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = deagle
+End
+
+Template ZhiyiClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template YiyunClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template QixuanClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template JoyClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1_silencer
+        WeaponPreference = mp7
+        WeaponPreference = deagle
+End
+
+Template JaelClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = deagle
+End
+
+Template MelissaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = mp7
+        WeaponPreference = deagle
+End
+
+Template KristyClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = mp7
+        WeaponPreference = deagle
+End
+
+Template AdrinaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = mp7
+        WeaponPreference = deagle
+End
+
+Template WanyenClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template JesiccaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template RebeccaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template MoiraClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = sg553
+        WeaponPreference = aug
+        WeaponPreference = p90
+        WeaponPreference = p250
+End
+
+Template QiaoyingClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template DeliaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template JenaClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template KiraClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template ShannonClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = mp7
+        WeaponPreference = p250
+End
+
+Template PeishanClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = p250
+End
+
+Template MelanClass
+	WeaponPreference = vesthelm
+	WeaponPreference = vest
+
+	WeaponPreference = defuser
+
+
+	WeaponPreference = awp
+        WeaponPreference = ak47
+        WeaponPreference = m4a1
+        WeaponPreference = ump45
+        WeaponPreference = p250
+End
+
+
+//
+// Skill templates
+//
+
+// It is I
+Template Ice
+        Skill = 100
+        Rank = 2000
+        Aggression = 80
+        ReactionTime = 0.0025
+        AttackDelay = 0.045
+        Cost = 4
+        Difficulty = EXPERT
+        WeaponPreference = PhoebeClass
+        VoicePitch = 40
+        AimFocusInitial = 0.01
+        AimFocusDecay = 0.01
+        AimFocusOffsetScale = 0.01
+        AimfocusInterval = 0.01
+End
+
+// Awp Server
+Template Melan
+        Skill = 100
+        Rank = 1800
+        Aggression = 100
+        ReactionTime = 0.005
+        AttackDelay = 0.07
+        Cost = 4
+        Difficulty = EXPERT
+        WeaponPreference = MelanClass
+        VoicePitch = 40
+        AimFocusInitial = 0.01
+        AimFocusDecay = 0.01
+        AimFocusOffsetScale = 0.01
+        AimfocusInterval = 0.01
+End
+
+// Global Elite Challenge (High End Tier 3) [Tested]
+Template Elite
+        Skill = 100
+        Rank = 1800
+        Aggression = 100
+        ReactionTime = 0.01
+        AttackDelay = 0.10
+        Cost = 4
+        Difficulty = EXPERT
+        WeaponPreference = CompWeps
+        VoicePitch = 40
+        AimFocusInitial = 0.01
+        AimFocusDecay = 0.01
+        AimFocusOffsetScale = 0.01
+        AimfocusInterval = 0.01
+End
+
+// Elite Master Guardian Challenge (Low End Tier 3) [Tested]
+Template Expert
+        Skill = 100
+        Rank = 1600
+        Aggression = 100
+        ReactionTime = 0.22
+        Cost = 4
+        Difficulty = HARD
+        WeaponPreference = CompWeps
+        VoicePitch = 50
+        AimFocusInitial = 0.22
+        AimFocusDecay = 0.10
+        AimFocusOffsetScale = 0.10
+        AimfocusInterval = 0.22
+End
+
+// Gold Nova Master Challenge (Mid Tier 2)
+Template VeryHard
+        Skill = 90
+        Rank = 1400
+        Aggression = 90
+        ReactionTime = 0.35
+        Cost = 3
+        Difficulty = NORMAL
+        VoicePitch = 75
+        AimFocusInitial = 0.35
+        AimFocusDecay = 0.20
+        AimFocusOffsetScale = 0.20
+        AimfocusInterval = 0.35
+End
+
+// Gold Nova One Challenge (Low Tier 2)
+Template Hard
+        Skill = 90
+        Rank = 1300
+        Aggression = 80
+        ReactionTime = 0.45
+        Cost = 3
+        Difficulty = NORMAL
+        VoicePitch = 85
+        AimFocusInitial = 0.45
+        AimFocusDecay = 0.20
+        AimFocusOffsetScale = 0.20
+        AimfocusInterval = 0.45
+End
+
+// Silver Elite Challenge (High Tier 1)
+Template Tough
+        Skill = 80
+        Rank = 1100
+        Aggression = 60
+        ReactionTime = 0.55
+        Cost = 2
+        Difficulty = NORMAL
+        VoicePitch = 95
+        AimFocusInitial = 0.55
+        AimFocusDecay = 0.30
+        AimFocusOffsetScale = 0.22
+        AimfocusInterval = 0.55
+End
+
+// Silver IV Challenge (Mid Tier 1)
+Template Normal
+        Skill = 75
+        Rank = 1000
+        Aggression = 45
+        ReactionTime = 0.80
+        Cost = 2
+        Difficulty = EASY
+        VoicePitch = 110
+        AimFocusInitial = 0.80
+        AimFocusDecay = 0.40
+        AimFocusOffsetScale = 0.25
+        AimfocusInterval = 0.80
+End
+
+// Silver I Challenge (Low Tier 1)
+Template Fair
+        Skill = 75
+        Rank = 850
+        Aggression = 30
+        ReactionTime = 0.90
+        Cost = 1
+        Difficulty = EASY
+        VoicePitch = 120
+        AimFocusInitial = 0.90
+        AimFocusDecay = 0.50
+        AimFocusOffsetScale = 0.28
+        AimfocusInterval = 0.90
+End
+
+// Beginner Challenge (New to FPS & PC Gaming)
+Template Easy
+        Skill = 50
+        Rank = 600
+        Aggression = 20
+        ReactionTime = 1.00
+        Cost = 1
+        Difficulty = EASY
+        VoicePitch = 130
+        AimFocusInitial = 1.00
+        AimFocusDecay = 0.60
+        AimFocusOffsetScale = 0.30
+        AimfocusInterval = 1.00
+End
+
+//
+// These are the individual bot profiles, which inherit first from
+// Default and then the specified Template(s), in order
+//
+
+Elite "NsN Niito"
+        Skin = 1
+        VoicePitch = 45
+End
+
+Elite "DNC InfiniteBreaker"
+        Skin = 2
+        VoicePitch = 45
+End
+
+Elite "Cyn Ziweiv"
+        Skin = 4
+        VoicePitch = 44
+End
+
+Elite KrinoJ
+        Skin = 4
+        VoicePitch = 40
+End
+
+Elite "AET Applezxc"
+        Skin = 2
+        VoicePitch = 40
+End
+
+Elite "FRUIT Mango" 
+        Skin = 4
+        VoicePitch = 42
+End
+
+Elite "AP [Idiot] AngelCrutcher"
+        Skin = 2
+        VoicePitch = 48
+End
+
+Elite+VeraClass "INF soapdax"
+        Skin = 1
+        VoicePitch = 46
+End
+
+Elite "INF Historia"
+        Skin = 3
+        VoicePitch = 45
+End
+
+Elite "KIEDZ Kairi"
+        Skin = 1
+        VoicePitch = 44
+End
+
+Elite "PPX AcroBlaze"
+        Skin = 4
+        VoicePitch = 49
+End
+
+
+//----------------------------------------
+
+Expert Sonar
+        VoicePitch = 85
+End
+
+Expert Flute
+        VoicePitch = 100
+End
+
+Expert Heron
+        VoicePitch = 95
+End
+
+Expert Beta
+        VoicePitch = 115
+End
+
+Expert Nautilus
+        VoicePitch = 87
+End
+
+Expert Diamond
+        VoicePitch = 91
+End
+
+Expert Albatross
+        VoicePitch = 101
+End
+
+Expert Anchor
+        VoicePitch = 112
+End
+
+Expert Ostrich
+        VoicePitch = 99
+End
+
+Expert Lilly
+        VoicePitch = 100
+End
+
+//----------------------------------------
+
+VeryHard Daisy
+        Skin = 1
+        VoicePitch = 110
+End
+
+VeryHard Wagon
+        Skin = 3
+        VoicePitch = 93
+End
+
+VeryHard Vulture
+        Skin = 2
+        VoicePitch = 100
+End
+
+VeryHard Banjo
+        Skin = 4
+        VoicePitch = 86
+End
+
+
+//----------------------------------------
+
+Hard+Rifle Lamb
+        Skin = 1
+        VoicePitch = 95
+End
+
+Hard+RifleT Dart
+        Skin = 2
+        VoicePitch = 90
+End
+
+Hard+Spray Pelican
+        Skin = 4
+        VoicePitch = 102
+End
+
+Hard+Shotgun Zigzag
+        Skin = 1
+        VoicePitch = 98
+End
+
+Hard+Rifle Frog
+        Skin = 2
+        VoicePitch = 96
+End
+
+Hard+Punch Whale
+        Skin = 4
+        VoicePitch = 103
+End
+
+Hard+Punch Flamingo
+        Skin = 1
+        VoicePitch = 105
+End
+
+Hard+Rifle Iguana
+        Skin = 2
+        VoicePitch = 97
+End
+
+Hard+Rifle Woodpecker
+        Skin = 4
+        VoicePitch = 84
+End
+
+Hard+Punch Pyramid
+        Skin = 1
+        VoicePitch = 90
+End
+
+Hard+Rifle Seal
+        Skin = 2
+        VoicePitch = 98
+End
+
+Hard+Sniper Manatee
+        Skin = 3
+        VoicePitch = 110
+End
+
+Hard+Spray Sparrow
+        Skin = 4
+        VoicePitch = 103
+End
+
+Hard+Rifle Bulldog
+        Skin = 2
+        VoicePitch = 110
+End
+
+//----------------------------------------
+
+Tough+Sniper Eclipse
+        Skin = 3
+        VoicePitch = 120
+End
+
+Tough+Rifle Cyclone
+        Skin = 1
+        VoicePitch = 100
+End
+
+Tough+Rifle Robin
+        Skin = 2
+        VoicePitch = 104
+End
+
+Tough+Rifle Hatchet
+        Skin = 4
+        VoicePitch = 98
+End
+
+Tough Vortex
+        Skin = 1
+        VoicePitch = 100
+End
+
+Tough+Rifle Zebra
+        Skin = 2
+        VoicePitch = 102
+End
+
+Tough+Shotgun Donkey
+        Skin = 4
+        VoicePitch = 95
+End
+
+Tough+Rifle Stump
+        Skin = 1
+        VoicePitch = 95
+End
+
+Tough+RifleT Macaw
+        Skin = 2
+        VoicePitch = 110
+End
+
+Tough+Rifle Torus
+        Skin = 4
+        VoicePitch = 112
+End
+
+Tough Snake
+        Skin = 1
+        VoicePitch = 90
+End
+
+Tough+Rifle Goose
+        Skin = 2
+        VoicePitch = 115
+End
+
+Tough+Rifle Blackbird
+        Skin = 4
+        VoicePitch = 107
+End
+
+Tough+Rifle Rose
+        Skin = 2
+        VoicePitch = 102
+End
+
+Tough Hurricane
+        Skin = 1
+        VoicePitch = 98
+End
+
+Tough+Rifle Dalmatian
+        Skin = 2
+        VoicePitch = 100
+End
+
+Tough+RifleT Wade
+        Skin = 4
+        VoicePitch = 95
+End
+
+Tough+Rifle Rattle
+        Skin = 1
+        VoicePitch = 86
+End
+
+Tough+RifleT Octopus
+        Skin = 2
+        VoicePitch = 100
+End
+
+Tough+Rifle Bell
+        Skin = 4
+        VoicePitch = 95
+End
+
+//----------------------------------------
+
+Normal+Rifle Adam
+        Skin = 1
+        VoicePitch = 105
+End
+
+Normal+PunchT Andy
+        Skin = 2
+        VoicePitch = 90
+End
+
+Normal Chris
+        Skin = 3
+        VoicePitch = 100
+End
+
+Normal Colin
+        Skin = 4
+        VoicePitch = 107
+End
+
+Normal+Rifle Dennis
+        Skin = 1
+        VoicePitch = 104
+End
+
+Normal Doug
+        Skin = 2
+        VoicePitch = 110
+End
+
+Normal Gary
+        Skin = 3
+        VoicePitch = 95
+End
+
+Normal Grant
+        Skin = 4
+        VoicePitch = 112
+End
+
+Normal Greg
+        Skin = 1
+        VoicePitch = 111
+End
+
+Normal+Sniper Ian
+        Skin = 3
+        VoicePitch = 115
+End
+
+Normal Jerry
+        Skin = 4
+        VoicePitch = 112
+End
+
+Normal Jon
+        Skin = 1
+        VoicePitch = 96
+End
+
+Normal Keith
+        Skin = 2
+        VoicePitch = 98
+End
+
+Normal Mark
+        Skin = 4
+        VoicePitch = 110
+End
+
+Normal Matt
+        Skin = 1
+        VoicePitch = 95
+End
+
+Normal+RifleT cuckmaster
+        Skin = 2
+        VoicePitch = 100
+End
+
+Normal Nate
+        Skin = 4
+        VoicePitch = 99
+End
+
+Normal Paul
+        Skin = 3
+        VoicePitch = 98
+End
+
+Normal Scott
+        Skin = 1
+        VoicePitch = 105
+End
+
+Normal Steve
+        Skin = 2
+        VoicePitch = 115
+End
+
+Normal Tom
+        Skin = 3
+        VoicePitch = 110
+End
+
+Normal Yahn
+        Skin = 4
+        VoicePitch = 92
+End
+
+//----------------------------------------
+
+Fair Alfred
+        VoicePitch = 110
+End
+
+Fair Bill
+        VoicePitch = 100
+End
+
+Fair Brandon
+        VoicePitch = 99
+End
+
+Fair+Spray Calvin
+        VoicePitch = 120
+End
+
+Fair Dean
+        VoicePitch = 111
+End
+
+Fair Dustin
+        VoicePitch = 98
+End
+
+Fair Ethan
+        VoicePitch = 112
+End
+
+Fair Harold
+        VoicePitch = 90
+End
+
+Fair Henry
+        VoicePitch = 120
+End
+
+Fair Irving
+        VoicePitch = 118
+End
+
+Fair Jason
+        VoicePitch = 116
+End
+
+Fair Josh
+        VoicePitch = 114
+End
+
+Fair Martin
+        VoicePitch = 110
+End
+
+Fair Nick
+        VoicePitch = 98
+End
+
+Fair Norm
+        VoicePitch = 92
+End
+
+Fair Orin
+        VoicePitch = 113
+End
+
+Fair Pat
+        VoicePitch = 114
+End
+
+Fair Perry
+        VoicePitch = 115
+End
+
+Fair Ron
+        VoicePitch = 100
+End
+
+Fair Shawn
+        VoicePitch = 102
+End
+
+Fair Tim
+        VoicePitch = 98
+End
+
+Fair Will
+        VoicePitch = 96
+End
+
+Fair Wyatt
+        VoicePitch = 94
+End
+
+//----------------------------------------
+
+Easy Albert
+        VoicePitch = 100
+End
+
+Easy Allen
+        VoicePitch = 110
+End
+
+Easy Bert
+        VoicePitch = 120
+End
+
+Easy Bob
+        VoicePitch = 99
+End
+
+Easy Cecil
+        VoicePitch = 120
+End
+
+Easy Clarence
+        VoicePitch = 125
+End
+
+Easy Elliot
+        VoicePitch = 110
+End
+
+Easy Elmer
+        VoicePitch = 100
+End
+
+Easy Ernie
+        VoicePitch = 112
+End
+
+Easy Eugene
+        VoicePitch = 121
+End
+
+Easy Fergus
+        VoicePitch = 99
+End
+
+Easy Ferris
+        VoicePitch = 119
+End
+
+Easy Frank
+        VoicePitch = 118
+End
+
+Easy Frasier
+        VoicePitch = 117
+End
+
+Easy Fred
+        VoicePitch = 116
+End
+
+Easy George
+        VoicePitch = 115
+End
+
+Easy Graham
+        VoicePitch = 114
+End
+
+Easy Harvey
+        VoicePitch = 112
+End
+
+Easy Irwin
+        VoicePitch = 111
+End
+
+Easy Lester
+        VoicePitch = 110
+End
+
+Easy Marvin
+        VoicePitch = 109
+End
+
+Easy Neil
+        VoicePitch = 108
+End
+
+Easy Niles
+        VoicePitch = 122
+End
+
+Easy Oliver
+        VoicePitch = 120
+End
+
+Easy Opie
+        VoicePitch = 125
+End
+
+Easy Toby
+        VoicePitch = 92
+End
+
+Easy Ulric
+        VoicePitch = 100
+End
+
+Easy Ulysses
+        VoicePitch = 102
+End
+
+Easy Uri
+        VoicePitch = 104
+End
+
+Easy Waldo
+        VoicePitch = 108
+End
+
+Easy Wally
+        VoicePitch = 95
+End
+
+Easy Walt
+        VoicePitch = 100
+End
+
+Easy Wesley
+        VoicePitch = 120
+End
+
+Easy Yanni
+        VoicePitch = 112
+End
+
+Easy Yogi
+        VoicePitch = 99
+End
+
+Easy Yuri
+        VoicePitch = 110
+End
+
+//----------------------------------------
+
+Elite+TwinkleClass "Bb AppleOrangePear"
+        VoicePitch = 110
+End
+
+Elite+PasheaClass "NsN pashionfruit18"
+        VoicePitch = 110
+End
+
+Elite+HesterClass "EXaCT"
+        VoicePitch = 110
+End
+
+Elite+HesterClass "DNC Solec"
+        VoicePitch = 110
+End
+
+Elite+PhoebeClass "FRUIT Phxebe"
+        VoicePitch = 110
+End
+
+Elite+CherylClass "DNC chreyll"
+        VoicePitch = 110
+End
+
+Elite+JiawenClass "AP balililmao"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "LMN JWQI"
+        VoicePitch = 110
+End
+
+Elite+AshleyClass "Neverland simply_perezoso"
+        VoicePitch = 110
+End
+
+Elite+HannahClass "5P Solaonix"
+        VoicePitch = 110
+End
+
+Elite+ZhiweiClass "SS zhiweiingg"
+        VoicePitch = 110
+End
+
+Elite+HopeClass "FRUIT cshhp"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "okjustsmd"
+        VoicePitch = 110
+End
+
+Elite+ValerieClass "UNF Sakami"
+        VoicePitch = 110
+End
+
+Elite+RachelClass "rach.elx_"
+        VoicePitch = 110
+End
+
+Elite+AllieClass "Kyu"
+        VoicePitch = 110
+End
+
+Elite+AllieClass "KurmitSuicidal"
+        VoicePitch = 110
+End
+
+Elite+MichelleClass "SS Uzuhii"
+        VoicePitch = 110
+End
+
+Elite+JericaClass "NJ Jeribean"
+        VoicePitch = 110
+End
+
+
+Elite+RuochenClass "SS rc_ia"
+        VoicePitch = 110
+End
+
+Elite+YullyClass "d20 y.uuno"
+        VoicePitch = 110
+End
+
+Elite+CheleaClass "leachubby"
+        VoicePitch = 110
+End
+
+Elite+CarrieClass "ASP caarrietan"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "dla.wo"
+        VoicePitch = 110
+End
+
+Elite+VeraClass "CaeSC lenette"
+        VoicePitch = 110
+End
+
+Elite+ZhiyiClass "zhizyii"
+        VoicePitch = 110
+End
+
+Elite+YiyunClass "kenzieyii"
+        VoicePitch = 110
+End
+
+Elite+QixuanClass "NsN S.GT"
+        VoicePitch = 110
+End
+
+Elite+JoyClass "OPAL joyyy_cheng"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "SS jaelyo"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "FRUIT Hakase"
+        VoicePitch = 110
+End
+
+Elite+MelissaClass "xmeijixx"
+        VoicePitch = 110
+End
+
+Elite+KristyClass "Luneforrune"
+        VoicePitch = 110
+End
+
+Elite+CherylClass "Neverland adrina.ii"
+        VoicePitch = 110
+End
+
+Elite+WanyenClass "tiger.lark"
+        VoicePitch = 110
+End
+
+Elite+JesiccaClass "ostc.x"
+        VoicePitch = 110
+End
+
+Melan+IceClass "Neverland Ice"
+        VoicePitch = 110
+End
+
+Elite+IceClass "AP Sketch"
+        VoicePitch = 110
+End
+
+Elite+RebeccaClass "rebebx"
+        VoicePitch = 110
+End
+
+Elite+RebeccaClass "Tnm Redandb1ue"
+        VoicePitch = 110
+End
+
+Elite+MoiraClass "ASP Moira"
+        VoicePitch = 110
+End
+
+Elite+QiaoyingClass "BLOOM plainyingying"
+        VoicePitch = 110
+End
+
+Elite+DeliaClass "INF chiyoriinn"
+        VoicePitch = 110
+End
+
+Elite+JenaClass "NJ jenapoppins"
+
+        VoicePitch = 110
+End
+
+Elite+KiraClass "Art KTenshi"
+        VoicePitch = 110
+End
+
+Elite+KiraClass "SR skysbeautylai"
+
+        VoicePitch = 110
+End
+
+Elite+ShannonClass "FRUIT yuuschan"
+        VoicePitch = 110
+End
+
+Elite+PeishanClass "PPX yuuki_PS"
+        VoicePitch = 110
+End
+
+Elite+ValerieClass "d20 kitties258"
+
+	VoicePitch = 110
+End
+
+Elite+PasheaClass "CaeSC kyyltn"
+	VoicePitch = 110
+End
+
+Elite+ValerieClass "AP mond33__"
+	VoicePitch = 110
+End
+
+Elite+TwinkleClass "KIEDZ zuann_"
+	VoicePitch = 110
+End
+
+Elite+TwinkleClass "INF siddnely"
+	VoicePitch = 110
+End
+
+Elite+WanyenClass "uKy Kai"
+	VoicePitch = 110
+End
+
+Elite+WanyenClass "Xyrren"
+	VoicePitch = 110
+End
+
+Elite+DeliaClass "RLB le_pyrrhic"
+        VoicePitch = 110
+End
+
+Elite+TwinkleClass "Alc tanykeat"
+	VoicePitch = 110
+End
+
+Elite+TwinkleClass "DNC winterkindlita"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "Cyn miorine"
+	VoicePitch = 110
+End
+
+Elite+TwinkleClass "CaeSC Baer"
+	VoicePitch = 110
+End
+
+Elite+TwinkleClass "Bb Volatus"
+	VoicePitch = 110
+End
+
+Elite+TwinkleClass "Neverland Resent"
+	VoicePitch = 110
+End
+
+Elite+WanyenClass "LMN kkayyteeee"
+	VoicePitch = 110
+End
+
+Elite+WanyenClass "yinnzx"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "GGR bluenerd8"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "DNC laavv._"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "D1 lilraxxx"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "0v3 Pearlim"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "KIEDZ Elfy Mint"
+	VoicePitch = 110
+End
+
+Melan+TwinkleClass "INF Dirfun"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "AET CrimsynFlames"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "KIEDZ Illus"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "PPX Nifela"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "Airizu"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "d20 Spoods"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "Cyn Decrease"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "NJ VPLH"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "Cyn Soozy"
+	VoicePitch = 40
+End
+
+Melan+TwinkleClass "Ryujin"
+	VoicePitch = 40
+End
+
+Melan+WanyenClass "NJ Astro_Ruckus"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "TearsofDeath"
+        VoicePitch = 110
+End
+
+Elite+JoyClass "PPX ehsten"
+        VoicePitch = 110
+End
+
+Elite+JoyClass "SR capplecrow"
+        VoicePitch = 110
+End
+
+Elite+JoyClass "UNF _kellyxleox_"
+        VoicePitch = 110
+End
+
+Elite+JoyClass "SS Leveti"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "MLT Kyan"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "LMN MoonRaika"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "Art Skyllabtw"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "99L m0wmeow"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "RV ebi"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "d20 Laburi"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "n/tt Mike"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "OPAL Scorpium"
+	VoicePitch = 110
+End
+
+
+Melan+XinjieClass "M kn"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "BLOOM winda"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "MKAkili"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "cwstalVT"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "Karasu"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "uKy nattyuwus"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "99L y1jingg"
+        VoicePitch = 110
+End
+
+Elite+DoreneClass "XueQiii"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "UNF Joshiwahhh"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "OPAL Seireiix"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "MLT SashimiGoesBloop"
+        VoicePitch = 110
+End
+
+Melan+JaelClass "yumezukiyomi"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "NJ crazywhoopies"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "KIEDZ declaration__"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "0v3 milkenut"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "Bb Nutzeru"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "Nataleste"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "LMN Meowcolmz"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "thehidz"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "RV treblest"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "uKy MugCowPayLucky"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "0v3 Navikuun"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "dgr Zoweya"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "Jenakai"
+	VoicePitch = 110
+End
+
+Melan+DoreneClass "MLT Celtsm"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "briant"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "CsM sneakyyyyy"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "NsN jhjj80"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "OPAL Kuro_mi"
+	VoicePitch = 110
+End
+
+Melan+DoreneClass "SR Asterisks"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "RLB daifuku.wu"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "JStarWolf"
+        VoicePitch = 110
+End
+
+Melan+DoreneClass "0v3 zenn1sm"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "M estellyy."
+	VoicePitch = 110
+End
+
+Melan+MelanClass "NsN HeyImKaiWen"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "Tnm luciddoob"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "Tnm Rethnap"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "RLB caturteer"
+        VoicePitch = 110
+End
+
+Melan+DoreneClass "Art rebellioniite"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "D1 notccillia"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "akuluvr"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "dgr airawwr"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "LMN luminichi"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "Tnm mominichi"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "OPAL lumi.nyaa"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "Art SanCtuary"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "Alc d.chong"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "d20 Eroxis"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "swoopsy"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "AP Chiai Fujikawa"
+	VoicePitch = 110
+End
+
+Elite+DoreneClass "Bb beyouna"
+	VoicePitch = 110
+End
+
+Melan+IceClass "Tnm Nikorasu"
+        VoicePitch = 110
+End
+
+
+Melan+MelanClass "Bb l1feless"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "dgr Anony"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "Art Yixl"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "99L Sheep"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "aTL BaBaYaGa"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "RV koen"
+        VoicePitch = 110
+End
+
+Melan+MelanClass "AET drip"
+	VoicePitch = 110
+End
+
+Melan+IceClass "SR matcha"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "CaeSC 4_naru"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "BLOOM lumpydayo"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "CsM azzuto"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "0v3 potatodepresso"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "SR Wellson111"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "uKy kael"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "CaeSC Nyuii"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "BLOOM fleurcoz"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "UtsuhoNull"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "D1 xolalotl"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Alc EviKuroneko"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "obvMX"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "KiokoCheiko"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "GGR gigichiii_"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "5P AngelXAim"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "nyxcatto"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "afayctionate"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "MLT FeatBri"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "Nightveil Lycoris"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "dgr AltheaVT"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "HiguVT"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "CsM kokushi_vampir"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "TCMY teckiyo"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "Laurel"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "RLB TiF2"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "M XueHuaVT"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "D1 midorissi"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "NOTORIOUS47"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "CryingNutz"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "GGR mmirawr_"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "M Xyrolizea"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "aTL Anndreika"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "PPX Reffelexx"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "Vyphogrid"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "5P TortillaRoll"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "n/tt Ryker_Sterling"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "TRPaki"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "n/tt xJavyz"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "M urnisa_"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "D1 emiiiyu"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "ssseiso"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "GGR yunaeyomedia"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "TCMY SkuxxNinja44"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "99L minMaXXer"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Sadgeboi"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "TCMY OchakoKiyomi"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "ASP TuxedoCat"
+	VoicePitch = 110
+End
+
+Elite+XinJieClass "CsM DelphoxLuna"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Tigeraxd"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "XPLO 88EXP"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Pattsuu"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "dgr VanixEvans"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "Aranionja"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "ASP Hanarisu"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "GGR YoJareddo"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "UNF WO4TK"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "Alc NekoSoji"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "BLOOM VeniceC"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "AET Suzuyunn"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "wushii"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "AET Marsinss"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "UNF dudriduo_"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "TCMY nicsman"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "kimmixd"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "ShizuyaUmiko"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "kanarivt"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "RV CRex"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "Aweberry"
+        VoicePitch = 110
+End
+
+Elite+MoiraClass "aTL awtoh"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "PSYSTRA"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "ProPHOcy_"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "AuraSinVT"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Dianya"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "sURF"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "TCMY carv"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "Alc hikopiko_"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Shuvimo"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "cherri_vt"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "CsM inaxho"
+	VoicePitch = 110
+End
+
+Melan+QixuanClass "ASP Stylus"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "n/tt yerm"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Syrrith"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "99L BluBEAR"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "Yarimell"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "voxslefthorn"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "n/tt Xrela"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "Jasticar"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "Cyn haniikyu"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "itswendy_"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "YinghuVT"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "RLB murasakibara_tsuki1"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "RV des506"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "AyanOwOT"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "MLT GoddessAkane"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "AkanersVT"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "uKy Acryii_"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "stitchkyui"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "twentyrosie"
+        VoicePitch = 110
+End
+
+Melan+IceClass "djsalty_"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Emily_melody"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Karoni"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "Codiant"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "Nerfox"
+        VoicePitch = 110
+End
+
+Melan+IceClass "Just_Ansel"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Spinafex"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Yaekia"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "arcimoon"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "XPLO StrigidaeVT"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "LeilaMayadah"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "pastellows"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "shirou_kitakami"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "Neverland Sayucchi"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "SachiMizora"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "ruamamiya"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "FumishiroYummy"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "XPLO tapiyokaaa"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "anju_o"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "PenguChi"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "ABM Tachibana Hinano"
+        VoicePitch = 110
+End
+
+Ice+HesterClass "ABM Remia Aotsuki"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "ABM Tsumugi Kokage"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "ABM Shiranami Ramune"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "ABM Eris Suzukami"
+        VoicePitch = 110
+End
+
+Ice+XinjieClass "keikatamori"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Kaito_Oshino"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "aTL NipNip"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "JigglyPingu"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "RumiRumi"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "HakoP"
+        VoicePitch = 110
+End
+
+Elite+MoiraClass "rittan0x0"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "JustYoong"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "aTL EfreetsZ"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "rattecs"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "djassaulty"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "ItzMaigay"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "Goonuyun"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Spectrum Gabriel"
+	VoicePitch = 110
+End
+
+Elite+IceClass "Icington the third"
+	VoicePitch = 110
+End
+
+Melan+IceClass "ItzMaigo"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "vixi"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "emmabutnormal"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Bajiru_EN"
+	VoicePitch = 110
+End
+
+Elite+XinJieClass "StrandedPond"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "RaviasEir"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "5P dumbo"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "boopydoopy"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "ErineRurie"
+	VoicePitch = 110
+End
+
+Elite+XinJieClass "kaikaijins"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "MizukiiMoon"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "candybar_isblue"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "kimonra"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "Dazeido"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Hamzyy"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "Kogara Toto"
+        VoicePitch = 110
+End
+
+Ice+HesterClass "Kaga Nazuna"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Ichinose Uruha"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "Kaga Sumire"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Kurumi Noah"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "5P Kisaragi Ren"
+        VoicePitch = 110
+End
+
+Ice+HesterClass "Asumi Sena"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Hanabusa Lisa"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "Tosaki Mimi"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Kaminari Qpi"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "Yakumo Beni"
+        VoicePitch = 110
+End
+
+Ice+HesterClass "Aizawa Ema"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Shinomiya Runa"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "Yumeno Akari"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Nekota Tsuna"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "Komori Met"
+        VoicePitch = 110
+End
+
+Ice+HesterClass "Choya Hanabi"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Sendo Yuuhi"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "Yano Kuromu"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Amayui Moka"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "Ginjo Saine"
+        VoicePitch = 110
+End
+
+Ice+HesterClass "Tatsumaki Chise"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Arya Kuroha"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "Narin Mikure"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "Jira Jisaki"
+        VoicePitch = 110
+End
+
+Ice+XinjieClass "Juno Umezono"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "Riko Solari"
+        VoicePitch = 110
+End
+
+Ice+HesterClass "Michimouto"
+	VoicePitch = 110
+End
+
+Elite+HesterClass "Kojadayo"
+	VoicePitch = 110
+End
+
+Elite+HesterClass "Skiazelle"
+	VoicePitch = 110
+End
+
+Ice+MelanClass "Kamito"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "Loonatic"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "bodexx"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "bloodbane"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "L2Strike"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Xevaria"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "kyomikoo"
+	VoicePitch = 110
+End
+
+Melan+QixuanClass "VSSMB"
+        VoicePitch = 110
+End
+
+Elite+MelanClass "moricorovt"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "SoapiiSereia"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Niamocha"
+	VoicePitch = 110
+End
+
+Elite+MoiraClass "Aleaka"
+	VoicePitch = 110
+End
+
+Melan+QixuanClass "MilliannaVT"
+        VoicePitch = 110
+End
+
+Elite+JaelClass "XPLO TokieShepherdVT"
+	VoicePitch = 110
+End
+
+Elite+HesterClass "Hyvred"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "TiniiBee"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "yukihimeowo"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Zarlard"
+	VoicePitch = 110
+End
+
+Elite+JaelClass "XPLO Cursiffe"
+	VoicePitch = 110
+End
+
+Elite+HesterClass "cassiopeiarawr"
+	VoicePitch = 110
+End
+
+Elite+MelanClass "_froggiee"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "voidnw"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "itswinter__"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "KydaSana"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "scorn"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "MiyaLeile"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "Hanyachi"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "qebo"
+	VoicePitch = 110
+End
+
+
+Elite+JaelClass "Arch1e"
+	VoicePitch = 20
+End
