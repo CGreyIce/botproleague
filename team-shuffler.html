@@ -159,11 +159,19 @@
           <button class="btn-primary" id="addBtn">Add Players</button>
         </div>
         <div class="field" style="flex:0;">
+          <button class="btn-secondary" id="importBtn">Import List (.txt)</button>
+          <input type="file" id="importFile" accept=".txt" style="display:none;">
+        </div>
+        <div class="field" style="flex:0;">
+          <button class="btn-secondary" id="exportBtn">Export List (.txt)</button>
+        </div>
+        <div class="field" style="flex:0;">
           <button class="btn-secondary" id="clearAllBtn">Clear All</button>
         </div>
       </div>
       <div class="player-list" id="ungroupedList"></div>
       <div class="empty-note" id="emptyNote">No players added yet.</div>
+      <p style="color:var(--ink-dim); font-size:11px; margin:12px 0 0;">Your roster starts preloaded with your saved list. Add more names above, then hit <b>Export List</b> to save an updated .txt — next time, use <b>Import List</b> to load it back in.</p>
     </div>
 
     <div class="panel">
@@ -208,7 +216,8 @@
 const GROUP_COLORS = ['#ff5a3c', '#3ea6ff', '#6cf0a0', '#d9b23e', '#c77dff', '#ff7ac6', '#5adfd0', '#f2994a'];
 let groupColorIndex = 0;
 
-let players = [];   // array of strings (unique names), includes grouped and ungrouped
+const DEFAULT_PLAYERS = ["TearsofDeath", "okjustsmd", "EXaCT", "Luneforrune", "Laurel", "AyanOwOT", "Dianya", "thehidz", "bodexx", "Karasu", "TRPaki", "Nightveil Lycoris", "ProPHOcy_", "Kaga Nazuna", "Sendo Yuuhi", "Ichinose Uruha", "Aizawa Ema", "yinnzx", "Hyvred", "TiniiBee", "Juno Umezono", "Aleaka", "FumishiroYummy", "Hanabusa Lisa", "YinghuVT", "Yumeno Akari", "LeilaMayadah", "KrinoJ", "Kaminari Qpi", "twentyrosie", "Narin Mikure", "Choya Hanabi", "Jasticar", "akuluvr", "Kamito", "Hamzyy", "Nataleste", "djsalty_", "kimmixd", "itswendy_", "Niamocha", "Tigeraxd", "L2Strike", "Just_Ansel", "RumiRumi", "Aweberry", "Loonatic", "Nerfox", "RaviasEir", "Skiazelle", "Asumi Sena", "Kogara Toto", "kaikaijins", "voxslefthorn", "JigglyPingu", "boopydoopy", "SachiMizora", "keikatamori", "Nekota Tsuna", "Syrrith", "Ginjo Saine", "sURF", "rittan0x0", "kimonra", "Kurumi Noah", "ruamamiya", "swoopsy", "wushii", "rach.elx_", "Kyu", "Vyphogrid", "briant", "Yaekia", "CryingNutz", "ErineRurie", "pastellows", "kanarivt", "HakoP", "emmabutnormal", "MizukiiMoon", "KurmitSuicidal", "Kaito_Oshino", "Xyrren", "XueQiii", "tiger.lark", "UtsuhoNull", "JStarWolf", "MKakili", "VSSMB", "Michimouto", "JustYoong", "Jira Jisaki", "Yakumo Beni", "leachubby", "anju_o", "Airizu", "PSYSTRA", "SoapiiSereia", "cwstalVT", "bloodbane", "moricorovt", "Pattsuu", "Arya Kuroha", "ItzMaigo", "stitchkyui", "Shuvimo", "nyxcatto", "kenzieyii", "PenguChi", "HiguVT", "rattecs", "afayctionate", "Amayui Moka", "Yarimell", "Jenakai", "zhizyii", "Kaga Sumire", "Tatsumaki Chise", "Riko Solari", "Spinafex", "Dazeido", "Ryujin", "StrandedPond", "Karoni", "vixi", "dla.wo", "Kojadayo", "shirou_kitakami", "Bajiru_EN", "xmeijixx", "ssseiso", "Yano Kuromu", "NOTORIOUS47", "voidnw", "itswinter__", "_froggiee", "kyomikoo", "AkanersVT", "KiokoCheiko", "Xevaria", "cherri_vt", "MilliannaVT", "Zarlard", "yukihimeowo", "AuraSinVT", "KydaSana", "scorn", "MiyaLeile", "Hanyachi", "qebo", "Codiant", "candybar_isblue", "ostc.x", "arcimoon", "yumezukiyomi"];
+let players = DEFAULT_PLAYERS.slice();   // array of strings (unique names), includes grouped and ungrouped
 let groups = [];    // array of { id, color, members: [names] }
 let selected = new Set(); // names currently checked for grouping
 let lastTeams = null; // cached result for re-render
@@ -238,21 +247,59 @@ bulkInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) addPlayersFromInput();
 });
 
+const importBtn = document.getElementById('importBtn');
+const importFile = document.getElementById('importFile');
+const exportBtn = document.getElementById('exportBtn');
+
+importBtn.addEventListener('click', () => importFile.click());
+importFile.addEventListener('change', () => {
+  const file = importFile.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const names = String(reader.result).split(/[\n,]/).map(normalizeName).filter(Boolean);
+    const added = addNamesToRoster(names);
+    renderPlayers();
+    alert(`Imported ${added} new player(s) from ${file.name}.`);
+  };
+  reader.readAsText(file);
+  importFile.value = ''; // allow re-importing the same file later
+});
+
+exportBtn.addEventListener('click', () => {
+  if (players.length === 0) { alert('No players to export yet.'); return; }
+  const text = players.join('\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'players-list.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
 function normalizeName(n) { return n.trim(); }
 
-function addPlayersFromInput() {
-  const raw = bulkInput.value;
-  if (!raw.trim()) return;
-  const parts = raw.split(/[\n,]/).map(normalizeName).filter(Boolean);
+function addNamesToRoster(names) {
   const existingLower = new Set(players.map(p => p.toLowerCase()));
   let addedCount = 0;
-  parts.forEach(name => {
-    if (!existingLower.has(name.toLowerCase())) {
+  names.forEach(name => {
+    if (name && !existingLower.has(name.toLowerCase())) {
       players.push(name);
       existingLower.add(name.toLowerCase());
       addedCount++;
     }
   });
+  return addedCount;
+}
+
+function addPlayersFromInput() {
+  const raw = bulkInput.value;
+  if (!raw.trim()) return;
+  const parts = raw.split(/[\n,]/).map(normalizeName).filter(Boolean);
+  addNamesToRoster(parts);
   bulkInput.value = '';
   renderPlayers();
 }
