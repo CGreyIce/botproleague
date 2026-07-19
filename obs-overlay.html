@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OBS Overlay</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html, body {
+    background: transparent;
+    width: 100%; height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow: hidden;
+  }
+  #root {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+  }
+  .bar {
+    display: flex; align-items: center; gap: 0;
+    background: rgba(8, 10, 14, 0.72);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 10px 18px;
+    backdrop-filter: blur(2px);
+  }
+  .team {
+    display: flex; align-items: center; gap: 10px;
+    min-width: 140px;
+  }
+  .team.b { flex-direction: row-reverse; }
+  .team .icon {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+    background: rgba(255,255,255,0.06); flex-shrink: 0;
+  }
+  .team .icon.placeholder {
+    display:flex; align-items:center; justify-content:center;
+    color: rgba(255,255,255,0.25); font-size: 14px;
+  }
+  .team .name {
+    color: #f2f4f8; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .team.a .name { color: #ffb199; }
+  .team.b .name { color: #a9d8ff; }
+
+  .pips { display:flex; align-items:center; gap: 14px; padding: 0 20px; }
+  .pip-group { display:flex; gap: 6px; }
+  .pip-group.a { flex-direction: row-reverse; }
+  .pip {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .pip.filled.a { background: #ff5a3c; border-color: #ff5a3c; }
+  .pip.filled.b { background: #3ea6ff; border-color: #3ea6ff; }
+  .divider { width: 1px; height: 22px; background: rgba(255,255,255,0.15); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+const STORAGE_KEY = 'cs_overlay_state_v1';
+
+function defaultState() {
+  return { teamAName: 'Team A', teamBName: 'Team B', teamAIcon: '', teamBIcon: '', format: 'bo3', winsA: 0, winsB: 0 };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    return Object.assign(defaultState(), JSON.parse(raw));
+  } catch (e) {
+    return defaultState();
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderIcon(src, side) {
+  if (src) return `<img class="icon" src="${src}" alt="">`;
+  return `<div class="icon placeholder">${side === 'a' ? 'A' : 'B'}</div>`;
+}
+
+function renderPips(state) {
+  const needed = state.format === 'bo5' ? 3 : 2;
+  let aPips = '';
+  for (let i = 0; i < needed; i++) {
+    aPips += `<div class="pip${i < state.winsA ? ' filled a' : ''}"></div>`;
+  }
+  let bPips = '';
+  for (let i = 0; i < needed; i++) {
+    bPips += `<div class="pip${i < state.winsB ? ' filled b' : ''}"></div>`;
+  }
+  return `
+    <div class="pip-group a">${aPips}</div>
+    <div class="divider"></div>
+    <div class="pip-group b">${bPips}</div>
+  `;
+}
+
+function render(state) {
+  document.getElementById('root').innerHTML = `
+    <div class="bar">
+      <div class="team a">
+        ${renderIcon(state.teamAIcon, 'a')}
+        <span class="name">${escapeHtml(state.teamAName)}</span>
+      </div>
+      <div class="pips">${renderPips(state)}</div>
+      <div class="team b">
+        ${renderIcon(state.teamBIcon, 'b')}
+        <span class="name">${escapeHtml(state.teamBName)}</span>
+      </div>
+    </div>
+  `;
+}
+
+let lastRaw = null;
+function poll() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw !== lastRaw) {
+    lastRaw = raw;
+    render(loadState());
+  }
+}
+setInterval(poll, 300);
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY) { lastRaw = e.newValue; render(loadState()); }
+});
+
+render(loadState());
+</script>
+</body>
+</html>
