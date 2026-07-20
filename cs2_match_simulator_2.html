@@ -174,12 +174,39 @@
   .save-line-name{font-weight:600;}
   .save-line-reason{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
   .hunt-tag{color:var(--kill);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;}
+  .entry-tag{color:#E8A33D;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;border:1px solid var(--t-accent-dim);padding:1px 4px;border-radius:3px;}
+  .trade-tag{color:#8fd1ff;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;border:1px solid var(--ct-accent-dim);padding:1px 4px;border-radius:3px;}
+  .clutch-tag{color:var(--bomb);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;border:1px solid var(--bomb);padding:1px 4px;border-radius:3px;}
+  .flavor-tag{color:var(--muted);font-style:italic;font-size:12px;}
+  .clutch-line{font-size:12px;color:var(--bomb);margin:6px 0 6px 8px;font-family:'Inter',sans-serif;font-weight:500;}
+  .clutch-line.clutch-win{color:var(--bomb);font-weight:700;font-size:14px;}
+  .clutch-line.clutch-loss{color:var(--muted);font-weight:400;}
+  .ace-line{
+    font-size:15px;font-weight:700;color:#0B0E12;background:linear-gradient(90deg,var(--bomb),var(--t-accent));
+    margin:8px 0;padding:8px 12px;border-radius:6px;font-family:'Rajdhani',sans-serif;letter-spacing:.03em;
+  }
+  .halftime-line{
+    text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;
+    letter-spacing:.08em;margin:20px 0;padding:10px 0;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+  }
+  .halftime-score{color:var(--text);font-weight:600;}
+  .halftime-top{color:var(--bomb);font-weight:600;}
 
   /* ---------- FINAL SCOREBOARD ---------- */
   #finalScreen{display:none;}
   .final-header{text-align:center;margin-bottom:24px;}
   .final-header h2{font-size:30px;margin:0;}
   .final-header .final-score{font-family:'IBM Plex Mono',monospace;font-size:20px;color:var(--muted);margin-top:6px;}
+  .match-mvp-card{
+    max-width:420px;margin:0 auto 24px;padding:16px 22px;border-radius:10px;text-align:center;
+    background:linear-gradient(135deg,rgba(232,163,61,0.14),rgba(76,143,209,0.14));
+    border:1px solid var(--line);
+  }
+  .match-mvp-card .mmc-kicker{
+    font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  }
+  .match-mvp-card .mmc-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:26px;color:var(--bomb);margin:4px 0;}
+  .match-mvp-card .mmc-line{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:12px;}
   .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   .stats-team{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;}
   .stats-team h3{margin:0 0 12px;font-size:18px;}
@@ -280,6 +307,7 @@
       <h2>MATCH COMPLETE</h2>
       <div class="final-score" id="finalScoreText"></div>
     </div>
+    <div class="match-mvp-card" id="matchMvpCard"></div>
     <div class="stats-grid">
       <div class="stats-team t">
         <h3 id="finalNameA"></h3>
@@ -361,7 +389,7 @@
 
   /* ================= ENGINE ================= */
   function makePlayer(name, pref){
-    return {name, pref, money:START_MONEY, kills:0, deaths:0, assists:0, mvps:0, headshots:0, damage:0, lossStreak:0, roundsPlayed:0, savedWeapon:null};
+    return {name, pref, money:START_MONEY, kills:0, deaths:0, assists:0, mvps:0, clutches:0, headshots:0, damage:0, lossStreak:0, roundsPlayed:0, savedWeapon:null};
   }
 
   function decideBuy(p){
@@ -420,6 +448,9 @@
     return 0.25;
   }
 
+  const FLAVOR_TAGS = ['through smoke','wallbang','jumping shot','one-tap','spray transfer','off a peek','flick shot'];
+  const CLUTCH_TABLE = {1:0.45, 2:0.22, 3:0.10, 4:0.05, 5:0.02};
+
   function simulateRound(teamA, teamB, tKey, matchPointActive){
     const buysA = teamA.players.map(decideBuy);
     const buysB = teamB.players.map(decideBuy);
@@ -427,49 +458,18 @@
     const strengthB = buysB.reduce((s,b)=>s+b.score,0) + Math.random()*2;
     let probA = strengthA/(strengthA+strengthB);
     probA = Math.min(0.92, Math.max(0.08, probA));
-    const winner = Math.random()<probA ? 'A':'B';
-    const loser = winner==='A'?'B':'A';
 
-    const winTeam = winner==='A'?teamA:teamB;
-    const loseTeam = winner==='A'?teamB:teamA;
-    const winBuys = winner==='A'?buysA:buysB;
-    const loseBuys = winner==='A'?buysB:buysA;
-
-    const tTeam = tKey==='A'?teamA:teamB;
-    const strengthT = tKey==='A'?strengthA:strengthB;
-    const plantProb = Math.min(0.85, Math.max(0.2, strengthT/(strengthT+6)));
-    let plantedThisRound = Math.random() < plantProb;
-
-    let bombDetonated = false;
-    let method;
-    if (winner===tKey){
-      bombDetonated = Math.random()<0.35;
-      if (bombDetonated) plantedThisRound = true;
-      method = bombDetonated ? 'Bomb Detonation' : 'Elimination';
-    } else {
-      method = plantedThisRound ? 'Defuse' : 'Elimination';
-    }
-
-    winTeam.players.forEach(p=>{
-      p.money = Math.min(MAX_MONEY, p.money + (bombDetonated?WIN_REWARD_BOMB:WIN_REWARD));
-      p.lossStreak = 0;
-    });
-    loseTeam.players.forEach(p=>{
-      const idx = Math.min(p.lossStreak,4);
-      p.money = Math.min(MAX_MONEY, p.money + LOSS_BONUS[idx]);
-      p.lossStreak = Math.min(p.lossStreak+1,4);
-    });
-    let bonusToLoser = false;
-    if (loser===tKey && plantedThisRound){
-      tTeam.players.forEach(p=> p.money = Math.min(MAX_MONEY, p.money+BOMB_PLANT_BONUS));
-      bonusToLoser = true;
-    }
+    let winner = Math.random()<probA ? 'A':'B';
+    let loser = winner==='A'?'B':'A';
+    let winTeam = winner==='A'?teamA:teamB;
+    let loseTeam = winner==='A'?teamB:teamA;
+    let winBuys = winner==='A'?buysA:buysB;
+    let loseBuys = winner==='A'?buysB:buysA;
 
     const deathsLosing = 3 + Math.floor(Math.random()*3);
     const deathsWinning = Math.floor(Math.random()*Math.random()*5);
 
     const kills = [];
-    const winRoundKills = new Array(winTeam.players.length).fill(0);
     const ASSIST_CHANCE = 0.45;
 
     const victimsLosing = sampleWithoutReplacement(loseTeam.players, deathsLosing);
@@ -479,7 +479,6 @@
       const killer = winTeam.players[idx];
       const wscore = winBuys[idx].score;
       killer.kills++; victim.deaths++;
-      winRoundKills[idx]++;
       killer.money = Math.min(MAX_MONEY, killer.money+KILL_REWARD);
       killer.damage += 80+Math.random()*70;
       const hs = Math.random()<hsChance(wscore);
@@ -488,7 +487,7 @@
         const others = winTeam.players.filter((p,i)=>i!==idx);
         others[Math.floor(Math.random()*others.length)].assists++;
       }
-      kills.push({killer:killer.name, victim:victim.name, weapon:winBuys[idx].buyType, hs, killerSide: winner});
+      kills.push({killer:killer.name, victim:victim.name, killerObj:killer, victimObj:victim, weapon:winBuys[idx].buyType, hs, killerSide: winner});
     });
     const victimsWinning = sampleWithoutReplacement(winTeam.players, deathsWinning);
     victimsWinning.forEach(victim=>{
@@ -505,55 +504,167 @@
         const others = loseTeam.players.filter((p,i)=>i!==idx);
         others[Math.floor(Math.random()*others.length)].assists++;
       }
-      kills.push({killer:killer.name, victim:victim.name, weapon:loseBuys[idx].buyType, hs, killerSide: loser});
+      kills.push({killer:killer.name, victim:victim.name, killerObj:killer, victimObj:victim, weapon:loseBuys[idx].buyType, hs, killerSide: loser});
     });
 
-    // Clutch saves: if it's not match point, and the losing team has 1-2
-    // survivors staring down 3+ enemies, those survivors can elect to save
-    // their weapon (and unspent money) for next round instead of dying for
-    // nothing. The numbers-advantage team gets cocky and hunts them down
-    // some of the time anyway, in which case the save fails and it's just
-    // a normal death.
+    // Trade kills: if a losing-side kill's victim is the exact player who
+    // just scored a kill for the winning side, tag it as a trade back.
+    kills.forEach((k, idx)=>{
+      if (k.killerSide===loser){
+        for (let j=0;j<idx;j++){
+          const k2 = kills[j];
+          if (k2.killerSide===winner && k2.killerObj===k.victimObj){
+            if (Math.random()<0.7){ k.isTrade=true; k.tradedFor=k2.victim; }
+            break;
+          }
+        }
+      }
+    });
+
+    // Entry duel: the round's very first kill, before any clutch/save
+    // action gets appended.
+    if (kills.length>0) kills[0].isEntry = true;
+
+    // Clutch / save: only relevant when the round isn't match point.
     const saves = [];
+    let clutchAttempt = null;
     const survivorsLosing = loseTeam.players.filter(p=>!victimsLosing.includes(p));
     const survivorsWinning = winTeam.players.filter(p=>!victimsWinning.includes(p));
-    if (!matchPointActive && survivorsLosing.length>0 && survivorsWinning.length>2){
+
+    if (!matchPointActive && survivorsLosing.length===1 && survivorsWinning.length>=1){
+      const clutcher = survivorsLosing[0];
+      const cIdx = loseTeam.players.indexOf(clutcher);
+      const cBuy = loseBuys[cIdx];
+      const enemyCount = survivorsWinning.length;
+      const baseChance = CLUTCH_TABLE[Math.min(5, enemyCount)];
+      const chance = Math.min(0.6, Math.max(0.01, baseChance + (cBuy.score-2)*0.02));
+      const success = Math.random() < chance;
+      clutchAttempt = {name:clutcher.name, enemyCount, success};
+
+      if (success){
+        // Clutch! The lone survivor mops up everyone still standing and
+        // the round result flips in their team's favor.
+        survivorsWinning.forEach(victim=>{
+          clutcher.kills++; victim.deaths++;
+          clutcher.money = Math.min(MAX_MONEY, clutcher.money+KILL_REWARD);
+          clutcher.damage += 80+Math.random()*70;
+          const hs = Math.random()<hsChance(cBuy.score);
+          if (hs) clutcher.headshots++;
+          kills.push({killer:clutcher.name, victim:victim.name, killerObj:clutcher, victimObj:victim, weapon:cBuy.buyType, hs, killerSide: loser, isClutch:true});
+        });
+        clutcher.clutches = (clutcher.clutches||0)+1;
+        const tmpWinner=winner, tmpLoser=loser;
+        winner=tmpLoser; loser=tmpWinner;
+        const tmpTeam=winTeam; winTeam=loseTeam; loseTeam=tmpTeam;
+        const tmpBuys=winBuys; winBuys=loseBuys; loseBuys=tmpBuys;
+      } else if (enemyCount>2){
+        // Failed the clutch attempt, but still outnumbered enough to try
+        // saving the gun instead of dying for nothing.
+        const huntChance = Math.min(0.75, Math.max(0.3, 0.3 + 0.15*(enemyCount-3)));
+        if (Math.random() < huntChance){
+          const hunter = survivorsWinning[Math.floor(Math.random()*survivorsWinning.length)];
+          const hIdx = winTeam.players.indexOf(hunter);
+          const hwscore = winBuys[hIdx].score;
+          hunter.kills++; clutcher.deaths++;
+          hunter.money = Math.min(MAX_MONEY, hunter.money+KILL_REWARD);
+          hunter.damage += 80+Math.random()*70;
+          const hs = Math.random()<hsChance(hwscore);
+          if (hs) hunter.headshots++;
+          kills.push({killer:hunter.name, victim:clutcher.name, killerObj:hunter, victimObj:clutcher, weapon:winBuys[hIdx].buyType, hs, killerSide: winner, hunted:true});
+        } else {
+          clutcher.savedWeapon = {buyType: cBuy.buyType, score: cBuy.score};
+          saves.push({name:clutcher.name, buyType:cBuy.buyType, outnumbered:`1v${enemyCount}`});
+        }
+      } else {
+        // 1v1 or 1v2 and the clutch attempt failed outright: they lose the duel.
+        const hunter = survivorsWinning[Math.floor(Math.random()*survivorsWinning.length)];
+        const hIdx = winTeam.players.indexOf(hunter);
+        const hwscore = winBuys[hIdx].score;
+        hunter.kills++; clutcher.deaths++;
+        hunter.money = Math.min(MAX_MONEY, hunter.money+KILL_REWARD);
+        hunter.damage += 80+Math.random()*70;
+        const hs = Math.random()<hsChance(hwscore);
+        if (hs) hunter.headshots++;
+        kills.push({killer:hunter.name, victim:clutcher.name, killerObj:hunter, victimObj:clutcher, weapon:winBuys[hIdx].buyType, hs, killerSide: winner, isClutch:true});
+      }
+    } else if (!matchPointActive && survivorsLosing.length===2 && survivorsWinning.length>2){
       const enemyCount = survivorsWinning.length;
       const huntChance = Math.min(0.75, Math.max(0.3, 0.3 + 0.15*(enemyCount-3)));
       survivorsLosing.forEach(survivor=>{
         const sIdx = loseTeam.players.indexOf(survivor);
         const survivorBuy = loseBuys[sIdx];
         if (Math.random() < huntChance){
-          // hunted down mid-save
-          const hIdx = Math.floor(Math.random()*survivorsWinning.length);
-          const hunter = survivorsWinning[hIdx];
-          const hwIdx = winTeam.players.indexOf(hunter);
-          const hwscore = winBuys[hwIdx].score;
+          const hunter = survivorsWinning[Math.floor(Math.random()*survivorsWinning.length)];
+          const hIdx = winTeam.players.indexOf(hunter);
+          const hwscore = winBuys[hIdx].score;
           hunter.kills++; survivor.deaths++;
-          winRoundKills[hwIdx]++;
           hunter.money = Math.min(MAX_MONEY, hunter.money+KILL_REWARD);
           hunter.damage += 80+Math.random()*70;
           const hs = Math.random()<hsChance(hwscore);
           if (hs) hunter.headshots++;
-          kills.push({killer:hunter.name, victim:survivor.name, weapon:winBuys[hwIdx].buyType, hs, killerSide: winner, hunted:true});
+          kills.push({killer:hunter.name, victim:survivor.name, killerObj:hunter, victimObj:survivor, weapon:winBuys[hIdx].buyType, hs, killerSide: winner, hunted:true});
         } else {
           survivor.savedWeapon = {buyType: survivorBuy.buyType, score: survivorBuy.score};
-          saves.push({name:survivor.name, buyType:survivorBuy.buyType, outnumbered:`${survivorsLosing.length}v${enemyCount}`});
+          saves.push({name:survivor.name, buyType:survivorBuy.buyType, outnumbered:`2v${enemyCount}`});
         }
       });
     }
 
-    // Round MVP: the winning team always gets one. Whoever has the most
-    // kills on that team takes it (ties broken at random, so a single kill
-    // or even a 1-1 tie still produces an MVP). Only if literally nobody on
-    // the winning team scored a kill do we fall back to the objective
-    // player, or failing that, a random pick from the team.
+    // Flavor tags: cosmetic-only texture on a minority of kills.
+    kills.forEach(k=>{
+      if (Math.random()<0.15){
+        if (k.weapon && k.weapon.toLowerCase().includes('awp') && Math.random()<0.5){
+          k.flavor='no-scope';
+        } else {
+          k.flavor = FLAVOR_TAGS[Math.floor(Math.random()*FLAVOR_TAGS.length)];
+        }
+      }
+    });
+
+    // Bomb/method logic uses the FINAL winner (post-clutch-flip if any).
+    const tTeam = tKey==='A'?teamA:teamB;
+    const strengthT = tKey==='A'?strengthA:strengthB;
+    const plantProb = Math.min(0.85, Math.max(0.2, strengthT/(strengthT+6)));
+    let plantedThisRound = Math.random() < plantProb;
+
+    let bombDetonated = false;
+    let method;
+    if (winner===tKey){
+      bombDetonated = Math.random()<0.35;
+      if (bombDetonated) plantedThisRound = true;
+      method = bombDetonated ? 'Bomb Detonation' : 'Elimination';
+    } else {
+      method = plantedThisRound ? 'Defuse' : 'Elimination';
+    }
+    if (clutchAttempt && clutchAttempt.success) method = 'Clutch';
+
+    winTeam.players.forEach(p=>{
+      p.money = Math.min(MAX_MONEY, p.money + (bombDetonated?WIN_REWARD_BOMB:WIN_REWARD));
+      p.lossStreak = 0;
+    });
+    loseTeam.players.forEach(p=>{
+      const idx = Math.min(p.lossStreak,4);
+      p.money = Math.min(MAX_MONEY, p.money + LOSS_BONUS[idx]);
+      p.lossStreak = Math.min(p.lossStreak+1,4);
+    });
+    let bonusToLoser = false;
+    if (loser===tKey && plantedThisRound){
+      tTeam.players.forEach(p=> p.money = Math.min(MAX_MONEY, p.money+BOMB_PLANT_BONUS));
+      bonusToLoser = true;
+    }
+
+    // Round MVP: tallied from the finalized kill list against the FINAL
+    // winning team, so a clutch flip credits the clutcher correctly.
+    const winnerTally = new Map();
+    kills.forEach(k=>{
+      if (k.killerSide===winner) winnerTally.set(k.killerObj, (winnerTally.get(k.killerObj)||0)+1);
+    });
     let mvpPlayerObj = null, mvpReason = null;
-    const bestKills = Math.max(...winRoundKills);
+    let bestKills = 0;
+    winTeam.players.forEach(p=>{ const c=winnerTally.get(p)||0; if (c>bestKills) bestKills=c; });
     if (bestKills > 0){
-      const tiedIdxs = winRoundKills.reduce((acc,k,i)=>{ if(k===bestKills) acc.push(i); return acc; }, []);
-      const pickIdx = tiedIdxs[Math.floor(Math.random()*tiedIdxs.length)];
-      mvpPlayerObj = winTeam.players[pickIdx];
+      const tied = winTeam.players.filter(p=>(winnerTally.get(p)||0)===bestKills);
+      mvpPlayerObj = tied[Math.floor(Math.random()*tied.length)];
       mvpReason = bestKills >= 3 ? 'Multi-kill' : (bestKills === 2 ? 'Double Kill' : 'Top Frag');
     } else if (method === 'Bomb Detonation'){
       mvpPlayerObj = winTeam.players[Math.floor(Math.random()*winTeam.players.length)];
@@ -568,18 +679,31 @@
     mvpPlayerObj.mvps++;
     const mvpName = mvpPlayerObj.name;
 
-    // shuffle kill feed order for natural interleaving
-    for(let i=kills.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [kills[i],kills[j]]=[kills[j],kills[i]];
+    let aceInfo = null;
+    if (bestKills >= 5){
+      const wasClutch = kills.some(k=>k.killerObj===mvpPlayerObj && k.isClutch);
+      aceInfo = {name: mvpPlayerObj.name, clutch: wasClutch};
     }
+
+    // Order the feed: entry duel leads, clutch/hunt resolution closes it
+    // out, everything else shuffles naturally in between.
+    const entryKill = kills.find(k=>k.isEntry) || null;
+    const climaxKills = kills.filter(k=>(k.isClutch||k.hunted) && k!==entryKill);
+    const middleKills = kills.filter(k=>k!==entryKill && !climaxKills.includes(k));
+    for(let i=middleKills.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [middleKills[i],middleKills[j]]=[middleKills[j],middleKills[i]];
+    }
+    const orderedKills = [];
+    if (entryKill) orderedKills.push(entryKill);
+    orderedKills.push(...middleKills, ...climaxKills);
 
     [...teamA.players, ...teamB.players].forEach(p=>{
       p.damage += Math.random()*20;
       p.roundsPlayed++;
     });
 
-    return {winner, method, plantedThisRound, bonusToLoser, kills, buysA, buysB, mvpName, mvpReason, saves};
+    return {winner, method, plantedThisRound, bonusToLoser, kills:orderedKills, buysA, buysB, mvpName, mvpReason, saves, clutchAttempt, aceInfo};
   }
 
   /* ================= MATCH STATE / DRIVER ================= */
@@ -657,6 +781,9 @@
   function playOneRound(){
     if (matchDone) return;
     round++;
+    if (phase==='reg' && round===13){
+      appendHalftimeBanner();
+    }
     if (phase==='OT' && ((round-1)%6)===0){
       resetEconomy(OT_START_MONEY);
       otNum++;
@@ -691,6 +818,17 @@
     feed.appendChild(div);
   }
 
+  function appendHalftimeBanner(){
+    const feed = document.getElementById('feedInner');
+    const allPlayers = [...teamA.players, ...teamB.players];
+    let top = allPlayers[0];
+    allPlayers.forEach(p=>{ if (p.kills>top.kills) top = p; });
+    const div = document.createElement('div');
+    div.className='halftime-line';
+    div.innerHTML = `— HALFTIME — <span class="halftime-score">${escapeHtml(teamA.name)} ${scoreA} : ${scoreB} ${escapeHtml(teamB.name)}</span> &middot; Top Fragger So Far: <span class="halftime-top">${escapeHtml(top.name)} (${top.kills}K)</span> —`;
+    feed.appendChild(div);
+  }
+
   function renderRound(res, tKey){
     const feed = document.getElementById('feedInner');
     const banner = document.createElement('div');
@@ -702,6 +840,15 @@
       <span class="rb-method">${res.method}</span>
     `;
     feed.appendChild(banner);
+
+    if (res.aceInfo){
+      const ac=document.createElement('div');
+      ac.className='ace-line';
+      ac.textContent = res.aceInfo.clutch
+        ? `🔥 CLUTCH ACE — ${res.aceInfo.name} takes down the entire enemy team!`
+        : `🔥 ACE — ${res.aceInfo.name} wipes the entire enemy team!`;
+      feed.appendChild(ac);
+    }
 
     if (res.bonusToLoser){
       const pl=document.createElement('div');
@@ -715,14 +862,37 @@
       feed.appendChild(pl);
     }
 
+    if (res.clutchAttempt){
+      const cl=document.createElement('div');
+      cl.className='clutch-line';
+      cl.textContent = `⚔️ 1v${res.clutchAttempt.enemyCount} — ${res.clutchAttempt.name} is the last one standing...`;
+      feed.appendChild(cl);
+    }
+
     res.kills.forEach(k=>{
       const line = document.createElement('div');
       line.className='kill-line';
       line.style.borderLeftColor = k.killerSide==='A' ? 'var(--t-accent)' : 'var(--ct-accent)';
       const verb = k.hunted ? 'hunts down' : 'eliminated';
-      line.innerHTML = `<span class="killer">${escapeHtml(k.killer)}</span> <span class="weapon-tag">[${escapeHtml(k.weapon)}]</span> ${verb} <span class="victim">${escapeHtml(k.victim)}</span>${k.hunted?' <span class="hunt-tag">(SAVE DENIED)</span>':''}${k.hs?' <span class="hs-tag">HEADSHOT</span>':''}`;
+      let tags = '';
+      if (k.isEntry) tags += ' <span class="entry-tag">FIRST BLOOD</span>';
+      if (k.isTrade) tags += ' <span class="trade-tag">TRADE</span>';
+      if (k.hunted) tags += ' <span class="hunt-tag">SAVE DENIED</span>';
+      if (k.isClutch && !k.hunted) tags += ' <span class="clutch-tag">CLUTCH</span>';
+      if (k.hs) tags += ' <span class="hs-tag">HEADSHOT</span>';
+      const flavorText = k.flavor ? ` <span class="flavor-tag">(${escapeHtml(k.flavor)})</span>` : '';
+      line.innerHTML = `<span class="killer">${escapeHtml(k.killer)}</span> <span class="weapon-tag">[${escapeHtml(k.weapon)}]</span> ${verb} <span class="victim">${escapeHtml(k.victim)}</span>${flavorText}${tags}`;
       feed.appendChild(line);
     });
+
+    if (res.clutchAttempt){
+      const cr=document.createElement('div');
+      cr.className = 'clutch-line '+(res.clutchAttempt.success?'clutch-win':'clutch-loss');
+      cr.textContent = res.clutchAttempt.success
+        ? `🏆 CLUTCHED! ${res.clutchAttempt.name} closes out the 1v${res.clutchAttempt.enemyCount}!`
+        : `${res.clutchAttempt.name} couldn't find the clutch this time.`;
+      feed.appendChild(cr);
+    }
 
     if (res.saves && res.saves.length){
       res.saves.forEach(s=>{
@@ -775,6 +945,18 @@
     }).join('');
   }
 
+  function computeMatchMVP(){
+    const all = [...teamA.players.map(p=>({p, team:teamA.name})), ...teamB.players.map(p=>({p, team:teamB.name}))];
+    let best = all[0], bestScore = -Infinity;
+    all.forEach(entry=>{
+      const p = entry.p;
+      const adr = p.roundsPlayed>0 ? p.damage/p.roundsPlayed : 0;
+      const score = p.kills*2 + p.assists*1 + p.mvps*3 + p.clutches*4 + adr*0.05;
+      if (score > bestScore){ bestScore = score; best = entry; }
+    });
+    return best;
+  }
+
   function showFinalScreen(){
     document.getElementById('matchScreen').style.display='none';
     document.getElementById('finalScreen').style.display='block';
@@ -785,6 +967,15 @@
     document.getElementById('finalNameB').textContent = teamB.name;
     document.getElementById('finalTableA').innerHTML = buildStatsTable(teamA);
     document.getElementById('finalTableB').innerHTML = buildStatsTable(teamB);
+
+    const mvpEntry = computeMatchMVP();
+    const p = mvpEntry.p;
+    const hsPct = p.kills>0 ? Math.round((p.headshots/p.kills)*100) : 0;
+    document.getElementById('matchMvpCard').innerHTML = `
+      <div class="mmc-kicker">Match MVP</div>
+      <div class="mmc-name">${escapeHtml(p.name)}</div>
+      <div class="mmc-line">${escapeHtml(mvpEntry.team)} &middot; ${p.kills}K / ${p.assists}A / ${p.deaths}D &middot; ${p.mvps} Round MVPs${p.clutches?(' &middot; '+p.clutches+' Clutch'+(p.clutches>1?'es':'')):''} &middot; ${hsPct}% HS</div>
+    `;
   }
 
   /* ================= CONTROLS ================= */
@@ -812,6 +1003,9 @@
     while(!matchDone && guard<300){
       guard++;
       round++;
+      if (phase==='reg' && round===13){
+        appendHalftimeBanner();
+      }
       if (phase==='OT' && ((round-1)%6)===0){
         resetEconomy(OT_START_MONEY);
         otNum++;
