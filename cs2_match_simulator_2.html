@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MATCH SIM // MR12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#0B0E12;
+    --panel:#141920;
+    --panel-2:#191F27;
+    --line:#232B35;
+    --t-accent:#E8A33D;
+    --t-accent-dim:#8a6529;
+    --ct-accent:#4C8FD1;
+    --ct-accent-dim:#2f4f6e;
+    --text:#E7EAEE;
+    --muted:#7A8593;
+    --kill:#E14B4B;
+    --bomb:#FFC145;
+    --good:#5FC98D;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg-void);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  ::selection{background:var(--t-accent);color:#0B0E12;}
+  h1,h2,h3,.display{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:0.02em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  #app{max-width:1100px;margin:0 auto;padding:28px 20px 60px;}
+
+  /* ---------- SETUP SCREEN ---------- */
+  .setup-header{text-align:center;margin-bottom:28px;}
+  .setup-header .kicker{
+    color:var(--muted);text-transform:uppercase;letter-spacing:0.25em;font-size:11px;font-family:'IBM Plex Mono',monospace;
+  }
+  .setup-header h1{font-size:42px;margin:6px 0 0;background:linear-gradient(90deg,var(--t-accent),var(--ct-accent));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .setup-header .sub{color:var(--muted);font-size:14px;margin-top:6px;}
+
+  .teams-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:0;
+    border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    position:relative;
+  }
+  .teams-grid::before{
+    content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
+    background:linear-gradient(180deg,var(--t-accent),var(--ct-accent));
+    opacity:.5;
+  }
+  .team-panel{padding:20px;background:var(--panel);}
+  .team-panel.t-side{border-right:none;}
+  .team-panel.t-side .team-label{color:var(--t-accent);}
+  .team-panel.ct-side .team-label{color:var(--ct-accent);}
+  .team-label{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;
+  }
+  .team-name-input{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;padding:8px 10px;border-radius:6px;margin-bottom:14px;
+  }
+  .team-panel.t-side .team-name-input:focus{outline:none;border-color:var(--t-accent);}
+  .team-panel.ct-side .team-name-input:focus{outline:none;border-color:var(--ct-accent);}
+
+  .player-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+  .player-row .num{
+    width:20px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;flex-shrink:0;
+  }
+  .player-name-input{
+    flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:9px 10px;border-radius:6px;font-size:14px;font-family:'Inter',sans-serif;min-width:0;
+  }
+  .player-name-input:focus{outline:none;border-color:var(--muted);}
+  .weapon-toggle{
+    display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex-shrink:0;
+  }
+  .weapon-toggle button{
+    border:none;background:var(--panel-2);color:var(--muted);font-family:'IBM Plex Mono',monospace;
+    font-size:11px;padding:9px 10px;cursor:pointer;transition:all .15s;
+  }
+  .t-side .weapon-toggle button.active{background:var(--t-accent);color:#1a1206;}
+  .ct-side .weapon-toggle button.active{background:var(--ct-accent);color:#08131f;}
+  .weapon-toggle button:not(.active):hover{color:var(--text);}
+
+  .vs-emblem{
+    text-align:center;margin:20px 0;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:.3em;
+  }
+
+  .start-btn{
+    display:block;width:100%;margin-top:22px;padding:16px;border:none;border-radius:8px;cursor:pointer;
+    background:linear-gradient(90deg,var(--t-accent),var(--ct-accent));
+    color:#0B0E12;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:18px;letter-spacing:.08em;
+    transition:transform .1s, filter .15s;
+  }
+  .start-btn:hover{filter:brightness(1.08);}
+  .start-btn:active{transform:scale(0.99);}
+  .format-note{text-align:center;color:var(--muted);font-size:12px;margin-top:10px;font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- MATCH SCREEN ---------- */
+  #matchScreen{display:none;}
+  .scoreboard{
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin-bottom:16px;
+    position:sticky;top:12px;z-index:5;
+  }
+  .sb-team{display:flex;align-items:center;gap:12px;}
+  .sb-team.right{flex-direction:row-reverse;text-align:right;}
+  .sb-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:20px;}
+  .sb-score{font-family:'IBM Plex Mono',monospace;font-size:32px;font-weight:600;}
+  .sb-team.left .sb-name, .sb-team.left .sb-score{color:var(--t-accent);}
+  .sb-team.right .sb-name, .sb-team.right .sb-score{color:var(--ct-accent);}
+  .sb-mid{text-align:center;}
+  .sb-round-label{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;}
+  .sb-pips{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap;max-width:220px;justify-content:center;}
+  .pip{width:7px;height:7px;border-radius:1px;background:var(--line);}
+  .pip.win-a{background:var(--t-accent);}
+  .pip.win-b{background:var(--ct-accent);}
+
+  .controls-bar{
+    display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:18px;flex-wrap:wrap;
+  }
+  .ctrl-btn{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:9px 16px;border-radius:6px;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;
+  }
+  .ctrl-btn:hover{border-color:var(--muted);}
+  .ctrl-btn.primary{background:var(--t-accent);color:#1a1206;border-color:var(--t-accent);font-weight:600;}
+  .ctrl-btn.active{background:var(--ct-accent);color:#08131f;border-color:var(--ct-accent);}
+
+  .feed-panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0;
+    height:440px;overflow-y:auto;position:relative;
+  }
+  .feed-inner{padding:16px 18px;}
+
+  .round-banner{
+    display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:6px;margin:18px 0 10px;
+    animation:slideIn .35s ease-out;
+    border-left:4px solid var(--muted);
+  }
+  .round-banner.win-a{background:rgba(232,163,61,0.12);border-left-color:var(--t-accent);}
+  .round-banner.win-b{background:rgba(76,143,209,0.12);border-left-color:var(--ct-accent);}
+  @keyframes slideIn{from{opacity:0;transform:translateX(-14px);}to{opacity:1;transform:translateX(0);}}
+  .round-banner .rb-round{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:12px;flex-shrink:0;}
+  .round-banner .rb-text{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;flex:1;}
+  .round-banner.win-a .rb-text{color:var(--t-accent);}
+  .round-banner.win-b .rb-text{color:var(--ct-accent);}
+  .round-banner .rb-method{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+
+  .buy-line{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin:2px 0 8px;padding-left:2px;
+  }
+
+  .kill-line{
+    font-size:13px;color:var(--text);padding:3px 2px 3px 8px;border-left:2px solid var(--line);margin-bottom:3px;
+    animation:fadeIn .3s ease-out;
+  }
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .kill-line .killer{font-weight:600;}
+  .kill-line .weapon-tag{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+  .kill-line .hs-tag{color:var(--kill);font-weight:600;font-size:11px;}
+  .kill-line .victim{color:var(--muted);}
+
+  .plant-line{font-size:12px;color:var(--bomb);font-family:'IBM Plex Mono',monospace;margin:2px 0 6px 8px;}
+  .mvp-line{font-size:12px;color:var(--bomb);margin:6px 0 4px 8px;font-family:'Inter',sans-serif;}
+  .mvp-line-name{font-weight:600;}
+  .mvp-line-reason{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+
+  /* ---------- FINAL SCOREBOARD ---------- */
+  #finalScreen{display:none;}
+  .final-header{text-align:center;margin-bottom:24px;}
+  .final-header h2{font-size:30px;margin:0;}
+  .final-header .final-score{font-family:'IBM Plex Mono',monospace;font-size:20px;color:var(--muted);margin-top:6px;}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .stats-team{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;}
+  .stats-team h3{margin:0 0 12px;font-size:18px;}
+  .stats-team.t h3{color:var(--t-accent);}
+  .stats-team.ct h3{color:var(--ct-accent);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:10px;
+    text-transform:uppercase;letter-spacing:.08em;padding:6px 4px;border-bottom:1px solid var(--line);
+  }
+  td{padding:8px 4px;border-bottom:1px solid var(--panel-2);font-family:'IBM Plex Mono',monospace;}
+  td.pname{font-family:'Inter',sans-serif;font-weight:600;}
+  .mvp-tag{color:var(--bomb);font-size:10px;margin-left:5px;}
+  .again-btn{
+    display:block;margin:28px auto 0;padding:14px 32px;border:none;border-radius:8px;cursor:pointer;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:.05em;
+  }
+  .again-btn:hover{border-color:var(--muted);}
+
+  @media (max-width:680px){
+    .teams-grid{grid-template-columns:1fr;}
+    .teams-grid::before{display:none;}
+    .team-panel.t-side{border-bottom:1px solid var(--line);}
+    .stats-grid{grid-template-columns:1fr;}
+    .sb-name{font-size:15px;}
+    .sb-score{font-size:24px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== SETUP SCREEN ===================== -->
+  <div id="setupScreen">
+    <div class="setup-header">
+      <div class="kicker">Best of MR12 &middot; Overtime Enabled</div>
+      <h1>MATCH SIM</h1>
+      <div class="sub">Set your rosters, pick a preferred weapon per player, then run the match.</div>
+    </div>
+
+    <div class="teams-grid">
+      <div class="team-panel t-side">
+        <div class="team-label">Terrorists &middot; Side A</div>
+        <input class="team-name-input" id="teamAName" value="Team Alpha" maxlength="24">
+        <div id="rosterA"></div>
+      </div>
+      <div class="team-panel ct-side">
+        <div class="team-label">Counter-Terrorists &middot; Side B</div>
+        <input class="team-name-input" id="teamBName" value="Team Bravo" maxlength="24">
+        <div id="rosterB"></div>
+      </div>
+    </div>
+
+    <div class="vs-emblem">— FIRST TO 13 &middot; OT IS MR3, FIRST TO 4 —</div>
+
+    <button class="start-btn" id="startBtn">START MATCH</button>
+    <div class="format-note">Side A opens on T. Sides swap at round 13. Overtime resets economy to $10,000.</div>
+  </div>
+
+  <!-- ===================== MATCH SCREEN ===================== -->
+  <div id="matchScreen">
+    <div class="scoreboard">
+      <div class="sb-team left">
+        <div>
+          <div class="sb-name" id="sbNameA">TEAM ALPHA</div>
+        </div>
+        <div class="sb-score" id="sbScoreA">0</div>
+      </div>
+      <div class="sb-mid">
+        <div class="sb-round-label" id="sbRoundLabel">PISTOL ROUND</div>
+        <div class="sb-pips" id="sbPips"></div>
+      </div>
+      <div class="sb-team right">
+        <div>
+          <div class="sb-name" id="sbNameB">TEAM BRAVO</div>
+        </div>
+        <div class="sb-score" id="sbScoreB">0</div>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <button class="ctrl-btn primary" id="playPauseBtn">⏸ PAUSE</button>
+      <button class="ctrl-btn" id="speed1">1x</button>
+      <button class="ctrl-btn" id="speed2">2x</button>
+      <button class="ctrl-btn" id="speed4">4x</button>
+      <button class="ctrl-btn" id="skipBtn">SKIP TO END</button>
+    </div>
+
+    <div class="feed-panel" id="feedPanel">
+      <div class="feed-inner" id="feedInner"></div>
+    </div>
+  </div>
+
+  <!-- ===================== FINAL SCREEN ===================== -->
+  <div id="finalScreen">
+    <div class="final-header">
+      <h2>MATCH COMPLETE</h2>
+      <div class="final-score" id="finalScoreText"></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stats-team t">
+        <h3 id="finalNameA"></h3>
+        <table>
+          <thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
+          <tbody id="finalTableA"></tbody>
+        </table>
+      </div>
+      <div class="stats-team ct">
+        <h3 id="finalNameB"></h3>
+        <table>
+          <thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
+          <tbody id="finalTableB"></tbody>
+        </table>
+      </div>
+    </div>
+    <button class="again-btn" id="newMatchBtn">SET UP NEW MATCH</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= CONFIG ================= */
+  const RIFLE_COST=2900, AWP_COST=4750, ARMOR_COST=1000, SMG_COST=1200;
+  const WIN_REWARD=3250, WIN_REWARD_BOMB=3500;
+  const LOSS_BONUS=[1400,1900,2400,2900,3400];
+  const KILL_REWARD=300, BOMB_PLANT_BONUS=800, MAX_MONEY=16000, START_MONEY=800, OT_START_MONEY=10000;
+  const DEFAULT_NAMES_A=['Ace','Blitz','Cinder','Drift','Echo'];
+  const DEFAULT_NAMES_B=['Fable','Glide','Havoc','Iris','Juno'];
+
+  /* ================= SETUP UI ================= */
+  const rosterA = document.getElementById('rosterA');
+  const rosterB = document.getElementById('rosterB');
+
+  function buildRoster(container, defaults, side){
+    for(let i=0;i<5;i++){
+      const row = document.createElement('div');
+      row.className='player-row';
+      row.innerHTML = `
+        <span class="num">${i+1}</span>
+        <input class="player-name-input" data-side="${side}" data-idx="${i}" value="${defaults[i]}" maxlength="18">
+        <div class="weapon-toggle" data-side="${side}" data-idx="${i}">
+          <button type="button" data-w="rifle" class="${i===4?'':'active'}">RIFLE</button>
+          <button type="button" data-w="awp" class="${i===4?'active':''}">AWP</button>
+        </div>
+      `;
+      container.appendChild(row);
+    }
+  }
+  buildRoster(rosterA, DEFAULT_NAMES_A, 'A');
+  buildRoster(rosterB, DEFAULT_NAMES_B, 'B');
+
+  document.querySelectorAll('.weapon-toggle').forEach(tg=>{
+    tg.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      tg.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  document.getElementById('startBtn').addEventListener('click', startMatch);
+
+  function collectTeam(side, nameInputId){
+    const players=[];
+    document.querySelectorAll(`.player-name-input[data-side="${side}"]`).forEach(inp=>{
+      const idx = inp.dataset.idx;
+      const toggle = document.querySelector(`.weapon-toggle[data-side="${side}"][data-idx="${idx}"]`);
+      const pref = toggle.querySelector('button.active').dataset.w;
+      const name = inp.value.trim() || `Player${parseInt(idx)+1}`;
+      players.push(makePlayer(name, pref));
+    });
+    const teamName = document.getElementById(nameInputId).value.trim() || 'Unnamed Team';
+    return {name: teamName, players};
+  }
+
+  /* ================= ENGINE ================= */
+  function makePlayer(name, pref){
+    return {name, pref, money:START_MONEY, kills:0, deaths:0, assists:0, mvps:0, headshots:0, damage:0, lossStreak:0, roundsPlayed:0};
+  }
+
+  function decideBuy(p){
+    const prefCost = p.pref==='awp'? AWP_COST: RIFLE_COST;
+    let buyType, score, cost;
+    if (p.money >= prefCost+ARMOR_COST){
+      buyType = p.pref==='awp' ? 'AWP':'Rifle';
+      score = p.pref==='awp'?5:4;
+      cost = prefCost+ARMOR_COST;
+    } else if (p.pref==='awp' && p.money >= RIFLE_COST+ARMOR_COST){
+      buyType='Rifle (fallback)'; score=4; cost=RIFLE_COST+ARMOR_COST;
+    } else if (p.money >= SMG_COST+ARMOR_COST){
+      buyType='Force (SMG+Kevlar)'; score=2.5; cost=SMG_COST+ARMOR_COST;
+    } else if (p.money >= SMG_COST){
+      buyType='Force (SMG)'; score=2; cost=SMG_COST;
+    } else if (p.money >= ARMOR_COST){
+      buyType='Eco (Kevlar)'; score=1; cost=ARMOR_COST;
+    } else {
+      buyType='Full Eco'; score=0.5; cost=0;
+    }
+    p.money -= cost;
+    return {buyType, score};
+  }
+
+  function weightedPick(weights){
+    const total = weights.reduce((a,b)=>a+b,0);
+    let r = Math.random()*total;
+    for (let i=0;i<weights.length;i++){
+      r -= weights[i];
+      if (r<=0) return i;
+    }
+    return weights.length-1;
+  }
+
+  function sampleWithoutReplacement(arr, n){
+    const copy = arr.slice();
+    const out = [];
+    n = Math.min(n, copy.length);
+    for(let i=0;i<n;i++){
+      const idx = Math.floor(Math.random()*copy.length);
+      out.push(copy[idx]);
+      copy.splice(idx,1);
+    }
+    return out;
+  }
+
+  function hsChance(weaponScore){
+    if (weaponScore>=5) return 0.75;
+    if (weaponScore>=4) return 0.45;
+    if (weaponScore>=2) return 0.35;
+    return 0.25;
+  }
+
+  function simulateRound(teamA, teamB, tKey){
+    const buysA = teamA.players.map(decideBuy);
+    const buysB = teamB.players.map(decideBuy);
+    const strengthA = buysA.reduce((s,b)=>s+b.score,0) + Math.random()*2;
+    const strengthB = buysB.reduce((s,b)=>s+b.score,0) + Math.random()*2;
+    let probA = strengthA/(strengthA+strengthB);
+    probA = Math.min(0.92, Math.max(0.08, probA));
+    const winner = Math.random()<probA ? 'A':'B';
+    const loser = winner==='A'?'B':'A';
+
+    const winTeam = winner==='A'?teamA:teamB;
+    const loseTeam = winner==='A'?teamB:teamA;
+    const winBuys = winner==='A'?buysA:buysB;
+    const loseBuys = winner==='A'?buysB:buysA;
+
+    const tTeam = tKey==='A'?teamA:teamB;
+    const strengthT = tKey==='A'?strengthA:strengthB;
+    const plantProb = Math.min(0.85, Math.max(0.2, strengthT/(strengthT+6)));
+    let plantedThisRound = Math.random() < plantProb;
+
+    let bombDetonated = false;
+    let method;
+    if (winner===tKey){
+      bombDetonated = Math.random()<0.35;
+      if (bombDetonated) plantedThisRound = true;
+      method = bombDetonated ? 'Bomb Detonation' : 'Elimination';
+    } else {
+      method = plantedThisRound ? 'Defuse' : 'Elimination';
+    }
+
+    winTeam.players.forEach(p=>{
+      p.money = Math.min(MAX_MONEY, p.money + (bombDetonated?WIN_REWARD_BOMB:WIN_REWARD));
+      p.lossStreak = 0;
+    });
+    loseTeam.players.forEach(p=>{
+      const idx = Math.min(p.lossStreak,4);
+      p.money = Math.min(MAX_MONEY, p.money + LOSS_BONUS[idx]);
+      p.lossStreak = Math.min(p.lossStreak+1,4);
+    });
+    let bonusToLoser = false;
+    if (loser===tKey && plantedThisRound){
+      tTeam.players.forEach(p=> p.money = Math.min(MAX_MONEY, p.money+BOMB_PLANT_BONUS));
+      bonusToLoser = true;
+    }
+
+    const deathsLosing = 3 + Math.floor(Math.random()*3);
+    const deathsWinning = Math.floor(Math.random()*Math.random()*5);
+
+    const kills = [];
+    const winRoundKills = new Array(winTeam.players.length).fill(0);
+    const ASSIST_CHANCE = 0.45;
+
+    const victimsLosing = sampleWithoutReplacement(loseTeam.players, deathsLosing);
+    victimsLosing.forEach(victim=>{
+      const weights = winTeam.players.map((p,i)=>winBuys[i].score+0.2);
+      const idx = weightedPick(weights);
+      const killer = winTeam.players[idx];
+      const wscore = winBuys[idx].score;
+      killer.kills++; victim.deaths++;
+      winRoundKills[idx]++;
+      killer.money = Math.min(MAX_MONEY, killer.money+KILL_REWARD);
+      killer.damage += 80+Math.random()*70;
+      const hs = Math.random()<hsChance(wscore);
+      if (hs) killer.headshots++;
+      if (winTeam.players.length>1 && Math.random()<ASSIST_CHANCE){
+        const others = winTeam.players.filter((p,i)=>i!==idx);
+        others[Math.floor(Math.random()*others.length)].assists++;
+      }
+      kills.push({killer:killer.name, victim:victim.name, weapon:winBuys[idx].buyType, hs, killerSide: winner});
+    });
+    const victimsWinning = sampleWithoutReplacement(winTeam.players, deathsWinning);
+    victimsWinning.forEach(victim=>{
+      const weights = loseTeam.players.map((p,i)=>loseBuys[i].score+0.2);
+      const idx = weightedPick(weights);
+      const killer = loseTeam.players[idx];
+      const wscore = loseBuys[idx].score;
+      killer.kills++; victim.deaths++;
+      killer.money = Math.min(MAX_MONEY, killer.money+KILL_REWARD);
+      killer.damage += 80+Math.random()*70;
+      const hs = Math.random()<hsChance(wscore);
+      if (hs) killer.headshots++;
+      if (loseTeam.players.length>1 && Math.random()<ASSIST_CHANCE){
+        const others = loseTeam.players.filter((p,i)=>i!==idx);
+        others[Math.floor(Math.random()*others.length)].assists++;
+      }
+      kills.push({killer:killer.name, victim:victim.name, weapon:loseBuys[idx].buyType, hs, killerSide: loser});
+    });
+
+    // Round MVP: the winning team always gets one. Whoever has the most
+    // kills on that team takes it (ties broken at random, so a single kill
+    // or even a 1-1 tie still produces an MVP). Only if literally nobody on
+    // the winning team scored a kill do we fall back to the objective
+    // player, or failing that, a random pick from the team.
+    let mvpPlayerObj = null, mvpReason = null;
+    const bestKills = Math.max(...winRoundKills);
+    if (bestKills > 0){
+      const tiedIdxs = winRoundKills.reduce((acc,k,i)=>{ if(k===bestKills) acc.push(i); return acc; }, []);
+      const pickIdx = tiedIdxs[Math.floor(Math.random()*tiedIdxs.length)];
+      mvpPlayerObj = winTeam.players[pickIdx];
+      mvpReason = bestKills >= 3 ? 'Multi-kill' : (bestKills === 2 ? 'Double Kill' : 'Top Frag');
+    } else if (method === 'Bomb Detonation'){
+      mvpPlayerObj = winTeam.players[Math.floor(Math.random()*winTeam.players.length)];
+      mvpReason = 'Bomb Plant';
+    } else if (method === 'Defuse'){
+      mvpPlayerObj = winTeam.players[Math.floor(Math.random()*winTeam.players.length)];
+      mvpReason = 'Defuse';
+    } else {
+      mvpPlayerObj = winTeam.players[Math.floor(Math.random()*winTeam.players.length)];
+      mvpReason = 'Team Contribution';
+    }
+    mvpPlayerObj.mvps++;
+    const mvpName = mvpPlayerObj.name;
+
+    // shuffle kill feed order for natural interleaving
+    for(let i=kills.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [kills[i],kills[j]]=[kills[j],kills[i]];
+    }
+
+    [...teamA.players, ...teamB.players].forEach(p=>{
+      p.damage += Math.random()*20;
+      p.roundsPlayed++;
+    });
+
+    return {winner, method, plantedThisRound, bonusToLoser, kills, buysA, buysB, mvpName, mvpReason};
+  }
+
+  /* ================= MATCH STATE / DRIVER ================= */
+  let teamA, teamB, round, scoreA, scoreB, phase, otBlockA, otBlockB, otNum, roundHistory, playing, speed, matchDone;
+
+  function resetEconomy(amount){
+    [...teamA.players, ...teamB.players].forEach(p=>{p.money=amount; p.lossStreak=0;});
+  }
+
+  function currentT(){
+    if (phase==='reg'){
+      return round<=12 ? 'A' : 'B';
+    } else {
+      const idx = ((round-1)%6);
+      return idx<3 ? 'A':'B';
+    }
+  }
+
+  function roundLabel(){
+    if (phase==='reg'){
+      if (round===1) return 'PISTOL ROUND';
+      if (round===13) return 'PISTOL ROUND — SIDE SWAP';
+      return `ROUND ${round} / 24`;
+    } else {
+      const inBlock = ((round-1)%6)+1;
+      return `OVERTIME ${otNum} — ROUND ${inBlock}/6`;
+    }
+  }
+
+  function startMatch(){
+    teamA = collectTeam('A','teamAName');
+    teamB = collectTeam('B','teamBName');
+    round=0; scoreA=0; scoreB=0; phase='reg'; otBlockA=0; otBlockB=0; otNum=0;
+    roundHistory=[]; matchDone=false; playing=true; speed=1;
+
+    document.getElementById('setupScreen').style.display='none';
+    document.getElementById('finalScreen').style.display='none';
+    document.getElementById('matchScreen').style.display='block';
+    document.getElementById('sbNameA').textContent=teamA.name.toUpperCase();
+    document.getElementById('sbNameB').textContent=teamB.name.toUpperCase();
+    document.getElementById('feedInner').innerHTML='';
+    updateScoreboard();
+    document.getElementById('playPauseBtn').textContent='⏸ PAUSE';
+    setActiveSpeed(1);
+    scheduleNextRound();
+  }
+
+  function updateScoreboard(){
+    document.getElementById('sbScoreA').textContent=scoreA;
+    document.getElementById('sbScoreB').textContent=scoreB;
+    document.getElementById('sbRoundLabel').textContent=roundLabel();
+    const pipWrap=document.getElementById('sbPips');
+    pipWrap.innerHTML='';
+    roundHistory.forEach(w=>{
+      const d=document.createElement('div');
+      d.className='pip '+(w==='A'?'win-a':'win-b');
+      pipWrap.appendChild(d);
+    });
+  }
+
+  let timerHandle=null;
+  function scheduleNextRound(){
+    if (!playing || matchDone) return;
+    const delay = 1600/speed;
+    timerHandle = setTimeout(playOneRound, delay);
+  }
+
+  function playOneRound(){
+    if (matchDone) return;
+    round++;
+    if (phase==='OT' && ((round-1)%6)===0){
+      resetEconomy(OT_START_MONEY);
+      otNum++;
+      otBlockA=0; otBlockB=0;
+      appendOTBanner();
+    }
+    const tKey = currentT();
+    const res = simulateRound(teamA, teamB, tKey);
+    roundHistory.push(res.winner);
+    if (res.winner==='A') scoreA++; else scoreB++;
+    if (phase==='OT'){
+      if (res.winner==='A') otBlockA++; else otBlockB++;
+    }
+    renderRound(res, tKey);
+    updateScoreboard();
+
+    if (phase==='reg'){
+      if (scoreA>=13 || scoreB>=13){ endMatch(); return; }
+      else if (round===24){ phase='OT'; round=0; }
+    } else {
+      if (otBlockA>=4 || otBlockB>=4){ endMatch(); return; }
+    }
+    scheduleNextRound();
+  }
+
+  function appendOTBanner(){
+    const feed = document.getElementById('feedInner');
+    const div = document.createElement('div');
+    div.className='round-banner';
+    div.style.borderLeftColor='var(--bomb)';
+    div.innerHTML = `<span class="rb-text" style="color:var(--bomb)">OVERTIME ${otNum} — ECONOMY RESET TO $10,000</span>`;
+    feed.appendChild(div);
+  }
+
+  function renderRound(res, tKey){
+    const feed = document.getElementById('feedInner');
+    const banner = document.createElement('div');
+    banner.className = 'round-banner win-'+res.winner.toLowerCase();
+    const winnerName = res.winner==='A'?teamA.name:teamB.name;
+    banner.innerHTML = `
+      <span class="rb-round mono">R${phase==='reg'?round:((round-1)%6)+1}</span>
+      <span class="rb-text">${escapeHtml(winnerName.toUpperCase())} WIN</span>
+      <span class="rb-method">${res.method}</span>
+    `;
+    feed.appendChild(banner);
+
+    if (res.bonusToLoser){
+      const pl=document.createElement('div');
+      pl.className='plant-line';
+      pl.textContent = '💣 Bomb planted — defusing team denied the plant bonus';
+      feed.appendChild(pl);
+    } else if (res.method==='Bomb Detonation'){
+      const pl=document.createElement('div');
+      pl.className='plant-line';
+      pl.textContent = '💣 Bomb detonated';
+      feed.appendChild(pl);
+    }
+
+    res.kills.forEach(k=>{
+      const line = document.createElement('div');
+      line.className='kill-line';
+      line.style.borderLeftColor = k.killerSide==='A' ? 'var(--t-accent)' : 'var(--ct-accent)';
+      line.innerHTML = `<span class="killer">${escapeHtml(k.killer)}</span> <span class="weapon-tag">[${escapeHtml(k.weapon)}]</span> eliminated <span class="victim">${escapeHtml(k.victim)}</span>${k.hs?' <span class="hs-tag">HEADSHOT</span>':''}`;
+      feed.appendChild(line);
+    });
+
+    if (res.mvpName){
+      const mvpLine=document.createElement('div');
+      mvpLine.className='mvp-line';
+      mvpLine.innerHTML = `⭐ <span class="mvp-line-name">${escapeHtml(res.mvpName)}</span> is the Round MVP <span class="mvp-line-reason">(${escapeHtml(res.mvpReason)})</span>`;
+      feed.appendChild(mvpLine);
+    }
+
+    const panel = document.getElementById('feedPanel');
+    panel.scrollTop = panel.scrollHeight;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function endMatch(){
+    matchDone=true;
+    playing=false;
+    clearTimeout(timerHandle);
+    setTimeout(showFinalScreen, 900);
+  }
+
+  function buildStatsTable(team){
+    const rows = team.players.slice().sort((a,b)=>b.kills-a.kills);
+    return rows.map(p=>{
+      const hsPct = p.kills>0 ? Math.round((p.headshots/p.kills)*100) : 0;
+      const adr = p.roundsPlayed>0 ? (p.damage/p.roundsPlayed).toFixed(0) : '0';
+      const plusMinus = p.kills - p.deaths;
+      const pm = plusMinus>0 ? `+${plusMinus}` : `${plusMinus}`;
+      return `<tr>
+        <td class="pname">${escapeHtml(p.name)}</td>
+        <td>${p.kills}</td>
+        <td>${p.assists}</td>
+        <td>${p.deaths}</td>
+        <td>${p.mvps}</td>
+        <td>${pm}</td>
+        <td>${hsPct}%</td>
+        <td>${adr}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function showFinalScreen(){
+    document.getElementById('matchScreen').style.display='none';
+    document.getElementById('finalScreen').style.display='block';
+    const winnerName = scoreA>scoreB?teamA.name:teamB.name;
+    document.getElementById('finalScoreText').textContent =
+      `${teamA.name} ${scoreA} — ${scoreB} ${teamB.name}  ·  ${winnerName} WINS`;
+    document.getElementById('finalNameA').textContent = teamA.name;
+    document.getElementById('finalNameB').textContent = teamB.name;
+    document.getElementById('finalTableA').innerHTML = buildStatsTable(teamA);
+    document.getElementById('finalTableB').innerHTML = buildStatsTable(teamB);
+  }
+
+  /* ================= CONTROLS ================= */
+  document.getElementById('playPauseBtn').addEventListener('click', function(){
+    playing = !playing;
+    this.textContent = playing ? '⏸ PAUSE' : '▶ RESUME';
+    if (playing) scheduleNextRound();
+    else clearTimeout(timerHandle);
+  });
+
+  function setActiveSpeed(s){
+    speed = s;
+    ['speed1','speed2','speed4'].forEach(id=>document.getElementById(id).classList.remove('active'));
+    document.getElementById('speed'+s).classList.add('active');
+  }
+  document.getElementById('speed1').addEventListener('click', ()=>setActiveSpeed(1));
+  document.getElementById('speed2').addEventListener('click', ()=>setActiveSpeed(2));
+  document.getElementById('speed4').addEventListener('click', ()=>setActiveSpeed(4));
+
+  document.getElementById('skipBtn').addEventListener('click', function(){
+    clearTimeout(timerHandle);
+    playing=false;
+    document.getElementById('playPauseBtn').textContent='▶ RESUME';
+    let guard=0;
+    while(!matchDone && guard<300){
+      guard++;
+      round++;
+      if (phase==='OT' && ((round-1)%6)===0){
+        resetEconomy(OT_START_MONEY);
+        otNum++;
+        otBlockA=0; otBlockB=0;
+        appendOTBanner();
+      }
+      const tKey = currentT();
+      const res = simulateRound(teamA, teamB, tKey);
+      roundHistory.push(res.winner);
+      if (res.winner==='A') scoreA++; else scoreB++;
+      if (phase==='OT'){
+        if (res.winner==='A') otBlockA++; else otBlockB++;
+      }
+      renderRound(res, tKey);
+      if (phase==='reg'){
+        if (scoreA>=13 || scoreB>=13){ matchDone=true; }
+        else if (round===24){ phase='OT'; round=0; }
+      } else {
+        if (otBlockA>=4 || otBlockB>=4){ matchDone=true; }
+      }
+    }
+    updateScoreboard();
+    setTimeout(showFinalScreen, 400);
+  });
+
+  document.getElementById('newMatchBtn').addEventListener('click', function(){
+    clearTimeout(timerHandle);
+    document.getElementById('finalScreen').style.display='none';
+    document.getElementById('setupScreen').style.display='block';
+  });
+
+})();
+</script>
+</body>
+</html>
