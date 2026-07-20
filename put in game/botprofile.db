@@ -1778,7 +1778,7 @@ Elite+TwinkleClass "Alc tanykeat"
 	VoicePitch = 110
 End
 
-Elite+TwinkleClass "DNC winterkindlita"
+Elite+TwinkleClass "DNC LITA"
 	VoicePitch = 110
 End
 
@@ -2420,7 +2420,7 @@ Elite+MelanClass "kimmixd"
 	VoicePitch = 110
 End
 
-Elite+JaelClass "ShizuyaUmiko"
+Elite+JaelClass "FF ShizuyaUmiko"
 	VoicePitch = 110
 End
 
@@ -2560,7 +2560,7 @@ Melan+IceClass "djsalty_"
         VoicePitch = 110
 End
 
-Elite+XinjieClass "Emily_melody"
+Elite+XinjieClass "FF Emily_melody"
 	VoicePitch = 110
 End
 
@@ -2824,7 +2824,7 @@ Ice+HesterClass "Aizawa Ema"
 	VoicePitch = 110
 End
 
-Ice+XinjieClass "Shinomiya Runa"
+Ice+XinjieClass "FF Shinomiya Runa"
 	VoicePitch = 110
 End
 
@@ -2836,7 +2836,7 @@ Ice+XinjieClass "Nekota Tsuna"
         VoicePitch = 110
 End
 
-Melan+XinjieClass "Komori Met"
+Melan+XinjieClass "FF Komori Met"
         VoicePitch = 110
 End
 
@@ -2956,7 +2956,7 @@ Elite+HesterClass "Hyvred"
 	VoicePitch = 110
 End
 
-Elite+MelanClass "TiniiBee"
+Elite+XinJieClass "TiniiBee"
         VoicePitch = 110
 End
 
@@ -2972,7 +2972,7 @@ Elite+JaelClass "XPLO Cursiffe"
 	VoicePitch = 110
 End
 
-Elite+HesterClass "cassiopeiarawr"
+Elite+HesterClass "FF cassiopeiarawr"
 	VoicePitch = 110
 End
 
@@ -3008,6 +3008,65 @@ Elite+XinjieClass "qebo"
 	VoicePitch = 110
 End
 
+Melan+MelanClass "iceenblue"
+	VoicePitch = 110
+End
+
+Ice+XinjieClass "miruaamaochi"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "xaeela"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "aoi_chibi"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "sayupurin"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "CodedEcho"
+	VoicePitch = 110
+End
+
+Melan+XinjieClass "sengjung123"
+        VoicePitch = 110
+End
+
+Elite+XinjieClass "haze_vt"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "AnjuValse"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "SeaEmV"
+	VoicePitch = 110
+End
+
+Melan+MelanClass "sakistars"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "Miki Nakai"
+        VoicePitch = 110
+End
+
+Ice+XinjieClass "y0xie"
+        VoicePitch = 110
+End
+
+Melan+XinjieClass "AkiraTsukiyono"
+	VoicePitch = 110
+End
+
+Elite+XinjieClass "RIHSURI"
+	VoicePitch = 110
+End
 
 Elite+JaelClass "Arch1e"
 	VoicePitch = 20
