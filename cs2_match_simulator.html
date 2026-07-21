@@ -36,8 +36,6 @@
   h1,h2,h3,.display{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:0.02em;}
   .mono{font-family:'IBM Plex Mono',monospace;}
   #app{max-width:1100px;margin:0 auto;padding:28px 20px 60px;}
-  .back-link { color: var(--ink-dim); font-size: 11px; letter-spacing: 1px; text-decoration: none; }
-  .back-link:hover { color: var(--ink); }
 
   /* ---------- SETUP SCREEN ---------- */
   .setup-header{text-align:center;margin-bottom:28px;}
@@ -275,6 +273,7 @@
   .stats-team h3{margin:0 0 12px;font-size:18px;}
   .stats-team.t h3{color:var(--t-accent);}
   .stats-team.ct h3{color:var(--ct-accent);}
+  .stats-maps-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.08em;text-transform:uppercase;}
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{
     text-align:left;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:10px;
@@ -367,7 +366,6 @@
       <div class="kicker">Best of MR12 &middot; Overtime Enabled</div>
       <h1>MATCH SIM</h1>
       <div class="sub">Choose a mode, set your rosters, then run it.</div>
-	  <a class="back-link" href="index.html">← back to index</a>
     </div>
 
     <div class="mode-bar">
@@ -426,6 +424,8 @@
     </div>
     <div class="series-score" id="interScore"></div>
     <div class="series-maps" id="interMaps"></div>
+    <div id="interMvp"></div>
+    <div id="interStats"></div>
     <button class="start-btn" id="interNextBtn">NEXT MAP</button>
   </div>
 
@@ -1107,6 +1107,7 @@
   /* ================= MATCH STATE / DRIVER ================= */
   let teamA, teamB, round, scoreA, scoreB, phase, otBlockA, otBlockB, otNum, roundHistory, playing, speed, matchDone;
   let matchMapName, matchMapInfo, teamStreakA, teamStreakB, timeoutsA, timeoutsB;
+  let carryMagA, carryRoundsA, carryMagB, carryRoundsB;
 
   function resetEconomy(amount){
     [...teamA.players, ...teamB.players].forEach(p=>{p.money=amount; p.lossStreak=0;});
@@ -1138,24 +1139,39 @@
     return phase==='reg' && (round===1 || round===13);
   }
 
-  // Decide map bias + whether a struggling team burns a tactical timeout for
-  // a small momentum swing this round. Returns opts for simulateRound plus an
-  // optional timeout banner descriptor.
+  // Decide map bias + whether a struggling team burns a tactical timeout to
+  // break the opponent's momentum. Bigger snowballs make a timeout more likely
+  // and more effective, and the effect lingers for two rounds.
   function prepareRoundOpts(){
     const opts = { mapInfo: matchMapInfo, momentumNudge: 0 };
     let timeout = null;
     if (!isPistolRound()){
-      // Team A struggling?
-      if (teamStreakB>=3 && timeoutsA>0 && Math.random()<0.4){
-        timeoutsA--; teamStreakB=0;
-        opts.momentumNudge += 0.12;
-        timeout = {team:teamA.name, side:'A'};
-      } else if (teamStreakA>=3 && timeoutsB>0 && Math.random()<0.4){
-        timeoutsB--; teamStreakA=0;
-        opts.momentumNudge -= 0.12;
-        timeout = {team:teamB.name, side:'B'};
+      if (teamStreakB>=3 && timeoutsA>0){
+        const chance = Math.min(0.9, 0.45 + 0.20*(teamStreakB-3));
+        if (Math.random()<chance){
+          const was = teamStreakB;
+          timeoutsA--;
+          carryMagA = Math.min(0.26, 0.15 + 0.035*(was-3));
+          carryRoundsA = 2;
+          teamStreakB = Math.max(0, teamStreakB-2);
+          timeout = {team:teamA.name, side:'A', streak:was};
+        }
+      } else if (teamStreakA>=3 && timeoutsB>0){
+        const chance = Math.min(0.9, 0.45 + 0.20*(teamStreakA-3));
+        if (Math.random()<chance){
+          const was = teamStreakA;
+          timeoutsB--;
+          carryMagB = Math.min(0.26, 0.15 + 0.035*(was-3));
+          carryRoundsB = 2;
+          teamStreakA = Math.max(0, teamStreakA-2);
+          timeout = {team:teamB.name, side:'B', streak:was};
+        }
       }
     }
+    // Lingering post-timeout regroup effect (this round + next).
+    if (carryRoundsA>0){ opts.momentumNudge += carryMagA; carryRoundsA--; }
+    if (carryRoundsB>0){ opts.momentumNudge -= carryMagB; carryRoundsB--; }
+    opts.momentumNudge = Math.max(-0.3, Math.min(0.3, opts.momentumNudge));
     return {opts, timeout};
   }
 
@@ -1209,6 +1225,7 @@
     roundHistory=[]; matchDone=false; playing=true; speed=1;
     matchMapName = mapName; matchMapInfo = MAPS[mapName] || {tBias:0};
     teamStreakA=0; teamStreakB=0; timeoutsA=4; timeoutsB=4;
+    carryMagA=0; carryRoundsA=0; carryMagB=0; carryRoundsB=0;
 
     showScreen('matchScreen');
     document.getElementById('sbNameA').textContent=teamA.name.toUpperCase();
@@ -1344,7 +1361,8 @@
     const feed = document.getElementById('feedInner');
     const div = document.createElement('div');
     div.className='timeout-line';
-    div.textContent = `⏱ TACTICAL TIMEOUT — ${timeout.team} regroups to stop the bleeding.`;
+    const streakTxt = timeout.streak ? ` to break a ${timeout.streak}-round run` : ' to stop the bleeding';
+    div.textContent = `⏱ TACTICAL TIMEOUT — ${timeout.team} regroups${streakTxt}.`;
     feed.appendChild(div);
   }
 
@@ -1562,9 +1580,8 @@
     setTimeout(()=>{ if (matchCompleteHook) matchCompleteHook(winnerKey); }, 900);
   }
 
-  function buildStatsTable(team, tagColor){
-    const rows = team.players.slice().sort((a,b)=>b.kills-a.kills);
-    const tag = team.tag || '';
+  function buildStatsRows(players, tag, tagColor){
+    const rows = players.slice().sort((a,b)=>b.kills-a.kills);
     const tagHtml = tag ? `<span class="ptag" style="color:${tagColor}">${escapeHtml(tag)}</span> ` : '';
     return rows.map(p=>{
       const hsPct = p.kills>0 ? Math.round((p.headshots/p.kills)*100) : 0;
@@ -1583,6 +1600,9 @@
         <td>${adr}</td>
       </tr>`;
     }).join('');
+  }
+  function buildStatsTable(team, tagColor){
+    return buildStatsRows(team.players, team.tag||'', tagColor);
   }
 
   function computeMatchMVP(){
@@ -1709,15 +1729,29 @@
 
   // ---- Series ----
   let seriesState = null;
+  const SERIES_STAT_FIELDS = ['kills','deaths','assists','mvps','clutches','firstBloods','flashAssists','headshots','damage','roundsPlayed'];
   function seriesTarget(){ return Math.floor(seriesState.format/2)+1; }
   function startSeries(a, b, format, mapList, onComplete){
-    seriesState = {a, b, format, maps:mapList, mapIndex:0, winsA:0, winsB:0, results:[], onComplete};
+    seriesState = {a, b, format, maps:mapList, mapIndex:0, winsA:0, winsB:0, results:[], onComplete, acc:new Map()};
+    // seed accumulator entries for every player
+    [...a.players, ...b.players].forEach(p=>{
+      const blank={}; SERIES_STAT_FIELDS.forEach(f=>blank[f]=0);
+      seriesState.acc.set(p, blank);
+    });
     playNextSeriesMap();
+  }
+  function accumulateSeriesStats(){
+    const s = seriesState;
+    [...s.a.players, ...s.b.players].forEach(p=>{
+      const a = s.acc.get(p);
+      SERIES_STAT_FIELDS.forEach(f=>{ a[f] += (p[f]||0); });
+    });
   }
   function playNextSeriesMap(){
     const s = seriesState;
     const mapName = s.maps[s.mapIndex] || s.maps[s.maps.length-1];
     beginMap(s.a, s.b, mapName, (winnerKey)=>{
+      accumulateSeriesStats(); // fold this map's stats into the series total
       s.results.push({map:mapName, scoreA, scoreB, winner:winnerKey});
       if (winnerKey==='A') s.winsA++; else s.winsB++;
       s.mapIndex++;
@@ -1744,10 +1778,21 @@
     document.getElementById('interTitle').textContent = `MAP ${s.mapIndex} COMPLETE`;
     document.getElementById('interScore').innerHTML = seriesScoreHtml(s);
     document.getElementById('interMaps').innerHTML = seriesMapsHtml(s);
+    document.getElementById('interMvp').innerHTML = '';
+    document.getElementById('interStats').innerHTML = '';
     const btn = document.getElementById('interNextBtn');
     btn.style.display='block';
     btn.textContent = `PLAY MAP ${s.mapIndex+1} — ${escapeHtml(s.maps[s.mapIndex]||'')}`;
     btn.onclick = playNextSeriesMap;
+  }
+  // Build synthetic player objects carrying series-total stats for the tables/MVP.
+  function seriesAccPlayers(team){
+    return team.players.map(p=>{
+      const a = seriesState.acc.get(p) || {};
+      const o = {name:p.name, role:p.role, skill:p.skill, pref:p.pref};
+      SERIES_STAT_FIELDS.forEach(f=>{ o[f]=a[f]||0; });
+      return o;
+    });
   }
   function showSeriesComplete(){
     const s = seriesState;
@@ -1757,6 +1802,43 @@
     document.getElementById('interTitle').innerHTML = `${teamLabel(winner)} WIN THE SERIES`;
     document.getElementById('interScore').innerHTML = seriesScoreHtml(s);
     document.getElementById('interMaps').innerHTML = seriesMapsHtml(s);
+
+    // Cumulative stat tables across all maps in the series.
+    const accA = seriesAccPlayers(s.a), accB = seriesAccPlayers(s.b);
+    document.getElementById('interStats').innerHTML = `
+      <div class="stats-grid" style="margin-top:8px;">
+        <div class="stats-team t">
+          <h3>${escapeHtml(s.a.name)} <span class="stats-maps-note">series totals</span></h3>
+          <table><thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>FB</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
+          <tbody>${buildStatsRows(accA, s.a.tag||'', 'var(--t-accent)')}</tbody></table>
+        </div>
+        <div class="stats-team ct">
+          <h3>${escapeHtml(s.b.name)} <span class="stats-maps-note">series totals</span></h3>
+          <table><thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>FB</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
+          <tbody>${buildStatsRows(accB, s.b.tag||'', 'var(--ct-accent)')}</tbody></table>
+        </div>
+      </div>`;
+
+    // Series MVP from cumulative stats.
+    const all = [...accA.map(p=>({p,team:s.a,isA:true})), ...accB.map(p=>({p,team:s.b,isA:false}))];
+    let best=all[0], bestScore=-Infinity;
+    all.forEach(e=>{
+      const adr = e.p.roundsPlayed>0 ? e.p.damage/e.p.roundsPlayed : 0;
+      const sc = e.p.kills*2 + e.p.assists + e.p.mvps*3 + e.p.clutches*4 + adr*0.05;
+      if (sc>bestScore){ bestScore=sc; best=e; }
+    });
+    const mp = best.p;
+    const hsPct = mp.kills>0 ? Math.round((mp.headshots/mp.kills)*100):0;
+    const tagColor = best.isA ? 'var(--t-accent)' : 'var(--ct-accent)';
+    const tag = best.team.tag||'';
+    const tagHtml = tag ? `<span class="ptag" style="color:${tagColor}">${escapeHtml(tag)}</span> ` : '';
+    document.getElementById('interMvp').innerHTML = `
+      <div class="match-mvp-card" style="margin-top:18px;">
+        <div class="mmc-kicker">Series MVP</div>
+        <div class="mmc-name">${tagHtml}${escapeHtml(mp.name)}</div>
+        <div class="mmc-line">${escapeHtml(best.team.name)} &middot; ${mp.kills}K / ${mp.assists}A / ${mp.deaths}D &middot; ${mp.mvps} Round MVPs${mp.clutches?(' &middot; '+mp.clutches+' Clutch'+(mp.clutches>1?'es':'')):''} &middot; ${hsPct}% HS</div>
+      </div>`;
+
     const btn = document.getElementById('interNextBtn');
     btn.style.display='block';
     if (s.onComplete){
