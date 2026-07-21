@@ -62,14 +62,26 @@
   .team-label{
     font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;
   }
+  .team-id-row{display:flex;gap:8px;margin-bottom:14px;}
+  .team-tag-input{
+    width:76px;flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:18px;padding:8px 10px;border-radius:6px;
+    text-align:center;
+  }
+  .team-panel.t-side .team-tag-input{color:var(--t-accent);}
+  .team-panel.ct-side .team-tag-input{color:var(--ct-accent);}
+  .team-panel.t-side .team-tag-input:focus{outline:none;border-color:var(--t-accent);}
+  .team-panel.ct-side .team-tag-input:focus{outline:none;border-color:var(--ct-accent);}
   .team-name-input{
-    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
-    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;padding:8px 10px;border-radius:6px;margin-bottom:14px;
+    flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;padding:8px 10px;border-radius:6px;
   }
   .team-panel.t-side .team-name-input:focus{outline:none;border-color:var(--t-accent);}
   .team-panel.ct-side .team-name-input:focus{outline:none;border-color:var(--ct-accent);}
 
-  .player-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+  .player-row{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--panel-2);}
+  .pr-line1{display:flex;gap:8px;align-items:center;}
+  .pr-line2{display:flex;gap:8px;align-items:center;padding-left:28px;}
   .player-row .num{
     width:20px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px;flex-shrink:0;
   }
@@ -88,6 +100,32 @@
   .t-side .weapon-toggle button.active{background:var(--t-accent);color:#1a1206;}
   .ct-side .weapon-toggle button.active{background:var(--ct-accent);color:#08131f;}
   .weapon-toggle button:not(.active):hover{color:var(--text);}
+
+  .skill-wrap{display:flex;align-items:center;gap:7px;flex:1;min-width:0;}
+  .skill-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--muted);flex-shrink:0;}
+  .skill-slider{flex:1;min-width:0;height:4px;-webkit-appearance:none;appearance:none;background:var(--line);border-radius:2px;outline:none;}
+  .skill-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--text);cursor:pointer;border:2px solid var(--panel);}
+  .skill-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--text);cursor:pointer;border:2px solid var(--panel);}
+  .t-side .skill-slider::-webkit-slider-thumb{background:var(--t-accent);}
+  .ct-side .skill-slider::-webkit-slider-thumb{background:var(--ct-accent);}
+  .t-side .skill-slider::-moz-range-thumb{background:var(--t-accent);}
+  .ct-side .skill-slider::-moz-range-thumb{background:var(--ct-accent);}
+  .skill-val{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text);width:22px;text-align:right;flex-shrink:0;}
+  .role-select{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);border-radius:6px;
+    padding:6px 8px;font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;flex-shrink:0;
+  }
+  .role-select:focus{outline:none;border-color:var(--muted);}
+
+  .map-picker{margin:18px 0 4px;text-align:center;}
+  .map-label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--muted);margin-bottom:8px;}
+  .map-options{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+  .map-btn{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;
+    padding:7px 13px;font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;
+  }
+  .map-btn:hover{color:var(--text);border-color:var(--muted);}
+  .map-btn.active{background:linear-gradient(90deg,var(--t-accent),var(--ct-accent));color:#0B0E12;border-color:transparent;font-weight:600;}
 
   .vs-emblem{
     text-align:center;margin:20px 0;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:.3em;
@@ -120,6 +158,7 @@
   .sb-team.left .sb-name, .sb-team.left .sb-score{color:var(--team-a-color);}
   .sb-team.right .sb-name, .sb-team.right .sb-score{color:var(--team-b-color);}
   .sb-mid{text-align:center;}
+  .sb-map{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;color:var(--text);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
   .sb-round-label{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;}
   .sb-pips{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap;max-width:220px;justify-content:center;}
   .pip{width:7px;height:7px;border-radius:1px;background:var(--line);}
@@ -156,6 +195,21 @@
   .round-banner.win-a .rb-text{color:var(--team-a-color);}
   .round-banner.win-b .rb-text{color:var(--team-b-color);}
   .round-banner .rb-method{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+  .round-banner.has-comms{cursor:pointer;position:relative;}
+  .rb-comms-hint{font-size:12px;opacity:.5;flex-shrink:0;transition:opacity .15s;}
+  .round-banner.has-comms:hover .rb-comms-hint{opacity:1;}
+  .comms-pop{
+    position:absolute;top:100%;left:12px;right:12px;z-index:20;margin-top:6px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.45);
+    opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s, transform .15s;
+    pointer-events:none;
+  }
+  .round-banner.has-comms:hover .comms-pop,
+  .round-banner.comms-open .comms-pop{opacity:1;visibility:visible;transform:translateY(0);}
+  .comms-head{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.15em;color:var(--muted);margin-bottom:6px;}
+  .caster-quote{font-size:13px;line-height:1.4;font-family:'Inter',sans-serif;color:var(--text);font-style:italic;}
+  .comms-say{color:var(--text);}
 
   .buy-line{
     font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin:2px 0 8px;padding-left:2px;
@@ -167,6 +221,7 @@
   }
   @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
   .kill-line .killer{font-weight:600;}
+  .ptag{font-weight:800;font-family:'IBM Plex Mono',monospace;font-size:0.92em;letter-spacing:.02em;}
   .kill-line .weapon-tag{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
   .kill-line .hs-tag{color:var(--kill);font-weight:600;font-size:11px;}
   .kill-line .victim{color:var(--muted);}
@@ -196,6 +251,7 @@
   }
   .halftime-score{color:var(--text);font-weight:600;}
   .halftime-top{color:var(--bomb);font-weight:600;}
+  .timeout-line{font-size:12px;color:#8fd1ff;margin:8px 0 4px 8px;font-family:'IBM Plex Mono',monospace;font-style:italic;}
 
   /* ---------- FINAL SCOREBOARD ---------- */
   #finalScreen{display:none;}
@@ -224,6 +280,7 @@
   }
   td{padding:8px 4px;border-bottom:1px solid var(--panel-2);font-family:'IBM Plex Mono',monospace;}
   td.pname{font-family:'Inter',sans-serif;font-weight:600;}
+  .pname-role{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);font-weight:400;letter-spacing:.03em;margin-top:1px;}
   .mvp-tag{color:var(--bomb);font-size:10px;margin-left:5px;}
   .again-btn{
     display:block;margin:28px auto 0;padding:14px 32px;border:none;border-radius:8px;cursor:pointer;
@@ -250,20 +307,31 @@
     <div class="setup-header">
       <div class="kicker">Best of MR12 &middot; Overtime Enabled</div>
       <h1>MATCH SIM</h1>
-      <div class="sub">Set your rosters, pick a preferred weapon per player, then run the match.</div>
+      <div class="sub">Set rosters, weapon, skill and role per player, pick a map, then run the match.</div>
     </div>
 
     <div class="teams-grid">
       <div class="team-panel t-side">
         <div class="team-label">Terrorists &middot; Side A</div>
-        <input class="team-name-input" id="teamAName" value="Team Alpha" maxlength="24">
+        <div class="team-id-row">
+          <input class="team-tag-input" id="teamATag" value="ALP" maxlength="5" placeholder="TAG">
+          <input class="team-name-input" id="teamAName" value="Team Alpha" maxlength="24">
+        </div>
         <div id="rosterA"></div>
       </div>
       <div class="team-panel ct-side">
         <div class="team-label">Counter-Terrorists &middot; Side B</div>
-        <input class="team-name-input" id="teamBName" value="Team Bravo" maxlength="24">
+        <div class="team-id-row">
+          <input class="team-tag-input" id="teamBTag" value="BRV" maxlength="5" placeholder="TAG">
+          <input class="team-name-input" id="teamBName" value="Team Bravo" maxlength="24">
+        </div>
         <div id="rosterB"></div>
       </div>
+    </div>
+
+    <div class="map-picker">
+      <span class="map-label">MAP</span>
+      <div class="map-options" id="mapOptions"></div>
     </div>
 
     <div class="vs-emblem">— FIRST TO 13 &middot; OT IS MR3, FIRST TO 4 —</div>
@@ -283,6 +351,7 @@
         <div class="sb-score" id="sbScoreA">0</div>
       </div>
       <div class="sb-mid">
+        <div class="sb-map" id="sbMap">Mirage</div>
         <div class="sb-round-label" id="sbRoundLabel">PISTOL ROUND</div>
         <div class="sb-pips" id="sbPips"></div>
       </div>
@@ -319,14 +388,14 @@
       <div class="stats-team t">
         <h3 id="finalNameA"></h3>
         <table>
-          <thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
+          <thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>FB</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
           <tbody id="finalTableA"></tbody>
         </table>
       </div>
       <div class="stats-team ct">
         <h3 id="finalNameB"></h3>
         <table>
-          <thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
+          <thead><tr><th>Player</th><th>K</th><th>A</th><th>D</th><th>MVP</th><th>FB</th><th>+/-</th><th>HS%</th><th>ADR</th></tr></thead>
           <tbody id="finalTableB"></tbody>
         </table>
       </div>
@@ -346,8 +415,16 @@
   const WIN_REWARD=3250, WIN_REWARD_BOMB=3500;
   const LOSS_BONUS=[1400,1900,2400,2900,3400];
   const KILL_REWARD=300, BOMB_PLANT_BONUS=800, MAX_MONEY=16000, START_MONEY=800, OT_START_MONEY=10000;
+  const UTIL_FULL_COST=1000, UTIL_PARTIAL_COST=500;
   const DEFAULT_NAMES_A=['Ace','Blitz','Cinder','Drift','Echo'];
   const DEFAULT_NAMES_B=['Fable','Glide','Havoc','Iris','Juno'];
+  const ROLES=['Entry','Lurker','Support','IGL','AWPer'];
+  const DEFAULT_ROLES=['Entry','Lurker','Support','IGL','AWPer'];
+  const DEFAULT_SKILLS=[76,73,71,70,77];
+  const MAPS={
+    'Mirage':{tBias:0.00}, 'Inferno':{tBias:-0.04}, 'Nuke':{tBias:-0.06},
+    'Ancient':{tBias:0.02}, 'Anubis':{tBias:0.03}, 'Dust II':{tBias:0.04}, 'Vertigo':{tBias:-0.02}
+  };
 
   /* ================= SETUP UI ================= */
   const rosterA = document.getElementById('rosterA');
@@ -357,12 +434,25 @@
     for(let i=0;i<5;i++){
       const row = document.createElement('div');
       row.className='player-row';
+      const defRole = DEFAULT_ROLES[i];
+      const defWeapon = defRole==='AWPer' ? 'awp' : 'rifle';
+      const roleOpts = ROLES.map(r=>`<option value="${r}" ${r===defRole?'selected':''}>${r}</option>`).join('');
       row.innerHTML = `
-        <span class="num">${i+1}</span>
-        <input class="player-name-input" data-side="${side}" data-idx="${i}" value="${defaults[i]}" maxlength="18">
-        <div class="weapon-toggle" data-side="${side}" data-idx="${i}">
-          <button type="button" data-w="rifle" class="${i===4?'':'active'}">RIFLE</button>
-          <button type="button" data-w="awp" class="${i===4?'active':''}">AWP</button>
+        <div class="pr-line1">
+          <span class="num">${i+1}</span>
+          <input class="player-name-input" data-side="${side}" data-idx="${i}" value="${defaults[i]}" maxlength="18">
+          <div class="weapon-toggle" data-side="${side}" data-idx="${i}">
+            <button type="button" data-w="rifle" class="${defWeapon==='rifle'?'active':''}">RIFLE</button>
+            <button type="button" data-w="awp" class="${defWeapon==='awp'?'active':''}">AWP</button>
+          </div>
+        </div>
+        <div class="pr-line2">
+          <div class="skill-wrap">
+            <span class="skill-lbl">SKILL</span>
+            <input type="range" class="skill-slider" data-side="${side}" data-idx="${i}" min="30" max="99" value="${DEFAULT_SKILLS[i]}">
+            <span class="skill-val" data-side="${side}" data-idx="${i}">${DEFAULT_SKILLS[i]}</span>
+          </div>
+          <select class="role-select" data-side="${side}" data-idx="${i}">${roleOpts}</select>
         </div>
       `;
       container.appendChild(row);
@@ -380,7 +470,40 @@
     });
   });
 
+  // Live skill value readout, and keep AWPer role loosely in sync with weapon.
+  document.querySelectorAll('.skill-slider').forEach(sl=>{
+    sl.addEventListener('input', ()=>{
+      const v = document.querySelector(`.skill-val[data-side="${sl.dataset.side}"][data-idx="${sl.dataset.idx}"]`);
+      if (v) v.textContent = sl.value;
+    });
+  });
+  document.querySelectorAll('.role-select').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      // Selecting AWPer auto-flips the weapon toggle to AWP as a convenience.
+      if (sel.value==='AWPer'){
+        const tg = document.querySelector(`.weapon-toggle[data-side="${sel.dataset.side}"][data-idx="${sel.dataset.idx}"]`);
+        if (tg){ tg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.w==='awp')); }
+      }
+    });
+  });
+
   document.getElementById('startBtn').addEventListener('click', startMatch);
+
+  // Map picker
+  let selectedMap = 'Mirage';
+  const mapOptions = document.getElementById('mapOptions');
+  Object.keys(MAPS).forEach((mapName, i)=>{
+    const btn = document.createElement('button');
+    btn.type='button';
+    btn.className='map-btn'+(mapName===selectedMap?' active':'');
+    btn.textContent=mapName;
+    btn.addEventListener('click', ()=>{
+      selectedMap = mapName;
+      mapOptions.querySelectorAll('.map-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+    mapOptions.appendChild(btn);
+  });
 
   function collectTeam(side, nameInputId){
     const players=[];
@@ -389,15 +512,24 @@
       const toggle = document.querySelector(`.weapon-toggle[data-side="${side}"][data-idx="${idx}"]`);
       const pref = toggle.querySelector('button.active').dataset.w;
       const name = inp.value.trim() || `Player${parseInt(idx)+1}`;
-      players.push(makePlayer(name, pref));
+      const skillEl = document.querySelector(`.skill-slider[data-side="${side}"][data-idx="${idx}"]`);
+      const roleEl = document.querySelector(`.role-select[data-side="${side}"][data-idx="${idx}"]`);
+      const skill = skillEl ? parseInt(skillEl.value) : 70;
+      const role = roleEl ? roleEl.value : 'Support';
+      players.push(makePlayer(name, pref, skill, role));
     });
     const teamName = document.getElementById(nameInputId).value.trim() || 'Unnamed Team';
-    return {name: teamName, players};
+    const tagId = side==='A' ? 'teamATag' : 'teamBTag';
+    const tagEl = document.getElementById(tagId);
+    const tag = tagEl ? tagEl.value.trim() : '';
+    return {name: teamName, tag, players};
   }
 
   /* ================= ENGINE ================= */
-  function makePlayer(name, pref){
-    return {name, pref, money:START_MONEY, kills:0, deaths:0, assists:0, mvps:0, clutches:0, headshots:0, damage:0, lossStreak:0, roundsPlayed:0, savedWeapon:null};
+  function makePlayer(name, pref, skill, role){
+    return {name, pref, skill:skill||70, role:role||'Support',
+      money:START_MONEY, kills:0, deaths:0, assists:0, mvps:0, clutches:0, firstBloods:0, flashAssists:0,
+      headshots:0, damage:0, lossStreak:0, roundsPlayed:0, savedWeapon:null};
   }
 
   function decideBuy(p, isPistol){
@@ -442,7 +574,23 @@
       buyType='Full Eco'; score=0.5; cost=0;
     }
     p.money -= cost;
-    return {buyType, score};
+    // Utility: only on real weapon buys. Support/IGL prioritise a full kit;
+    // others grab partial util if they can still afford it.
+    let util = 0;
+    const fullBuy = (score>=4);
+    if (fullBuy){
+      const wantsFull = (p.role==='Support' || p.role==='IGL');
+      if (wantsFull && p.money >= UTIL_FULL_COST){
+        util = 1.0; p.money -= UTIL_FULL_COST;
+      } else if (p.money >= UTIL_FULL_COST && Math.random()<0.5){
+        util = 0.8; p.money -= UTIL_FULL_COST;
+      } else if (p.money >= UTIL_PARTIAL_COST){
+        util = 0.5; p.money -= UTIL_PARTIAL_COST;
+      }
+    } else if (score>=2 && p.money >= UTIL_PARTIAL_COST && Math.random()<0.4){
+      util = 0.4; p.money -= UTIL_PARTIAL_COST;
+    }
+    return {buyType, score, util};
   }
 
   function weightedPick(weights){
@@ -477,13 +625,50 @@
   const FLAVOR_TAGS = ['through smoke','wallbang','jumping shot','one-tap','spray transfer','off a peek','flick shot'];
   const CLUTCH_TABLE = {1:0.45, 2:0.22, 3:0.10, 4:0.05, 5:0.02};
 
-  function simulateRound(teamA, teamB, tKey, matchPointActive, isPistol){
+  // How likely a player is to GET a kill, by weapon buy, skill, and role/context.
+  function roleKillWeight(player, buyScore, context){
+    let w = buyScore*0.5 + player.skill/45;
+    const r = player.role;
+    if (context==='entry'){
+      if (r==='Entry') w*=1.9; else if (r==='AWPer') w*=1.5;
+      else if (r==='Lurker') w*=0.7; else if (r==='Support') w*=0.85;
+    } else if (context==='clutch'){
+      if (r==='Lurker') w*=1.7; else if (r==='IGL') w*=1.15; else if (r==='Entry') w*=0.9;
+    } else {
+      if (r==='AWPer') w*=1.15; else if (r==='Entry') w*=1.05;
+    }
+    return Math.max(0.15, w);
+  }
+  // How likely a player is to DIE on the opening duel (entry fraggers trade first).
+  function entryVictimWeight(player){
+    if (player.role==='Entry') return 2.0;
+    if (player.role==='AWPer' || player.role==='IGL') return 0.7;
+    return 1.0;
+  }
+  function teamAvgSkill(team){
+    return team.players.reduce((s,p)=>s+p.skill,0)/team.players.length;
+  }
+
+  function simulateRound(teamA, teamB, tKey, matchPointActive, isPistol, opts){
+    opts = opts||{};
+    const mapInfo = opts.mapInfo || {tBias:0};
+    const momentumNudge = opts.momentumNudge || 0; // +ve favors A
     const buysA = teamA.players.map(p=>decideBuy(p, isPistol));
     const buysB = teamB.players.map(p=>decideBuy(p, isPistol));
-    const strengthA = buysA.reduce((s,b)=>s+b.score,0) + Math.random()*2;
-    const strengthB = buysB.reduce((s,b)=>s+b.score,0) + Math.random()*2;
+    const iglA = teamA.players.some(p=>p.role==='IGL') ? 1.0 : 0;
+    const iglB = teamB.players.some(p=>p.role==='IGL') ? 1.0 : 0;
+    const utilA = buysA.reduce((s,b)=>s+(b.util||0),0); // 0..5
+    const utilB = buysB.reduce((s,b)=>s+(b.util||0),0);
+    const strengthA = buysA.reduce((s,b)=>s+b.score,0) + Math.random()*2 + (teamAvgSkill(teamA)-60)/12 + iglA;
+    const strengthB = buysB.reduce((s,b)=>s+b.score,0) + Math.random()*2 + (teamAvgSkill(teamB)-60)/12 + iglB;
     let probA = strengthA/(strengthA+strengthB);
-    probA = Math.min(0.92, Math.max(0.08, probA));
+    // Utility advantage shifts the round directly: a full-util team over a
+    // no-util team is worth roughly +12% win probability.
+    probA += (utilA - utilB) * 0.03;
+    // Map T/CT bias applied to whichever team is currently on T.
+    if (tKey==='A') probA += mapInfo.tBias; else probA -= mapInfo.tBias;
+    probA += momentumNudge;
+    probA = Math.min(0.93, Math.max(0.07, probA));
 
     let winner = Math.random()<probA ? 'A':'B';
     let loser = winner==='A'?'B':'A';
@@ -492,49 +677,84 @@
     let winBuys = winner==='A'?buysA:buysB;
     let loseBuys = winner==='A'?buysB:buysA;
 
-    const deathsLosing = 3 + Math.floor(Math.random()*3);
-    const deathsWinning = Math.floor(Math.random()*Math.random()*5);
+    let deathsLosing = 3 + Math.floor(Math.random()*3);   // 3-5
+    let deathsWinning = Math.floor(Math.random()*Math.random()*5); // 0-4, biased low
 
     const kills = [];
-    const ASSIST_CHANCE = 0.45;
+    const victimsLosing = [];
+    const victimsWinning = [];
 
-    const victimsLosing = sampleWithoutReplacement(loseTeam.players, deathsLosing);
-    victimsLosing.forEach(victim=>{
-      const weights = winTeam.players.map((p,i)=>winBuys[i].score+0.2);
-      const idx = weightedPick(weights);
-      const killer = winTeam.players[idx];
-      const wscore = winBuys[idx].score;
+    // Resolve one kill: killerTeam frags a victim drawn from victimPool.
+    function resolveKill(killerTeam, killerBuys, killerSide, victimPool, victimList, context){
+      // victim selection: entry duel weights entry fraggers to die first
+      let victim;
+      if (context==='entry'){
+        const vw = victimPool.map(entryVictimWeight);
+        victim = victimPool[weightedPick(vw)];
+      } else {
+        victim = victimPool[Math.floor(Math.random()*victimPool.length)];
+      }
+      const vIdx = victimPool.indexOf(victim);
+      victimPool.splice(vIdx,1);
+      victimList.push(victim);
+
+      const weights = killerTeam.players.map((p,i)=>roleKillWeight(p, killerBuys[i].score, context));
+      const kIdx = weightedPick(weights);
+      const killer = killerTeam.players[kIdx];
+      const wscore = killerBuys[kIdx].score;
       killer.kills++; victim.deaths++;
       killer.money = Math.min(MAX_MONEY, killer.money+KILL_REWARD);
       killer.damage += 80+Math.random()*70;
-      const hs = Math.random()<hsChance(wscore);
+      // higher-skill players headshot a bit more
+      const hs = Math.random() < (hsChance(wscore) + (killer.skill-65)/300);
       if (hs) killer.headshots++;
-      if (winTeam.players.length>1 && Math.random()<ASSIST_CHANCE){
-        const others = winTeam.players.filter((p,i)=>i!==idx);
-        others[Math.floor(Math.random()*others.length)].assists++;
+      // assist: Support role weighted higher. If the assisting teammate
+      // bought utility, it's flavored as a flash assist.
+      let flashAssist = false;
+      if (killerTeam.players.length>1 && Math.random()<0.45){
+        const others = killerTeam.players.filter(p=>p!==killer);
+        const aw = others.map(p=>p.role==='Support'?2.2:1);
+        const aIdx = weightedPick(aw);
+        const assister = others[aIdx];
+        assister.assists++;
+        const assisterBuy = killerBuys[killerTeam.players.indexOf(assister)];
+        if (assisterBuy && (assisterBuy.util||0) >= 0.5 && Math.random()<0.5){
+          flashAssist = true;
+          assister.flashAssists = (assister.flashAssists||0)+1;
+        }
       }
-      kills.push({killer:killer.name, victim:victim.name, killerObj:killer, victimObj:victim, weapon:winBuys[idx].buyType, hs, killerSide: winner});
-    });
-    const victimsWinning = sampleWithoutReplacement(winTeam.players, deathsWinning);
-    victimsWinning.forEach(victim=>{
-      const weights = loseTeam.players.map((p,i)=>loseBuys[i].score+0.2);
-      const idx = weightedPick(weights);
-      const killer = loseTeam.players[idx];
-      const wscore = loseBuys[idx].score;
-      killer.kills++; victim.deaths++;
-      killer.money = Math.min(MAX_MONEY, killer.money+KILL_REWARD);
-      killer.damage += 80+Math.random()*70;
-      const hs = Math.random()<hsChance(wscore);
-      if (hs) killer.headshots++;
-      if (loseTeam.players.length>1 && Math.random()<ASSIST_CHANCE){
-        const others = loseTeam.players.filter((p,i)=>i!==idx);
-        others[Math.floor(Math.random()*others.length)].assists++;
-      }
-      kills.push({killer:killer.name, victim:victim.name, killerObj:killer, victimObj:victim, weapon:loseBuys[idx].buyType, hs, killerSide: loser});
-    });
+      const kobj = {killer:killer.name, victim:victim.name, killerObj:killer, victimObj:victim,
+        weapon:killerBuys[kIdx].buyType, hs, killerSide, context,
+        killerUtil: killerBuys[kIdx].util||0, flashAssist};
+      kills.push(kobj);
+      return kobj;
+    }
 
-    // Trade kills: if a losing-side kill's victim is the exact player who
-    // just scored a kill for the winning side, tag it as a trade back.
+    // --- Opening duel (entry): either side can win it. ---
+    const winPool = winTeam.players.slice();
+    const losePool = loseTeam.players.slice();
+    const entryToWinner = Math.random() < 0.62;
+    if (!entryToWinner && deathsWinning===0) deathsWinning = 1;
+
+    let entryKill = null;
+    if (entryToWinner && deathsLosing>0){
+      entryKill = resolveKill(winTeam, winBuys, winner, losePool, victimsLosing, 'entry');
+    } else if (!entryToWinner && deathsWinning>0){
+      entryKill = resolveKill(loseTeam, loseBuys, loser, winPool, victimsWinning, 'entry');
+    }
+    if (entryKill){ entryKill.isEntry = true; entryKill.killerObj.firstBloods++; }
+
+    // --- Remaining kills ---
+    let remLosing = deathsLosing - (entryKill && entryKill.killerSide===winner ? 1 : 0);
+    let remWinning = deathsWinning - (entryKill && entryKill.killerSide===loser ? 1 : 0);
+    for (let i=0;i<remLosing && losePool.length>0;i++){
+      resolveKill(winTeam, winBuys, winner, losePool, victimsLosing, 'normal');
+    }
+    for (let i=0;i<remWinning && winPool.length>0;i++){
+      resolveKill(loseTeam, loseBuys, loser, winPool, victimsWinning, 'normal');
+    }
+
+    // Trade kills: a losing-side kill whose victim just fragged for the winner.
     kills.forEach((k, idx)=>{
       if (k.killerSide===loser){
         for (let j=0;j<idx;j++){
@@ -546,10 +766,6 @@
         }
       }
     });
-
-    // Entry duel: the round's very first kill, before any clutch/save
-    // action gets appended.
-    if (kills.length>0) kills[0].isEntry = true;
 
     // Clutch / save: only relevant when the round isn't match point.
     const saves = [];
@@ -563,9 +779,9 @@
       const cBuy = loseBuys[cIdx];
       const enemyCount = survivorsWinning.length;
       const baseChance = CLUTCH_TABLE[Math.min(5, enemyCount)];
-      const chance = Math.min(0.6, Math.max(0.01, baseChance + (cBuy.score-2)*0.02));
+      const chance = Math.min(0.6, Math.max(0.01, baseChance + (cBuy.score-2)*0.02 + (clutcher.skill-65)/250 + (clutcher.role==='Lurker'?0.05:0)));
       const success = Math.random() < chance;
-      clutchAttempt = {name:clutcher.name, enemyCount, success};
+      clutchAttempt = {name:clutcher.name, playerObj:clutcher, enemyCount, success};
 
       if (success){
         // Clutch! The lone survivor mops up everyone still standing and
@@ -599,7 +815,7 @@
           kills.push({killer:hunter.name, victim:clutcher.name, killerObj:hunter, victimObj:clutcher, weapon:winBuys[hIdx].buyType, hs, killerSide: winner, hunted:true});
         } else {
           clutcher.savedWeapon = {buyType: cBuy.buyType, score: cBuy.score};
-          saves.push({name:clutcher.name, buyType:cBuy.buyType, outnumbered:`1v${enemyCount}`});
+          saves.push({name:clutcher.name, playerObj:clutcher, buyType:cBuy.buyType, outnumbered:`1v${enemyCount}`});
         }
       } else {
         // 1v1 or 1v2 and the clutch attempt failed outright: they lose the duel.
@@ -631,14 +847,20 @@
           kills.push({killer:hunter.name, victim:survivor.name, killerObj:hunter, victimObj:survivor, weapon:winBuys[hIdx].buyType, hs, killerSide: winner, hunted:true});
         } else {
           survivor.savedWeapon = {buyType: survivorBuy.buyType, score: survivorBuy.score};
-          saves.push({name:survivor.name, buyType:survivorBuy.buyType, outnumbered:`2v${enemyCount}`});
+          saves.push({name:survivor.name, playerObj:survivor, buyType:survivorBuy.buyType, outnumbered:`2v${enemyCount}`});
         }
       });
     }
 
-    // Flavor tags: cosmetic-only texture on a minority of kills.
+    // Flavor tags: cosmetic-only texture on a minority of kills. Kills where
+    // the shooter had utility lean toward flash/smoke flavor.
+    const UTIL_FLAVORS = ['off the flash','through the smoke','off a teammate flash','molly forced them out'];
     kills.forEach(k=>{
-      if (Math.random()<0.15){
+      if (k.flashAssist && Math.random()<0.85){
+        k.flavor = 'flash assist';
+      } else if ((k.killerUtil||0) >= 0.5 && Math.random()<0.28){
+        k.flavor = UTIL_FLAVORS[Math.floor(Math.random()*UTIL_FLAVORS.length)];
+      } else if (Math.random()<0.15){
         if (k.weapon && k.weapon.toLowerCase().includes('awp') && Math.random()<0.5){
           k.flavor='no-scope';
         } else {
@@ -704,16 +926,16 @@
     }
     mvpPlayerObj.mvps++;
     const mvpName = mvpPlayerObj.name;
+    const mvpObj = mvpPlayerObj;
 
     let aceInfo = null;
     if (bestKills >= 5){
       const wasClutch = kills.some(k=>k.killerObj===mvpPlayerObj && k.isClutch);
-      aceInfo = {name: mvpPlayerObj.name, clutch: wasClutch};
+      aceInfo = {name: mvpPlayerObj.name, playerObj: mvpPlayerObj, clutch: wasClutch};
     }
 
     // Order the feed: entry duel leads, clutch/hunt resolution closes it
     // out, everything else shuffles naturally in between.
-    const entryKill = kills.find(k=>k.isEntry) || null;
     const climaxKills = kills.filter(k=>(k.isClutch||k.hunted) && k!==entryKill);
     const middleKills = kills.filter(k=>k!==entryKill && !climaxKills.includes(k));
     for(let i=middleKills.length-1;i>0;i--){
@@ -729,11 +951,12 @@
       p.roundsPlayed++;
     });
 
-    return {winner, method, plantedThisRound, bonusToLoser, kills:orderedKills, buysA, buysB, mvpName, mvpReason, saves, clutchAttempt, aceInfo};
+    return {winner, method, plantedThisRound, bonusToLoser, kills:orderedKills, buysA, buysB, mvpName, mvpObj, mvpReason, saves, clutchAttempt, aceInfo, matchPoint:matchPointActive};
   }
 
   /* ================= MATCH STATE / DRIVER ================= */
   let teamA, teamB, round, scoreA, scoreB, phase, otBlockA, otBlockB, otNum, roundHistory, playing, speed, matchDone;
+  let matchMapName, matchMapInfo, teamStreakA, teamStreakB, timeoutsA, timeoutsB;
 
   function resetEconomy(amount){
     [...teamA.players, ...teamB.players].forEach(p=>{p.money=amount; p.lossStreak=0;});
@@ -763,6 +986,32 @@
     // Regulation pistol rounds only: round 1 and the second-half opener.
     // Overtime rounds start at $10,000, so they're full-buy, not pistols.
     return phase==='reg' && (round===1 || round===13);
+  }
+
+  // Decide map bias + whether a struggling team burns a tactical timeout for
+  // a small momentum swing this round. Returns opts for simulateRound plus an
+  // optional timeout banner descriptor.
+  function prepareRoundOpts(){
+    const opts = { mapInfo: matchMapInfo, momentumNudge: 0 };
+    let timeout = null;
+    if (!isPistolRound()){
+      // Team A struggling?
+      if (teamStreakB>=3 && timeoutsA>0 && Math.random()<0.4){
+        timeoutsA--; teamStreakB=0;
+        opts.momentumNudge += 0.12;
+        timeout = {team:teamA.name, side:'A'};
+      } else if (teamStreakA>=3 && timeoutsB>0 && Math.random()<0.4){
+        timeoutsB--; teamStreakA=0;
+        opts.momentumNudge -= 0.12;
+        timeout = {team:teamB.name, side:'B'};
+      }
+    }
+    return {opts, timeout};
+  }
+
+  function updateStreaks(winnerKey){
+    if (winnerKey==='A'){ teamStreakA=0; teamStreakB++; }
+    else { teamStreakB=0; teamStreakA++; }
   }
 
   function updateSideColors(){
@@ -796,12 +1045,16 @@
     teamB = collectTeam('B','teamBName');
     round=0; scoreA=0; scoreB=0; phase='reg'; otBlockA=0; otBlockB=0; otNum=0;
     roundHistory=[]; matchDone=false; playing=true; speed=1;
+    matchMapName = selectedMap; matchMapInfo = MAPS[selectedMap] || {tBias:0};
+    teamStreakA=0; teamStreakB=0; timeoutsA=4; timeoutsB=4;
 
     document.getElementById('setupScreen').style.display='none';
     document.getElementById('finalScreen').style.display='none';
     document.getElementById('matchScreen').style.display='block';
     document.getElementById('sbNameA').textContent=teamA.name.toUpperCase();
     document.getElementById('sbNameB').textContent=teamB.name.toUpperCase();
+    const mapTag=document.getElementById('sbMap');
+    if (mapTag) mapTag.textContent=matchMapName;
     document.getElementById('feedInner').innerHTML='';
     updateSideColors();
     updateScoreboard();
@@ -846,9 +1099,12 @@
     }
     updateSideColors();
     const tKey = currentT();
-    const res = simulateRound(teamA, teamB, tKey, isMatchPoint(), isPistolRound());
+    const {opts, timeout} = prepareRoundOpts();
+    if (timeout) appendTimeoutBanner(timeout);
+    const res = simulateRound(teamA, teamB, tKey, isMatchPoint(), isPistolRound(), opts);
     roundHistory.push(res.winner);
     if (res.winner==='A') scoreA++; else scoreB++;
+    updateStreaks(res.winner);
     if (phase==='OT'){
       if (res.winner==='A') otBlockA++; else otBlockB++;
     }
@@ -873,6 +1129,14 @@
     feed.appendChild(div);
   }
 
+  function appendTimeoutBanner(timeout){
+    const feed = document.getElementById('feedInner');
+    const div = document.createElement('div');
+    div.className='timeout-line';
+    div.textContent = `⏱ TACTICAL TIMEOUT — ${timeout.team} regroups to stop the bleeding.`;
+    feed.appendChild(div);
+  }
+
   function appendHalftimeBanner(){
     const feed = document.getElementById('feedInner');
     const allPlayers = [...teamA.players, ...teamB.players];
@@ -880,47 +1144,135 @@
     allPlayers.forEach(p=>{ if (p.kills>top.kills) top = p; });
     const div = document.createElement('div');
     div.className='halftime-line';
-    div.innerHTML = `— HALFTIME — <span class="halftime-score">${escapeHtml(teamA.name)} ${scoreA} : ${scoreB} ${escapeHtml(teamB.name)}</span> &middot; Top Fragger So Far: <span class="halftime-top">${escapeHtml(top.name)} (${top.kills}K)</span> —`;
+    div.innerHTML = `— HALFTIME — <span class="halftime-score">${escapeHtml(teamA.name)} ${scoreA} : ${scoreB} ${escapeHtml(teamB.name)}</span> &middot; Top Fragger So Far: <span class="halftime-top">${taggedPlayer(top)} (${top.kills}K)</span> —`;
     feed.appendChild(div);
+  }
+
+  const CASTER_NAMES = ['Anders','Machine','ddk','SPUNJ','Launders','HenryG','Sadokist','Pansy'];
+  function generateCasterLine(res){
+    const rnd = a => a[Math.floor(Math.random()*a.length)];
+    const mvpObj = res.mvpObj;
+    const mvp = mvpObj ? taggedPlayer(mvpObj) : escapeHtml(res.mvpName||'');
+    const winName = escapeHtml(res.winner==='A'?teamA.name:teamB.name);
+    const mk = mvpObj ? res.kills.filter(k=>k.killerObj===mvpObj).length : 0;
+
+    if (res.aceInfo){
+      return rnd([
+        `ARE YOU KIDDING ME?! ${mvp} with the ACE — all five, ${winName} steal it!`,
+        `AN ACE FROM ${mvp}! Absolutely unconscious — a full team wipe!`,
+        `${mvp} says NOT TODAY — a clean ace to win it for ${winName}!`
+      ]);
+    }
+    if (res.clutchAttempt && res.clutchAttempt.success){
+      const n = res.clutchAttempt.enemyCount;
+      return rnd([
+        `CLUTCH CITY! ${mvp} stands tall in the 1v${n} — ice in the veins!`,
+        `${mvp} takes the 1v${n}! You will NOT see a bigger round than that!`,
+        `Nobody left but ${mvp} — and the 1v${n} clutch lands for ${winName}!`
+      ]);
+    }
+    const wBuys = res.winner==='A'?res.buysA:res.buysB;
+    const avgBuy = wBuys.reduce((s,b)=>s+b.score,0)/wBuys.length;
+    if (avgBuy < 2.2){
+      return rnd([
+        `On the eco?! ${winName} rob the bank and ${mvp} leads the heist with ${mk}!`,
+        `Full save and they STILL win it — ${mvp} with ${mk} on the eco, massive for ${winName}!`
+      ]);
+    }
+    if (res.matchPoint){
+      return rnd([
+        `MATCH POINT converted! ${mvp} slams the door with ${mk} — ${winName} take it!`,
+        `Ice cold on match point — ${mvp} with the frags to seal it for ${winName}!`
+      ]);
+    }
+    if (res.method==='Bomb Detonation'){
+      return rnd([
+        `Site taken, bomb down — ${mvp} anchors the execute with ${mk} for ${winName}.`,
+        `Clean execute and the detonation — ${mvp} out front with ${mk} to win the round.`
+      ]);
+    }
+    if (res.method==='Defuse'){
+      return rnd([
+        `Huge retake! ${mvp} with ${mk} and ${winName} get the defuse away.`,
+        `They read it perfectly — ${mvp} steering the retake, defuse secured for ${winName}.`
+      ]);
+    }
+    if (mk>=3){
+      return rnd([
+        `${mvp} is COOKING — a ${mk}K to take the round for ${winName}!`,
+        `Multi-kill from ${mvp}! ${mk} bodies and ${winName} are rolling!`
+      ]);
+    }
+    if (mk===2){
+      return rnd([
+        `${mvp} picks up the double and ${winName} take the round.`,
+        `Nice ${mk}K from ${mvp} — round MVP as ${winName} go ahead.`
+      ]);
+    }
+    return rnd([
+      `${winName} grind it out — ${mvp} the standout that round.`,
+      `Round goes to ${winName}; ${mvp} doing the dirty work.`,
+      `${mvp} gets the nod for MVP as ${winName} close it out.`
+    ]);
   }
 
   function renderRound(res, tKey){
     const feed = document.getElementById('feedInner');
     const banner = document.createElement('div');
-    banner.className = 'round-banner win-'+res.winner.toLowerCase();
+    banner.className = 'round-banner win-'+res.winner.toLowerCase()+' has-comms';
     const winnerName = res.winner==='A'?teamA.name:teamB.name;
+    const casterLine = generateCasterLine(res);
+    const caster = CASTER_NAMES[Math.floor(Math.random()*CASTER_NAMES.length)];
     banner.innerHTML = `
       <span class="rb-round mono">R${phase==='reg'?round:((round-1)%6)+1}</span>
       <span class="rb-text">${escapeHtml(winnerName.toUpperCase())} WIN</span>
       <span class="rb-method">${res.method}</span>
+      <span class="rb-comms-hint">🎙️</span>
+      <div class="comms-pop">
+        <div class="comms-head">🎙️ ${escapeHtml(caster)} ON THE CALL</div>
+        <div class="caster-quote">${casterLine}</div>
+      </div>
     `;
+    // Tap-to-toggle for touch devices (hover handles desktop).
+    banner.addEventListener('click', ()=>{ banner.classList.toggle('comms-open'); });
     feed.appendChild(banner);
 
     if (res.aceInfo){
       const ac=document.createElement('div');
       ac.className='ace-line';
-      ac.textContent = res.aceInfo.clutch
-        ? `🔥 CLUTCH ACE — ${res.aceInfo.name} takes down the entire enemy team!`
-        : `🔥 ACE — ${res.aceInfo.name} wipes the entire enemy team!`;
+      const who = res.aceInfo.playerObj ? taggedPlayer(res.aceInfo.playerObj) : escapeHtml(res.aceInfo.name);
+      ac.innerHTML = res.aceInfo.clutch
+        ? `🔥 CLUTCH ACE — ${who} takes down the entire enemy team!`
+        : `🔥 ACE — ${who} wipes the entire enemy team!`;
       feed.appendChild(ac);
     }
 
     if (res.bonusToLoser){
       const pl=document.createElement('div');
       pl.className='plant-line';
-      pl.textContent = '💣 Bomb planted — defusing team denied the plant bonus';
+      const t=(Math.random()*8+1).toFixed(1);
+      pl.textContent = `💣 Bomb planted — defused with ${t}s on the clock`;
       feed.appendChild(pl);
     } else if (res.method==='Bomb Detonation'){
       const pl=document.createElement('div');
       pl.className='plant-line';
-      pl.textContent = '💣 Bomb detonated';
+      const wBuys = res.winner==='A'?res.buysA:res.buysB;
+      const util = wBuys.reduce((s,b)=>s+(b.util||0),0);
+      pl.textContent = util>=2.5 ? '💣 Smoke execute onto site — bomb detonated' : '💣 Bomb detonated — site taken';
+      feed.appendChild(pl);
+    } else if (res.method==='Defuse'){
+      const pl=document.createElement('div');
+      pl.className='plant-line';
+      const t=(Math.random()*3+0.2).toFixed(1);
+      pl.textContent = `💣 Defused with ${t}s left — huge!`;
       feed.appendChild(pl);
     }
 
     if (res.clutchAttempt){
       const cl=document.createElement('div');
       cl.className='clutch-line';
-      cl.textContent = `⚔️ 1v${res.clutchAttempt.enemyCount} — ${res.clutchAttempt.name} is the last one standing...`;
+      const who = res.clutchAttempt.playerObj ? taggedPlayer(res.clutchAttempt.playerObj) : escapeHtml(res.clutchAttempt.name);
+      cl.innerHTML = `⚔️ 1v${res.clutchAttempt.enemyCount} — ${who} is the last one standing...`;
       feed.appendChild(cl);
     }
 
@@ -936,16 +1288,17 @@
       if (k.isClutch && !k.hunted) tags += ' <span class="clutch-tag">CLUTCH</span>';
       if (k.hs) tags += ' <span class="hs-tag">HEADSHOT</span>';
       const flavorText = k.flavor ? ` <span class="flavor-tag">(${escapeHtml(k.flavor)})</span>` : '';
-      line.innerHTML = `<span class="killer">${escapeHtml(k.killer)}</span> <span class="weapon-tag">[${escapeHtml(k.weapon)}]</span> ${verb} <span class="victim">${escapeHtml(k.victim)}</span>${flavorText}${tags}`;
+      line.innerHTML = `<span class="killer">${taggedPlayer(k.killerObj)}</span> <span class="weapon-tag">[${escapeHtml(k.weapon)}]</span> ${verb} <span class="victim">${taggedPlayer(k.victimObj)}</span>${flavorText}${tags}`;
       feed.appendChild(line);
     });
 
     if (res.clutchAttempt){
       const cr=document.createElement('div');
       cr.className = 'clutch-line '+(res.clutchAttempt.success?'clutch-win':'clutch-loss');
-      cr.textContent = res.clutchAttempt.success
-        ? `🏆 CLUTCHED! ${res.clutchAttempt.name} closes out the 1v${res.clutchAttempt.enemyCount}!`
-        : `${res.clutchAttempt.name} couldn't find the clutch this time.`;
+      const who = res.clutchAttempt.playerObj ? taggedPlayer(res.clutchAttempt.playerObj) : escapeHtml(res.clutchAttempt.name);
+      cr.innerHTML = res.clutchAttempt.success
+        ? `🏆 CLUTCHED! ${who} closes out the 1v${res.clutchAttempt.enemyCount}!`
+        : `${who} couldn't find the clutch this time.`;
       feed.appendChild(cr);
     }
 
@@ -953,7 +1306,7 @@
       res.saves.forEach(s=>{
         const sl=document.createElement('div');
         sl.className='save-line';
-        sl.innerHTML = `🛡️ <span class="save-line-name">${escapeHtml(s.name)}</span> saves the ${escapeHtml(s.buyType)} <span class="save-line-reason">(outnumbered ${s.outnumbered})</span>`;
+        sl.innerHTML = `🛡️ <span class="save-line-name">${s.playerObj?taggedPlayer(s.playerObj):escapeHtml(s.name)}</span> saves the ${escapeHtml(s.buyType)} <span class="save-line-reason">(outnumbered ${s.outnumbered})</span>`;
         feed.appendChild(sl);
       });
     }
@@ -961,7 +1314,7 @@
     if (res.mvpName){
       const mvpLine=document.createElement('div');
       mvpLine.className='mvp-line';
-      mvpLine.innerHTML = `⭐ <span class="mvp-line-name">${escapeHtml(res.mvpName)}</span> is the Round MVP <span class="mvp-line-reason">(${escapeHtml(res.mvpReason)})</span>`;
+      mvpLine.innerHTML = `⭐ <span class="mvp-line-name">${res.mvpObj?taggedPlayer(res.mvpObj):escapeHtml(res.mvpName)}</span> is the Round MVP <span class="mvp-line-reason">(${escapeHtml(res.mvpReason)})</span>`;
       feed.appendChild(mvpLine);
     }
 
@@ -973,6 +1326,23 @@
     return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
+  function sideColorVar(sideKey){ return sideKey==='A' ? 'var(--team-a-color)' : 'var(--team-b-color)'; }
+  function teamTagFor(sideKey){ return sideKey==='A' ? (teamA.tag||'') : (teamB.tag||''); }
+  // Build "TAG name" markup, tag bold + side-colored, resolved at render time.
+  function taggedName(name, sideKey){
+    const tag = teamTagFor(sideKey);
+    const tagHtml = tag ? `<span class="ptag" style="color:${sideColorVar(sideKey)}">${escapeHtml(tag)}</span> ` : '';
+    return `${tagHtml}${escapeHtml(name)}`;
+  }
+  // Resolve a player's current side from the object, so tags/colors stay
+  // correct even after a clutch flip or the halftime side swap.
+  function sideOfPlayer(playerObj){
+    return (teamA.players.indexOf(playerObj) !== -1) ? 'A' : 'B';
+  }
+  function taggedPlayer(playerObj){
+    return taggedName(playerObj.name, sideOfPlayer(playerObj));
+  }
+
   function endMatch(){
     matchDone=true;
     playing=false;
@@ -980,19 +1350,22 @@
     setTimeout(showFinalScreen, 900);
   }
 
-  function buildStatsTable(team){
+  function buildStatsTable(team, tagColor){
     const rows = team.players.slice().sort((a,b)=>b.kills-a.kills);
+    const tag = team.tag || '';
+    const tagHtml = tag ? `<span class="ptag" style="color:${tagColor}">${escapeHtml(tag)}</span> ` : '';
     return rows.map(p=>{
       const hsPct = p.kills>0 ? Math.round((p.headshots/p.kills)*100) : 0;
       const adr = p.roundsPlayed>0 ? (p.damage/p.roundsPlayed).toFixed(0) : '0';
       const plusMinus = p.kills - p.deaths;
       const pm = plusMinus>0 ? `+${plusMinus}` : `${plusMinus}`;
       return `<tr>
-        <td class="pname">${escapeHtml(p.name)}</td>
+        <td class="pname">${tagHtml}${escapeHtml(p.name)}<span class="pname-role">${escapeHtml(p.role)} · ${p.skill}${p.pref==='awp'?' · AWP':''}</span></td>
         <td>${p.kills}</td>
         <td>${p.assists}</td>
         <td>${p.deaths}</td>
         <td>${p.mvps}</td>
+        <td>${p.firstBloods}</td>
         <td>${pm}</td>
         <td>${hsPct}%</td>
         <td>${adr}</td>
@@ -1020,15 +1393,19 @@
       `${teamA.name} ${scoreA} — ${scoreB} ${teamB.name}  ·  ${winnerName} WINS`;
     document.getElementById('finalNameA').textContent = teamA.name;
     document.getElementById('finalNameB').textContent = teamB.name;
-    document.getElementById('finalTableA').innerHTML = buildStatsTable(teamA);
-    document.getElementById('finalTableB').innerHTML = buildStatsTable(teamB);
+    document.getElementById('finalTableA').innerHTML = buildStatsTable(teamA, 'var(--t-accent)');
+    document.getElementById('finalTableB').innerHTML = buildStatsTable(teamB, 'var(--ct-accent)');
 
     const mvpEntry = computeMatchMVP();
     const p = mvpEntry.p;
     const hsPct = p.kills>0 ? Math.round((p.headshots/p.kills)*100) : 0;
+    const mvpIsA = teamA.players.indexOf(p) !== -1;
+    const mvpTag = mvpIsA ? (teamA.tag||'') : (teamB.tag||'');
+    const mvpTagColor = mvpIsA ? 'var(--t-accent)' : 'var(--ct-accent)';
+    const mvpTagHtml = mvpTag ? `<span class="ptag" style="color:${mvpTagColor}">${escapeHtml(mvpTag)}</span> ` : '';
     document.getElementById('matchMvpCard').innerHTML = `
       <div class="mmc-kicker">Match MVP</div>
-      <div class="mmc-name">${escapeHtml(p.name)}</div>
+      <div class="mmc-name">${mvpTagHtml}${escapeHtml(p.name)}</div>
       <div class="mmc-line">${escapeHtml(mvpEntry.team)} &middot; ${p.kills}K / ${p.assists}A / ${p.deaths}D &middot; ${p.mvps} Round MVPs${p.clutches?(' &middot; '+p.clutches+' Clutch'+(p.clutches>1?'es':'')):''} &middot; ${hsPct}% HS</div>
     `;
   }
@@ -1071,9 +1448,12 @@
       }
       updateSideColors();
       const tKey = currentT();
-      const res = simulateRound(teamA, teamB, tKey, isMatchPoint(), isPistolRound());
+      const {opts, timeout} = prepareRoundOpts();
+      if (timeout) appendTimeoutBanner(timeout);
+      const res = simulateRound(teamA, teamB, tKey, isMatchPoint(), isPistolRound(), opts);
       roundHistory.push(res.winner);
       if (res.winner==='A') scoreA++; else scoreB++;
+      updateStreaks(res.winner);
       if (phase==='OT'){
         if (res.winner==='A') otBlockA++; else otBlockB++;
       }
