@@ -296,7 +296,64 @@
     .stats-grid{grid-template-columns:1fr;}
     .sb-name{font-size:15px;}
     .sb-score{font-size:24px;}
+    .teams-grid-8{grid-template-columns:1fr !important;}
+    .bracket{flex-direction:column !important;}
   }
+
+  /* mode + format bar */
+  .mode-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:center;margin-bottom:22px;}
+  .mode-group,.fmt-group{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:4px;background:var(--panel);}
+  .mode-btn,.fmt-btn{background:transparent;border:none;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;padding:8px 16px;border-radius:6px;cursor:pointer;letter-spacing:.03em;transition:all .15s;}
+  .mode-btn:hover,.fmt-btn:hover{color:var(--text);}
+  .mode-btn.active,.fmt-btn.active{background:linear-gradient(90deg,var(--t-accent),var(--ct-accent));color:#0B0E12;}
+  .fmt-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--muted);padding-left:6px;}
+
+  /* 8-team setup grid */
+  .teams-grid-8{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .teams-grid-8 .team-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;}
+
+  /* veto */
+  #vetoScreen,#bracketScreen,#interScreen{max-width:900px;margin:0 auto;}
+  .veto-status{text-align:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:20px;margin-bottom:16px;min-height:26px;}
+  .veto-maps{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:18px;}
+  .veto-map{position:relative;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 16px;cursor:default;transition:all .3s ease;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:18px;color:var(--text);letter-spacing:.03em;}
+  .veto-map.banned{opacity:.4;background:var(--panel-2);transform:scale(0.97);}
+  .veto-map.banned .vm-name{text-decoration:line-through;color:var(--muted);}
+  .veto-map.kept{border-color:var(--good);}
+  .vm-x{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--kill);letter-spacing:.12em;margin-top:4px;}
+  .vm-keep{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--good);letter-spacing:.15em;margin-top:4px;}
+  .veto-dots{display:inline-block;animation:vetoBlink 1s steps(4,end) infinite;}
+  @keyframes vetoBlink{0%{opacity:.2;}50%{opacity:1;}100%{opacity:.2;}}
+  .veto-result{text-align:center;color:var(--muted);font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  .veto-result b{color:var(--text);}
+
+  /* series interstitial */
+  .series-score{text-align:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:32px;margin-bottom:20px;}
+  .series-maps{max-width:460px;margin:0 auto 24px;}
+  .series-map-list{border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .series-map-row{display:grid;grid-template-columns:1fr auto 1.2fr;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--panel-2);font-size:14px;}
+  .series-map-row:last-child{border-bottom:none;}
+  .smr-map{font-family:'Rajdhani',sans-serif;font-weight:600;}
+  .smr-score{font-family:'IBM Plex Mono',monospace;color:var(--muted);}
+  .smr-win{font-family:'Rajdhani',sans-serif;font-weight:700;text-align:right;}
+  #interNextBtn{max-width:460px;margin-left:auto;margin-right:auto;}
+
+  /* bracket */
+  .bracket{display:flex;gap:20px;justify-content:center;margin-bottom:22px;overflow-x:auto;}
+  .bk-col{display:flex;flex-direction:column;gap:14px;justify-content:center;min-width:200px;}
+  .bk-col-h{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--muted);text-align:center;margin-bottom:4px;}
+  .bk-match{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel);}
+  .bk-team{display:flex;align-items:center;gap:6px;padding:10px 12px;font-family:'Inter',sans-serif;font-weight:600;font-size:13px;border-bottom:1px solid var(--panel-2);}
+  .bk-team:last-child{border-bottom:none;}
+  .bk-team.bk-won{background:rgba(95,201,141,0.10);color:var(--good);}
+  .bk-team.bk-tbd{color:var(--muted);font-weight:400;font-style:italic;}
+  .bk-sc{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-weight:700;}
+  .bk-champ{margin-top:10px;text-align:center;font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--bomb);font-size:15px;}
+  .bracket-actions{text-align:center;margin-bottom:20px;}
+  .bk-next{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:18px;margin-bottom:12px;}
+  .bk-fmt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#0B0E12;background:var(--bomb);padding:2px 7px;border-radius:4px;font-weight:600;letter-spacing:.05em;vertical-align:middle;}
+  .bk-btns{display:flex;gap:10px;justify-content:center;}
+  .bk-done{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:20px;color:var(--bomb);}
 </style>
 </head>
 <body>
@@ -307,29 +364,25 @@
     <div class="setup-header">
       <div class="kicker">Best of MR12 &middot; Overtime Enabled</div>
       <h1>MATCH SIM</h1>
-      <div class="sub">Set rosters, weapon, skill and role per player, pick a map, then run the match.</div>
+      <div class="sub">Choose a mode, set your rosters, then run it.</div>
     </div>
 
-    <div class="teams-grid">
-      <div class="team-panel t-side">
-        <div class="team-label">Terrorists &middot; Side A</div>
-        <div class="team-id-row">
-          <input class="team-tag-input" id="teamATag" value="ALP" maxlength="5" placeholder="TAG">
-          <input class="team-name-input" id="teamAName" value="Team Alpha" maxlength="24">
-        </div>
-        <div id="rosterA"></div>
+    <div class="mode-bar">
+      <div class="mode-group" id="modeGroup">
+        <button type="button" class="mode-btn active" data-mode="single">Single Match</button>
+        <button type="button" class="mode-btn" data-mode="series">Series</button>
+        <button type="button" class="mode-btn" data-mode="tournament">Tournament (8)</button>
       </div>
-      <div class="team-panel ct-side">
-        <div class="team-label">Counter-Terrorists &middot; Side B</div>
-        <div class="team-id-row">
-          <input class="team-tag-input" id="teamBTag" value="BRV" maxlength="5" placeholder="TAG">
-          <input class="team-name-input" id="teamBName" value="Team Bravo" maxlength="24">
-        </div>
-        <div id="rosterB"></div>
+      <div class="fmt-group" id="fmtGroup" style="display:none;">
+        <span class="fmt-label">FORMAT</span>
+        <button type="button" class="fmt-btn active" data-fmt="3">Bo3</button>
+        <button type="button" class="fmt-btn" data-fmt="5">Bo5</button>
       </div>
     </div>
 
-    <div class="map-picker">
+    <div id="teamsContainer"></div>
+
+    <div class="map-picker" id="mapPicker">
       <span class="map-label">MAP</span>
       <div class="map-options" id="mapOptions"></div>
     </div>
@@ -337,7 +390,40 @@
     <div class="vs-emblem">— FIRST TO 13 &middot; OT IS MR3, FIRST TO 4 —</div>
 
     <button class="start-btn" id="startBtn">START MATCH</button>
-    <div class="format-note">Side A opens on T. Sides swap at round 13. Overtime resets economy to $10,000.</div>
+    <div class="format-note" id="setupNote">Side A opens on T. Sides swap at round 13. Overtime resets economy to $10,000.</div>
+  </div>
+
+  <!-- ===================== VETO SCREEN ===================== -->
+  <div id="vetoScreen" style="display:none;">
+    <div class="setup-header">
+      <div class="kicker" id="vetoSub">MAP VETO</div>
+      <h1>MAP VETO</h1>
+    </div>
+    <div class="veto-status" id="vetoStatus"></div>
+    <div class="veto-maps" id="vetoMaps"></div>
+    <div class="veto-result" id="vetoResult"></div>
+  </div>
+
+  <!-- ===================== BRACKET SCREEN ===================== -->
+  <div id="bracketScreen" style="display:none;">
+    <div class="setup-header">
+      <div class="kicker" id="bracketSub">SINGLE ELIMINATION &middot; BO3 TIES &middot; BO5 GRAND FINAL</div>
+      <h1>TOURNAMENT BRACKET</h1>
+    </div>
+    <div class="bracket" id="bracketBody"></div>
+    <div class="bracket-actions" id="bracketActions"></div>
+    <button class="again-btn" id="bracketNewBtn">NEW TOURNAMENT</button>
+  </div>
+
+  <!-- ===================== SERIES INTERSTITIAL ===================== -->
+  <div id="interScreen" style="display:none;">
+    <div class="setup-header">
+      <div class="kicker" id="interSub">SERIES</div>
+      <h1 id="interTitle">MAP COMPLETE</h1>
+    </div>
+    <div class="series-score" id="interScore"></div>
+    <div class="series-maps" id="interMaps"></div>
+    <button class="start-btn" id="interNextBtn">NEXT MAP</button>
   </div>
 
   <!-- ===================== MATCH SCREEN ===================== -->
@@ -427,72 +513,130 @@
   };
 
   /* ================= SETUP UI ================= */
-  const rosterA = document.getElementById('rosterA');
-  const rosterB = document.getElementById('rosterB');
+  const DEFAULT_TEAMS = [
+    {name:'Team Alpha', tag:'ALP'}, {name:'Team Bravo', tag:'BRV'},
+    {name:'Team Charlie', tag:'CHR'}, {name:'Team Delta', tag:'DLT'},
+    {name:'Team Echo', tag:'ECH'}, {name:'Team Foxtrot', tag:'FOX'},
+    {name:'Team Golf', tag:'GLF'}, {name:'Team Hotel', tag:'HTL'}
+  ];
+  const NAME_POOLS = [
+    ['Ace','Blitz','Cinder','Drift','Echo'], ['Fable','Glide','Havoc','Iris','Juno'],
+    ['Kilo','Lumen','Mako','Nova','Onyx'], ['Pace','Quill','Rook','Sable','Torch'],
+    ['Umbra','Vex','Wraith','Xen','Yara'], ['Zephyr','Aero','Brine','Crux','Dune'],
+    ['Ember','Frost','Grit','Halo','Ion'], ['Jinx','Kelvin','Lynx','Mirth','Nyx']
+  ];
 
-  function buildRoster(container, defaults, side){
+  let appMode = 'single';   // 'single' | 'series' | 'tournament'
+  let seriesFormat = 3;     // 3 = Bo3, 5 = Bo5 (series/tournament)
+  let selectedMap = 'Mirage';
+
+  const teamsContainer = document.getElementById('teamsContainer');
+
+  function buildTeamPanel(teamIdx){
+    const t = DEFAULT_TEAMS[teamIdx];
+    const names = NAME_POOLS[teamIdx];
+    const sideClass = (teamIdx % 2 === 0) ? 't-side' : 'ct-side';
+    const panel = document.createElement('div');
+    panel.className = 'team-panel '+sideClass;
+    panel.dataset.team = teamIdx;
+    let rosterHtml = '';
     for(let i=0;i<5;i++){
-      const row = document.createElement('div');
-      row.className='player-row';
       const defRole = DEFAULT_ROLES[i];
       const defWeapon = defRole==='AWPer' ? 'awp' : 'rifle';
       const roleOpts = ROLES.map(r=>`<option value="${r}" ${r===defRole?'selected':''}>${r}</option>`).join('');
-      row.innerHTML = `
-        <div class="pr-line1">
-          <span class="num">${i+1}</span>
-          <input class="player-name-input" data-side="${side}" data-idx="${i}" value="${defaults[i]}" maxlength="18">
-          <div class="weapon-toggle" data-side="${side}" data-idx="${i}">
-            <button type="button" data-w="rifle" class="${defWeapon==='rifle'?'active':''}">RIFLE</button>
-            <button type="button" data-w="awp" class="${defWeapon==='awp'?'active':''}">AWP</button>
+      rosterHtml += `
+        <div class="player-row">
+          <div class="pr-line1">
+            <span class="num">${i+1}</span>
+            <input class="player-name-input" data-team="${teamIdx}" data-idx="${i}" value="${names[i]}" maxlength="18">
+            <div class="weapon-toggle" data-team="${teamIdx}" data-idx="${i}">
+              <button type="button" data-w="rifle" class="${defWeapon==='rifle'?'active':''}">RIFLE</button>
+              <button type="button" data-w="awp" class="${defWeapon==='awp'?'active':''}">AWP</button>
+            </div>
           </div>
-        </div>
-        <div class="pr-line2">
-          <div class="skill-wrap">
-            <span class="skill-lbl">SKILL</span>
-            <input type="range" class="skill-slider" data-side="${side}" data-idx="${i}" min="30" max="99" value="${DEFAULT_SKILLS[i]}">
-            <span class="skill-val" data-side="${side}" data-idx="${i}">${DEFAULT_SKILLS[i]}</span>
+          <div class="pr-line2">
+            <div class="skill-wrap">
+              <span class="skill-lbl">SKILL</span>
+              <input type="range" class="skill-slider" data-team="${teamIdx}" data-idx="${i}" min="30" max="99" value="${DEFAULT_SKILLS[i]}">
+              <span class="skill-val" data-team="${teamIdx}" data-idx="${i}">${DEFAULT_SKILLS[i]}</span>
+            </div>
+            <select class="role-select" data-team="${teamIdx}" data-idx="${i}">${roleOpts}</select>
           </div>
-          <select class="role-select" data-side="${side}" data-idx="${i}">${roleOpts}</select>
-        </div>
-      `;
-      container.appendChild(row);
+        </div>`;
     }
+    panel.innerHTML = `
+      <div class="team-label">Team ${teamIdx+1}</div>
+      <div class="team-id-row">
+        <input class="team-tag-input" data-team="${teamIdx}" value="${t.tag}" maxlength="5" placeholder="TAG">
+        <input class="team-name-input" data-team="${teamIdx}" value="${t.name}" maxlength="24">
+      </div>
+      ${rosterHtml}
+    `;
+    return panel;
   }
-  buildRoster(rosterA, DEFAULT_NAMES_A, 'A');
-  buildRoster(rosterB, DEFAULT_NAMES_B, 'B');
 
-  document.querySelectorAll('.weapon-toggle').forEach(tg=>{
-    tg.addEventListener('click', (e)=>{
-      const btn = e.target.closest('button');
-      if(!btn) return;
-      tg.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
+  function renderTeams(){
+    const count = (appMode==='tournament') ? 8 : 2;
+    teamsContainer.className = (count===2) ? 'teams-grid' : 'teams-grid-8';
+    teamsContainer.innerHTML = '';
+    for(let i=0;i<count;i++) teamsContainer.appendChild(buildTeamPanel(i));
+    wireTeamInputs();
+  }
+
+  function wireTeamInputs(){
+    teamsContainer.querySelectorAll('.weapon-toggle').forEach(tg=>{
+      tg.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        tg.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      });
     });
+    teamsContainer.querySelectorAll('.skill-slider').forEach(sl=>{
+      sl.addEventListener('input', ()=>{
+        const v = teamsContainer.querySelector(`.skill-val[data-team="${sl.dataset.team}"][data-idx="${sl.dataset.idx}"]`);
+        if (v) v.textContent = sl.value;
+      });
+    });
+    teamsContainer.querySelectorAll('.role-select').forEach(sel=>{
+      sel.addEventListener('change', ()=>{
+        if (sel.value==='AWPer'){
+          const tg = teamsContainer.querySelector(`.weapon-toggle[data-team="${sel.dataset.team}"][data-idx="${sel.dataset.idx}"]`);
+          if (tg){ tg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.w==='awp')); }
+        }
+      });
+    });
+  }
+
+  // Mode + format selectors
+  document.getElementById('modeGroup').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.mode-btn');
+    if(!btn) return;
+    appMode = btn.dataset.mode;
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    document.getElementById('fmtGroup').style.display = (appMode==='series') ? 'flex' : 'none';
+    document.getElementById('mapPicker').style.display = (appMode==='single') ? 'block' : 'none';
+    const startBtn = document.getElementById('startBtn');
+    startBtn.textContent = appMode==='single' ? 'START MATCH' : (appMode==='series' ? 'GO TO MAP VETO' : 'BUILD BRACKET');
+    const note = document.getElementById('setupNote');
+    note.textContent = appMode==='single'
+      ? 'Single map. Side A opens on T; sides swap at round 13.'
+      : (appMode==='series' ? `Best-of-${seriesFormat}. You'll veto maps next, then play the series live.`
+                            : '8 teams, single elimination. Quarters & semis are Bo3; the grand final is Bo5.');
+    renderTeams();
+  });
+  document.getElementById('fmtGroup').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.fmt-btn');
+    if(!btn) return;
+    seriesFormat = parseInt(btn.dataset.fmt);
+    document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.toggle('active', b===btn));
+    const note = document.getElementById('setupNote');
+    if (appMode==='series') note.textContent = `Best-of-${seriesFormat}. You'll veto maps next, then play the series live.`;
   });
 
-  // Live skill value readout, and keep AWPer role loosely in sync with weapon.
-  document.querySelectorAll('.skill-slider').forEach(sl=>{
-    sl.addEventListener('input', ()=>{
-      const v = document.querySelector(`.skill-val[data-side="${sl.dataset.side}"][data-idx="${sl.dataset.idx}"]`);
-      if (v) v.textContent = sl.value;
-    });
-  });
-  document.querySelectorAll('.role-select').forEach(sel=>{
-    sel.addEventListener('change', ()=>{
-      // Selecting AWPer auto-flips the weapon toggle to AWP as a convenience.
-      if (sel.value==='AWPer'){
-        const tg = document.querySelector(`.weapon-toggle[data-side="${sel.dataset.side}"][data-idx="${sel.dataset.idx}"]`);
-        if (tg){ tg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.w==='awp')); }
-      }
-    });
-  });
-
-  document.getElementById('startBtn').addEventListener('click', startMatch);
-
-  // Map picker
-  let selectedMap = 'Mirage';
+  // Map picker (single mode only)
   const mapOptions = document.getElementById('mapOptions');
-  Object.keys(MAPS).forEach((mapName, i)=>{
+  Object.keys(MAPS).forEach((mapName)=>{
     const btn = document.createElement('button');
     btn.type='button';
     btn.className='map-btn'+(mapName===selectedMap?' active':'');
@@ -505,22 +649,25 @@
     mapOptions.appendChild(btn);
   });
 
-  function collectTeam(side, nameInputId){
+  renderTeams();
+  document.getElementById('startBtn').addEventListener('click', handleStart);
+
+  function collectTeam(teamIdx){
     const players=[];
-    document.querySelectorAll(`.player-name-input[data-side="${side}"]`).forEach(inp=>{
+    teamsContainer.querySelectorAll(`.player-name-input[data-team="${teamIdx}"]`).forEach(inp=>{
       const idx = inp.dataset.idx;
-      const toggle = document.querySelector(`.weapon-toggle[data-side="${side}"][data-idx="${idx}"]`);
+      const toggle = teamsContainer.querySelector(`.weapon-toggle[data-team="${teamIdx}"][data-idx="${idx}"]`);
       const pref = toggle.querySelector('button.active').dataset.w;
       const name = inp.value.trim() || `Player${parseInt(idx)+1}`;
-      const skillEl = document.querySelector(`.skill-slider[data-side="${side}"][data-idx="${idx}"]`);
-      const roleEl = document.querySelector(`.role-select[data-side="${side}"][data-idx="${idx}"]`);
+      const skillEl = teamsContainer.querySelector(`.skill-slider[data-team="${teamIdx}"][data-idx="${idx}"]`);
+      const roleEl = teamsContainer.querySelector(`.role-select[data-team="${teamIdx}"][data-idx="${idx}"]`);
       const skill = skillEl ? parseInt(skillEl.value) : 70;
       const role = roleEl ? roleEl.value : 'Support';
       players.push(makePlayer(name, pref, skill, role));
     });
-    const teamName = document.getElementById(nameInputId).value.trim() || 'Unnamed Team';
-    const tagId = side==='A' ? 'teamATag' : 'teamBTag';
-    const tagEl = document.getElementById(tagId);
+    const nameEl = teamsContainer.querySelector(`.team-name-input[data-team="${teamIdx}"]`);
+    const tagEl = teamsContainer.querySelector(`.team-tag-input[data-team="${teamIdx}"]`);
+    const teamName = nameEl && nameEl.value.trim() ? nameEl.value.trim() : `Team ${teamIdx+1}`;
     const tag = tagEl ? tagEl.value.trim() : '';
     return {name: teamName, tag, players};
   }
@@ -1040,17 +1187,27 @@
     }
   }
 
-  function startMatch(){
-    teamA = collectTeam('A','teamAName');
-    teamB = collectTeam('B','teamBName');
+  let matchCompleteHook = null; // called with (winnerKey) when a map finishes
+
+  function resetMatchStats(team){
+    team.players.forEach(p=>{
+      p.money=START_MONEY; p.kills=0; p.deaths=0; p.assists=0; p.mvps=0; p.clutches=0;
+      p.firstBloods=0; p.flashAssists=0; p.headshots=0; p.damage=0; p.lossStreak=0;
+      p.roundsPlayed=0; p.savedWeapon=null;
+    });
+  }
+
+  // Play one map (a full MR12 match) between two team objects, rendering live.
+  function beginMap(aObj, bObj, mapName, onComplete){
+    teamA = aObj; teamB = bObj;
+    resetMatchStats(teamA); resetMatchStats(teamB);
+    matchCompleteHook = onComplete || showFinalScreen;
     round=0; scoreA=0; scoreB=0; phase='reg'; otBlockA=0; otBlockB=0; otNum=0;
     roundHistory=[]; matchDone=false; playing=true; speed=1;
-    matchMapName = selectedMap; matchMapInfo = MAPS[selectedMap] || {tBias:0};
+    matchMapName = mapName; matchMapInfo = MAPS[mapName] || {tBias:0};
     teamStreakA=0; teamStreakB=0; timeoutsA=4; timeoutsB=4;
 
-    document.getElementById('setupScreen').style.display='none';
-    document.getElementById('finalScreen').style.display='none';
-    document.getElementById('matchScreen').style.display='block';
+    showScreen('matchScreen');
     document.getElementById('sbNameA').textContent=teamA.name.toUpperCase();
     document.getElementById('sbNameB').textContent=teamB.name.toUpperCase();
     const mapTag=document.getElementById('sbMap');
@@ -1061,6 +1218,57 @@
     document.getElementById('playPauseBtn').textContent='⏸ PAUSE';
     setActiveSpeed(1);
     scheduleNextRound();
+  }
+
+  // Simulate a whole map with no rendering; returns {winner, scoreA, scoreB}.
+  function autoSimMap(aObj, bObj, mapName){
+    resetMatchStats(aObj); resetMatchStats(bObj);
+    const mapInfo = MAPS[mapName] || {tBias:0};
+    let r=0, sA=0, sB=0, ph='reg', obA=0, obB=0, on=0, strA=0, strB=0;
+    const resetEco=(amt)=>{[...aObj.players,...bObj.players].forEach(p=>{p.money=amt;p.lossStreak=0;});};
+    const clearSaved=()=>{[...aObj.players,...bObj.players].forEach(p=>{p.savedWeapon=null;});};
+    const curT=()=> ph==='reg' ? (r<=12?'A':'B') : (((r-1)%6)<3?'A':'B');
+    const isMP=()=> ph==='reg' ? (sA===12||sB===12) : (obA===3||obB===3);
+    const isPist=()=> ph==='reg' && (r===1||r===13);
+    let done=false, guard=0;
+    while(!done && guard<400){
+      guard++; r++;
+      if (ph==='reg' && r===13){ resetEco(START_MONEY); clearSaved(); }
+      if (ph==='OT' && ((r-1)%6)===0){ resetEco(OT_START_MONEY); on++; obA=0; obB=0; }
+      const res = simulateRound(aObj, bObj, curT(), isMP(), isPist(), {mapInfo});
+      if (res.winner==='A') sA++; else sB++;
+      if (ph==='OT'){ if(res.winner==='A') obA++; else obB++; }
+      if (ph==='reg'){
+        if (sA>=13||sB>=13){ done=true; }
+        else if (r===24){ ph='OT'; r=0; }
+      } else {
+        if (obA>=4||obB>=4){ done=true; }
+      }
+    }
+    return {winner: sA>sB?'A':'B', scoreA:sA, scoreB:sB};
+  }
+
+  function showScreen(id){
+    ['setupScreen','vetoScreen','bracketScreen','interScreen','matchScreen','finalScreen'].forEach(s=>{
+      const el=document.getElementById(s);
+      if (el) el.style.display = (s===id)?'block':'none';
+    });
+  }
+
+  function handleStart(){
+    if (appMode==='single'){
+      const a = collectTeam(0), b = collectTeam(1);
+      beginMap(a, b, selectedMap, showFinalScreen);
+    } else if (appMode==='series'){
+      const a = collectTeam(0), b = collectTeam(1);
+      startVeto(a, b, seriesFormat, (mapList)=>{
+        startSeries(a, b, seriesFormat, mapList, null);
+      });
+    } else {
+      const teams = [];
+      for(let i=0;i<8;i++) teams.push(collectTeam(i));
+      startTournament(teams, seriesFormat);
+    }
   }
 
   function updateScoreboard(){
@@ -1347,7 +1555,8 @@
     matchDone=true;
     playing=false;
     clearTimeout(timerHandle);
-    setTimeout(showFinalScreen, 900);
+    const winnerKey = scoreA>scoreB?'A':'B';
+    setTimeout(()=>{ if (matchCompleteHook) matchCompleteHook(winnerKey); }, 900);
   }
 
   function buildStatsTable(team, tagColor){
@@ -1386,8 +1595,7 @@
   }
 
   function showFinalScreen(){
-    document.getElementById('matchScreen').style.display='none';
-    document.getElementById('finalScreen').style.display='block';
+    showScreen('finalScreen');
     const winnerName = scoreA>scoreB?teamA.name:teamB.name;
     document.getElementById('finalScoreText').textContent =
       `${teamA.name} ${scoreA} — ${scoreB} ${teamB.name}  ·  ${winnerName} WINS`;
@@ -1408,6 +1616,239 @@
       <div class="mmc-name">${mvpTagHtml}${escapeHtml(p.name)}</div>
       <div class="mmc-line">${escapeHtml(mvpEntry.team)} &middot; ${p.kills}K / ${p.assists}A / ${p.deaths}D &middot; ${p.mvps} Round MVPs${p.clutches?(' &middot; '+p.clutches+' Clutch'+(p.clutches>1?'es':'')):''} &middot; ${hsPct}% HS</div>
     `;
+  }
+
+  /* ================= SERIES / VETO / BRACKET ================= */
+  function teamLabel(t){ return escapeHtml(t.tag || t.name); }
+
+  // ---- Map veto (automatic, animated, roster-aware) ----
+  let vetoState = null;
+
+  // A team's side lean from roster roles/skill: >0 = stronger on T (aggressive),
+  // <0 = stronger on CT (structured/AWP defense).
+  const ROLE_LEAN = {Entry:1.0, Lurker:0.6, Support:-0.5, IGL:-0.6, AWPer:-0.8};
+  function sideLean(team){
+    let s=0;
+    team.players.forEach(p=>{ s += (ROLE_LEAN[p.role]||0) * (p.skill/75); });
+    return s / team.players.length;
+  }
+
+  function startVeto(a, b, format, onDone){
+    const pool = Object.keys(MAPS).slice();
+    vetoState = {a, b, pool, banned:[], bannedBy:{}, turn:0, needed:format, onDone,
+      leanA:sideLean(a), leanB:sideLean(b), done:false};
+    showScreen('vetoScreen');
+    document.getElementById('vetoSub').textContent = `${teamLabel(a)} vs ${teamLabel(b)} · Best of ${format}`;
+    renderVeto();
+    setTimeout(autoVetoStep, 900);
+  }
+
+  function chooseBan(vs, banningIsA){
+    const remaining = vs.pool.filter(m=>!vs.banned.includes(m));
+    // relAdv (from A's view) = tBias * (leanA - leanB): >0 favors A, <0 favors B.
+    // A bans the map most favouring B (min relAdv); B bans the map most favouring A (max relAdv).
+    const scored = remaining.map(m=>{
+      const t = (MAPS[m]||{tBias:0}).tBias;
+      const relAdv = t * (vs.leanA - vs.leanB);
+      return {m, relAdv: relAdv + (Math.random()-0.5)*0.005}; // tiny jitter for ties
+    });
+    scored.sort((x,y)=> banningIsA ? x.relAdv - y.relAdv : y.relAdv - x.relAdv);
+    return scored[0].m;
+  }
+
+  function autoVetoStep(){
+    const vs = vetoState;
+    const toBanTotal = vs.pool.length - vs.needed;
+    if (vs.banned.length >= toBanTotal){
+      vs.done = true;
+      renderVeto();
+      setTimeout(()=>vs.onDone(vs.pool.filter(x=>!vs.banned.includes(x))), 1100);
+      return;
+    }
+    const banningIsA = (vs.turn % 2 === 0);
+    const banning = banningIsA ? vs.a : vs.b;
+    const map = chooseBan(vs, banningIsA);
+    vs.banned.push(map);
+    vs.bannedBy[map] = teamLabel(banning);
+    vs.turn++;
+    renderVeto();
+    setTimeout(autoVetoStep, 850);
+  }
+
+  function renderVeto(){
+    const vs = vetoState;
+    const toBanTotal = vs.pool.length - vs.needed;
+    const bansDone = vs.banned.length;
+    const status = document.getElementById('vetoStatus');
+    if (vs.done){
+      status.textContent = 'Veto complete — starting series...';
+    } else if (bansDone < toBanTotal){
+      const banning = (vs.turn%2===0)? vs.a : vs.b;
+      const col = vs.turn%2===0?'var(--t-accent)':'var(--ct-accent)';
+      status.innerHTML = `<span style="color:${col}">${teamLabel(banning)}</span> is banning<span class="veto-dots">...</span>`;
+    }
+    const wrap = document.getElementById('vetoMaps');
+    wrap.innerHTML='';
+    vs.pool.forEach(m=>{
+      const banned = vs.banned.includes(m);
+      const kept = vs.done && !banned;
+      const btn = document.createElement('button');
+      btn.className='veto-map'+(banned?' banned':(kept?' kept':''));
+      const sub = banned ? `<span class="vm-x">BANNED · ${escapeHtml(vs.bannedBy[m]||'')}</span>`
+                         : (kept ? '<span class="vm-keep">IN POOL</span>' : '');
+      btn.innerHTML = `<span class="vm-name">${escapeHtml(m)}</span>${sub}`;
+      wrap.appendChild(btn);
+    });
+    const kept = vs.pool.filter(m=>!vs.banned.includes(m));
+    document.getElementById('vetoResult').innerHTML = (vs.done && kept.length)
+      ? `Map order: ${kept.map((m,i)=>`<b>${i+1}. ${escapeHtml(m)}</b>`).join(' · ')}` : '';
+  }
+
+  // ---- Series ----
+  let seriesState = null;
+  function seriesTarget(){ return Math.floor(seriesState.format/2)+1; }
+  function startSeries(a, b, format, mapList, onComplete){
+    seriesState = {a, b, format, maps:mapList, mapIndex:0, winsA:0, winsB:0, results:[], onComplete};
+    playNextSeriesMap();
+  }
+  function playNextSeriesMap(){
+    const s = seriesState;
+    const mapName = s.maps[s.mapIndex] || s.maps[s.maps.length-1];
+    beginMap(s.a, s.b, mapName, (winnerKey)=>{
+      s.results.push({map:mapName, scoreA, scoreB, winner:winnerKey});
+      if (winnerKey==='A') s.winsA++; else s.winsB++;
+      s.mapIndex++;
+      const target = seriesTarget();
+      if (s.winsA>=target || s.winsB>=target) showSeriesComplete();
+      else showInterstitial();
+    });
+  }
+  function seriesScoreHtml(s){
+    return `<span style="color:var(--t-accent)">${teamLabel(s.a)} ${s.winsA}</span> — <span style="color:var(--ct-accent)">${s.winsB} ${teamLabel(s.b)}</span>`;
+  }
+  function seriesMapsHtml(s){
+    if (!s.results.length) return '';
+    return '<div class="series-map-list">'+s.results.map((r)=>{
+      const wName = r.winner==='A'? teamLabel(s.a) : teamLabel(s.b);
+      const col = r.winner==='A'?'var(--t-accent)':'var(--ct-accent)';
+      return `<div class="series-map-row"><span class="smr-map">${escapeHtml(r.map)}</span><span class="smr-score">${r.scoreA}–${r.scoreB}</span><span class="smr-win" style="color:${col}">${wName}</span></div>`;
+    }).join('')+'</div>';
+  }
+  function showInterstitial(){
+    const s = seriesState;
+    showScreen('interScreen');
+    document.getElementById('interSub').textContent = `${teamLabel(s.a)} vs ${teamLabel(s.b)} · Bo${s.format}`;
+    document.getElementById('interTitle').textContent = `MAP ${s.mapIndex} COMPLETE`;
+    document.getElementById('interScore').innerHTML = seriesScoreHtml(s);
+    document.getElementById('interMaps').innerHTML = seriesMapsHtml(s);
+    const btn = document.getElementById('interNextBtn');
+    btn.style.display='block';
+    btn.textContent = `PLAY MAP ${s.mapIndex+1} — ${escapeHtml(s.maps[s.mapIndex]||'')}`;
+    btn.onclick = playNextSeriesMap;
+  }
+  function showSeriesComplete(){
+    const s = seriesState;
+    showScreen('interScreen');
+    const winner = s.winsA>s.winsB ? s.a : s.b;
+    document.getElementById('interSub').textContent = `Best of ${s.format} · FINAL`;
+    document.getElementById('interTitle').innerHTML = `${teamLabel(winner)} WIN THE SERIES`;
+    document.getElementById('interScore').innerHTML = seriesScoreHtml(s);
+    document.getElementById('interMaps').innerHTML = seriesMapsHtml(s);
+    const btn = document.getElementById('interNextBtn');
+    btn.style.display='block';
+    if (s.onComplete){
+      btn.textContent = 'BACK TO BRACKET';
+      btn.onclick = ()=> s.onComplete(winner);
+    } else {
+      btn.textContent = 'NEW SETUP';
+      btn.onclick = ()=> showScreen('setupScreen');
+    }
+  }
+
+  // ---- Tournament bracket ----
+  let tourneyState = null;
+  function startTournament(teams, format){
+    const s = teams.slice();
+    const qf = [
+      {a:s[0], b:s[7]}, {a:s[3], b:s[4]}, {a:s[1], b:s[6]}, {a:s[2], b:s[5]}
+    ].map(m=>({...m, winner:null, res:null}));
+    tourneyState = {
+      format,
+      rounds:{
+        QF: qf,
+        SF: [{a:null,b:null,winner:null,res:null},{a:null,b:null,winner:null,res:null}],
+        F:  [{a:null,b:null,winner:null,res:null}]
+      },
+      champion:null
+    };
+    showBracket();
+  }
+  function nextBracketMatch(){
+    const R = tourneyState.rounds;
+    for (const m of R.QF){ if (!m.winner) return {m, label:'Quarterfinal', format:3}; }
+    R.SF[0].a = R.QF[0].winner; R.SF[0].b = R.QF[1].winner;
+    R.SF[1].a = R.QF[2].winner; R.SF[1].b = R.QF[3].winner;
+    for (const m of R.SF){ if (m.a && m.b && !m.winner) return {m, label:'Semifinal', format:3}; }
+    R.F[0].a = R.SF[0].winner; R.F[0].b = R.SF[1].winner;
+    if (R.F[0].a && R.F[0].b && !R.F[0].winner) return {m:R.F[0], label:'Grand Final', format:5};
+    return null;
+  }
+  function matchCell(m){
+    const cell = (t, won)=> t
+      ? `<div class="bk-team${won?' bk-won':''}">${t.tag?`<span class="ptag" style="color:${won?'var(--good)':'var(--muted)'}">${escapeHtml(t.tag)}</span> `:''}${escapeHtml(t.name)}${m.res?`<span class="bk-sc">${t===m.a?m.res.winsA:m.res.winsB}</span>`:''}</div>`
+      : `<div class="bk-team bk-tbd">TBD</div>`;
+    return `<div class="bk-match">${cell(m.a, m.winner===m.a)}${cell(m.b, m.winner===m.b)}</div>`;
+  }
+  function showBracket(){
+    showScreen('bracketScreen');
+    const R = tourneyState.rounds;
+    R.SF[0].a=R.SF[0].a||R.QF[0].winner; R.SF[0].b=R.SF[0].b||R.QF[1].winner;
+    R.SF[1].a=R.SF[1].a||R.QF[2].winner; R.SF[1].b=R.SF[1].b||R.QF[3].winner;
+    R.F[0].a=R.F[0].a||R.SF[0].winner; R.F[0].b=R.F[0].b||R.SF[1].winner;
+    document.getElementById('bracketBody').innerHTML = `
+      <div class="bk-col"><div class="bk-col-h">QUARTERFINALS</div>${R.QF.map(matchCell).join('')}</div>
+      <div class="bk-col"><div class="bk-col-h">SEMIFINALS</div>${R.SF.map(matchCell).join('')}</div>
+      <div class="bk-col"><div class="bk-col-h">GRAND FINAL</div>${matchCell(R.F[0])}${tourneyState.champion?`<div class="bk-champ">🏆 ${teamLabel(tourneyState.champion)} CHAMPIONS</div>`:''}</div>`;
+    const actions = document.getElementById('bracketActions');
+    const nm = nextBracketMatch();
+    if (!nm){
+      tourneyState.champion = R.F[0].winner;
+      actions.innerHTML = `<div class="bk-done">🏆 Tournament complete — ${teamLabel(tourneyState.champion)} are your champions!</div>`;
+      return;
+    }
+    actions.innerHTML = `
+      <div class="bk-next">${nm.label} <span class="bk-fmt">Bo${nm.format}</span>: <b>${teamLabel(nm.m.a)}</b> vs <b>${teamLabel(nm.m.b)}</b></div>
+      <div class="bk-btns">
+        <button class="ctrl-btn primary" id="bkWatch">▶ WATCH LIVE</button>
+        <button class="ctrl-btn" id="bkAuto">⏩ AUTO-SIM</button>
+      </div>`;
+    document.getElementById('bkWatch').onclick = ()=>{
+      startVeto(nm.m.a, nm.m.b, nm.format, (mapList)=>{
+        startSeries(nm.m.a, nm.m.b, nm.format, mapList, (winner)=>{
+          nm.m.winner = winner;
+          nm.m.res = {winsA:seriesState.winsA, winsB:seriesState.winsB};
+          showBracket();
+        });
+      });
+    };
+    document.getElementById('bkAuto').onclick = ()=>{
+      const r = autoSimSeries(nm.m.a, nm.m.b, nm.format);
+      nm.m.winner = r.winner;
+      nm.m.res = {winsA:r.winsA, winsB:r.winsB};
+      showBracket();
+    };
+  }
+  function autoSimSeries(a, b, format){
+    const target = Math.floor(format/2)+1;
+    let wa=0, wb=0; const results=[]; const pool=Object.keys(MAPS); let mi=0;
+    while(wa<target && wb<target && mi<format+2){
+      const mapName = pool[mi % pool.length];
+      const r = autoSimMap(a, b, mapName);
+      if (r.winner==='A') wa++; else wb++;
+      results.push({map:mapName, scoreA:r.scoreA, scoreB:r.scoreB, winner:r.winner});
+      mi++;
+    }
+    return {winner: wa>wb?a:b, winsA:wa, winsB:wb, results};
   }
 
   /* ================= CONTROLS ================= */
@@ -1466,13 +1907,17 @@
       }
     }
     updateScoreboard();
-    setTimeout(showFinalScreen, 400);
+    matchDone=true;
+    setTimeout(()=>{ if (matchCompleteHook) matchCompleteHook(scoreA>scoreB?'A':'B'); }, 400);
   });
 
   document.getElementById('newMatchBtn').addEventListener('click', function(){
     clearTimeout(timerHandle);
-    document.getElementById('finalScreen').style.display='none';
-    document.getElementById('setupScreen').style.display='block';
+    showScreen('setupScreen');
+  });
+  document.getElementById('bracketNewBtn').addEventListener('click', function(){
+    clearTimeout(timerHandle);
+    showScreen('setupScreen');
   });
 
 })();
