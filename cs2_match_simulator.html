@@ -27,11 +27,22 @@
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:var(--bg-void);
+    background:#10131a;
+    background-image:
+      linear-gradient(#262d3a 1px, transparent 1px),
+      linear-gradient(90deg, #262d3a 1px, transparent 1px);
+    background-size:34px 34px;
     color:var(--text);
     font-family:'Inter',sans-serif;
     min-height:100vh;
   }
+  .back-to-index{
+    position:fixed;top:14px;left:14px;z-index:200;
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;
+    padding:9px 14px;border-radius:6px;text-decoration:none;transition:all .15s;
+  }
+  .back-to-index:hover{border-color:var(--t-accent);color:var(--t-accent);transform:translateX(-2px);}
   ::selection{background:var(--t-accent);color:#0B0E12;}
   h1,h2,h3,.display{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:0.02em;}
   .mono{font-family:'IBM Plex Mono',monospace;}
@@ -173,6 +184,18 @@
   .pip{width:7px;height:7px;border-radius:1px;background:var(--line);}
   .pip.win-a{background:var(--team-a-color);}
   .pip.win-b{background:var(--team-b-color);}
+  .pip.pip-new{animation:pipPop .4s ease-out;}
+  @keyframes pipPop{0%{transform:scale(0);opacity:0;}60%{transform:scale(1.5);}100%{transform:scale(1);opacity:1;}}
+
+  .winprob{max-width:760px;margin:0 auto 16px;}
+  .wp-track{position:relative;display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--panel-2);border:1px solid var(--line);}
+  .wp-fill-a{width:50%;background:linear-gradient(90deg, color-mix(in srgb,var(--team-a-color) 70%, #000), var(--team-a-color));transition:width .6s cubic-bezier(.4,0,.2,1);}
+  .wp-fill-b{width:50%;background:linear-gradient(90deg, var(--team-b-color), color-mix(in srgb,var(--team-b-color) 70%, #000));transition:width .6s cubic-bezier(.4,0,.2,1);}
+  .wp-mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.25);}
+  .wp-labels{display:flex;justify-content:space-between;align-items:center;margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:11px;}
+  .wp-pct-a{color:var(--team-a-color);font-weight:700;}
+  .wp-pct-b{color:var(--team-b-color);font-weight:700;}
+  .wp-tag{color:var(--muted);letter-spacing:.12em;font-size:9px;}
 
   .controls-bar{
     display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:18px;flex-wrap:wrap;
@@ -365,6 +388,45 @@
   .bk-btns{display:flex;gap:10px;justify-content:center;}
   .bk-done{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:20px;color:var(--bomb);}
 
+  /* all-star team */
+  .allstar-card{max-width:620px;margin:20px auto 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .as-h{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;color:var(--bomb);margin-bottom:12px;text-align:center;}
+  .as-mvp{text-align:center;font-family:'Rajdhani',sans-serif;font-size:16px;margin-bottom:14px;color:var(--text);}
+  .as-mvp-rating{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;}
+  .as-row{display:grid;grid-template-columns:70px 1fr auto 46px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--panel-2);font-size:13px;}
+  .as-row:last-child{border-bottom:none;}
+  .as-role{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ct-accent);letter-spacing:.08em;}
+  .as-name{font-weight:700;font-family:'Rajdhani',sans-serif;font-size:15px;}
+  .as-stat{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-align:right;}
+  .as-rating{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--good);text-align:right;}
+
+  /* pick'em */
+  #pickemScreen{max-width:720px;margin:0 auto;}
+  .pickem-legend{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:18px;font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+  .pickem-legend b{padding:2px 6px;border-radius:4px;color:#0B0E12;margin-right:4px;}
+  .pl-30{background:var(--good);} .pl-03{background:var(--kill);} .pl-adv{background:var(--ct-accent);} .pl-champ{background:var(--bomb);}
+  .pickem-table{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:16px;}
+  .pk-row{display:grid;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--panel-2);}
+  .pk-row:last-of-type{border-bottom:none;}
+  .pk-team{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;}
+  .pk-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;padding:5px 9px;border-radius:5px;cursor:pointer;transition:all .12s;min-width:38px;}
+  .pk-btn:hover{border-color:var(--muted);}
+  .pk-btn.pk-30.on{background:var(--good);color:#0B0E12;border-color:var(--good);}
+  .pk-btn.pk-03.on{background:var(--kill);color:#fff;border-color:var(--kill);}
+  .pk-btn.pk-adv.on{background:var(--ct-accent);color:#0B0E12;border-color:var(--ct-accent);}
+  .pk-btn.pk-champ.on{background:var(--bomb);color:#0B0E12;border-color:var(--bomb);}
+  .pk-count{text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);padding-top:8px;}
+  .pickem-actions{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
+  .pickem-results{max-width:620px;margin:16px auto 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;}
+  .pkr-h{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.12em;color:var(--bomb);text-align:center;margin-bottom:12px;}
+  .pkr-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--panel-2);font-size:13px;}
+  .pkr-row:last-child{border-bottom:none;}
+  .pkr-label{font-family:'Rajdhani',sans-serif;font-weight:700;}
+  .pkr-detail{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+  .pkr-pts{font-family:'IBM Plex Mono',monospace;font-weight:700;}
+  .pkr-ok .pkr-pts{color:var(--good);} .pkr-miss .pkr-pts{color:var(--muted);}
+  .pkr-ok .pkr-label::before{content:'✓ ';color:var(--good);} .pkr-miss .pkr-label::before{content:'✗ ';color:var(--kill);}
+
   /* swiss stage */
   #swissScreen{max-width:1000px;margin:0 auto;}
   .swiss-wrap{display:grid;grid-template-columns:1fr 1.3fr;gap:20px;margin-bottom:20px;}
@@ -413,6 +475,7 @@
 </style>
 </head>
 <body>
+<a href="index.html" class="back-to-index">← INDEX</a>
 <div id="app">
 
   <!-- ===================== SETUP SCREEN ===================== -->
@@ -465,6 +528,26 @@
   </div>
 
   <!-- ===================== BRACKET SCREEN ===================== -->
+  <!-- ===================== MAJOR PICK'EM ===================== -->
+  <div id="pickemScreen" style="display:none;">
+    <div class="setup-header">
+      <div class="kicker">PREDICT THE MAJOR</div>
+      <h1>PICK'EM CHALLENGE</h1>
+      <div class="sub">Call who goes 3-0, who goes 0-3, the 8 teams that advance, and the champion. Scored after the Major.</div>
+    </div>
+    <div class="pickem-legend">
+      <span><b class="pl-30">3-0</b> undefeated (+3)</span>
+      <span><b class="pl-03">0-3</b> winless (+3)</span>
+      <span><b class="pl-adv">ADV</b> reaches playoffs (+1 each)</span>
+      <span><b class="pl-champ">★</b> champion (+5)</span>
+    </div>
+    <div id="pickemTable" class="pickem-table"></div>
+    <div class="pickem-actions">
+      <button class="ctrl-btn" id="pickemSkip">SKIP PICK'EM</button>
+      <button class="start-btn" id="pickemStart" style="max-width:320px;">LOCK PICKS &amp; START →</button>
+    </div>
+  </div>
+
   <!-- ===================== SWISS STAGE ===================== -->
   <div id="swissScreen" style="display:none;">
     <div class="setup-header">
@@ -553,12 +636,26 @@
       </div>
     </div>
 
+    <div class="winprob" id="winProb">
+      <div class="wp-track">
+        <div class="wp-fill-a" id="wpFillA"></div>
+        <div class="wp-fill-b" id="wpFillB"></div>
+        <div class="wp-mid"></div>
+      </div>
+      <div class="wp-labels">
+        <span class="wp-pct-a" id="wpPctA">50%</span>
+        <span class="wp-tag">WIN PROBABILITY</span>
+        <span class="wp-pct-b" id="wpPctB">50%</span>
+      </div>
+    </div>
+
     <div class="controls-bar">
       <button class="ctrl-btn primary" id="playPauseBtn">⏸ PAUSE</button>
       <button class="ctrl-btn" id="speed1">1x</button>
       <button class="ctrl-btn" id="speed2">2x</button>
       <button class="ctrl-btn" id="speed4">4x</button>
       <button class="ctrl-btn" id="skipBtn">SKIP TO END</button>
+      <button class="ctrl-btn" id="muteBtn" title="Toggle sound">🔊</button>
     </div>
 
     <div class="feed-panel" id="feedPanel">
@@ -1440,6 +1537,7 @@
 
   // Play one map (a full MR12 match) between two team objects, rendering live.
   function beginMap(aObj, bObj, mapName, onComplete){
+    initAudio(); setMuteIcon();
     teamA = aObj; teamB = bObj;
     resetMatchStats(teamA); resetMatchStats(teamB);
     matchCompleteHook = onComplete || showFinalScreen;
@@ -1492,7 +1590,7 @@
   }
 
   function showScreen(id){
-    ['setupScreen','vetoScreen','swissScreen','bracketScreen','interScreen','matchScreen','finalScreen','historyScreen'].forEach(s=>{
+    ['setupScreen','vetoScreen','pickemScreen','swissScreen','bracketScreen','interScreen','matchScreen','finalScreen','historyScreen'].forEach(s=>{
       const el=document.getElementById(s);
       if (el) el.style.display = (s===id)?'block':'none';
     });
@@ -1531,6 +1629,72 @@
     ea.roundsW += sA; ea.roundsL += sB; eb.roundsW += sB; eb.roundsL += sA;
     if (sA>sB){ ea.mapsW++; eb.mapsL++; } else { eb.mapsW++; ea.mapsL++; }
     STORE.set('cs2sim_league', leagueTable);
+    if (majorStatsActive && majorState && majorState.playerAcc) accumulateMajorPlayerStats(aObj, bObj);
+  }
+  let majorStatsActive = false;
+  const MAJOR_STAT_FIELDS = ['kills','deaths','assists','mvps','clutches','firstBloods','flashAssists','headshots','damage','roundsPlayed'];
+  function accumulateMajorPlayerStats(aObj, bObj){
+    [...aObj.players, ...bObj.players].forEach(p=>{
+      let acc = majorState.playerAcc.get(p);
+      if (!acc){ acc = {ref:p, maps:0}; MAJOR_STAT_FIELDS.forEach(f=>acc[f]=0); majorState.playerAcc.set(p, acc); }
+      acc.maps++;
+      MAJOR_STAT_FIELDS.forEach(f=>{ acc[f] += (p[f]||0); });
+    });
+  }
+  function majorPlayerRating(a){
+    const rounds = Math.max(1, a.roundsPlayed);
+    const adr = a.damage/rounds;
+    // per-round impact rating, normalised so deep runs don't dominate on volume alone
+    return (a.kills*1.4 + a.assists*0.4 + a.firstBloods*0.5 + a.mvps*1.2 + a.clutches*2.0 - a.deaths*0.8)/rounds + adr*0.004;
+  }
+  function computeAllStars(){
+    if (!majorState || !majorState.playerAcc) return null;
+    const roles = ['Entry','Lurker','Support','IGL','AWPer'];
+    const byRole = {}; roles.forEach(r=>byRole[r]=[]);
+    majorState.playerAcc.forEach(acc=>{
+      const role = acc.ref.role;
+      if (byRole[role]) byRole[role].push(acc);
+    });
+    const team = {};
+    roles.forEach(r=>{
+      const pool = byRole[r].filter(a=>a.roundsPlayed>=24); // at least ~1 map
+      const cand = (pool.length?pool:byRole[r]).slice().sort((x,y)=>majorPlayerRating(y)-majorPlayerRating(x));
+      team[r] = cand[0] || null;
+    });
+    // Tournament MVP: highest rating across all with a decent sample
+    let mvp=null, best=-1e9;
+    majorState.playerAcc.forEach(acc=>{
+      if (acc.roundsPlayed<24) return;
+      const r = majorPlayerRating(acc);
+      if (r>best){ best=r; mvp=acc; }
+    });
+    return {team, mvp};
+  }
+  function teamOfPlayerObj(p){
+    if (!majorState) return null;
+    return majorState.teams.find(t=>t.players.indexOf(p)!==-1) || null;
+  }
+  function accStatLine(a){
+    const adr = a.roundsPlayed?(a.damage/a.roundsPlayed).toFixed(0):'0';
+    return `${a.kills}K/${a.assists}A/${a.deaths}D · ${adr} ADR · ${a.mvps} MVP${a.clutches?` · ${a.clutches} clutch`:''}`;
+  }
+  function renderAllStarHtml(allStar){
+    if (!allStar) return '';
+    const roles = ['AWPer','Entry','Lurker','Support','IGL'];
+    const rows = roles.map(r=>{
+      const a = allStar.team[r];
+      if (!a) return '';
+      const t = teamOfPlayerObj(a.ref);
+      const tag = t && t.tag ? `<span class="ptag" style="color:var(--bomb)">${escapeHtml(t.tag)}</span> ` : '';
+      return `<div class="as-row"><span class="as-role">${r}</span><span class="as-name">${tag}${escapeHtml(a.ref.name)}</span><span class="as-stat">${accStatLine(a)}</span><span class="as-rating">${majorPlayerRating(a).toFixed(2)}</span></div>`;
+    }).join('');
+    let mvpHtml = '';
+    if (allStar.mvp){
+      const t = teamOfPlayerObj(allStar.mvp.ref);
+      const tag = t && t.tag ? `<span class="ptag" style="color:var(--bomb)">${escapeHtml(t.tag)}</span> ` : '';
+      mvpHtml = `<div class="as-mvp">⭐ TOURNAMENT MVP: <b>${tag}${escapeHtml(allStar.mvp.ref.name)}</b> <span class="as-mvp-rating">${majorPlayerRating(allStar.mvp).toFixed(2)} rating</span></div>`;
+    }
+    return `<div class="allstar-card"><div class="as-h">ALL-STAR TEAM</div>${mvpHtml}<div class="as-list">${rows}</div></div>`;
   }
   function recordChampion(champ, runnerUp, kind){
     championsHistory.unshift({
@@ -1841,8 +2005,64 @@
     } else {
       const teams = [];
       for(let i=0;i<16;i++) teams.push(collectTeam(i));
-      startMajor(teams);
+      showPickem(teams);
     }
+  }
+
+  /* ---- Sound effects (Web Audio, on by default, mute toggle) ---- */
+  let soundEnabled = true;
+  let audioCtx = null;
+  function initAudio(){
+    if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(audioCtx && audioCtx.state==='suspended'){ try{ audioCtx.resume(); }catch(e){} }
+  }
+  function beep(freq, dur, type, vol, when){
+    if(!soundEnabled || !audioCtx) return;
+    try {
+      const t0 = audioCtx.currentTime + (when||0);
+      const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+      osc.type = type||'sine'; osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(vol||0.05, t0+0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(t0); osc.stop(t0+dur+0.03);
+    } catch(e){}
+  }
+  const SFX = {
+    roundWin(side){ const f = side==='A'?300:340; beep(f,0.10,'triangle',0.05); beep(f*1.5,0.11,'triangle',0.04,0.05); },
+    clutch(){ [700,900,1150].forEach((f,i)=>beep(f,0.13,'sawtooth',0.05,i*0.09)); },
+    bomb(){ beep(140,0.18,'square',0.05); },
+    bigWin(){ [523,659,784,1046].forEach((f,i)=>beep(f,0.22,'triangle',0.06,i*0.13)); }
+  };
+  function setMuteIcon(){ const b=document.getElementById('muteBtn'); if(b) b.textContent = soundEnabled?'🔊':'🔇'; }
+
+  function computeWinProbA(){
+    const need = (phase==='OT') ? 4 : 13;
+    const sA = (phase==='OT') ? otBlockA : scoreA;
+    const sB = (phase==='OT') ? otBlockB : scoreB;
+    const lead = sA - sB;
+    const skillEdge = (teamAvgSkill(teamA)-teamAvgSkill(teamB))/40;
+    const ecoA = teamA.players.reduce((s,p)=>s+p.money,0);
+    const ecoB = teamB.players.reduce((s,p)=>s+p.money,0);
+    const ecoEdge = Math.max(-1,Math.min(1,(ecoA-ecoB)/22000));
+    const momentum = (teamStreakA - teamStreakB)*0.14;
+    const prox = (sA/need - sB/need)*1.6;
+    const x = lead*0.26 + skillEdge*1.2 + ecoEdge*0.55 + momentum + prox*1.2;
+    let p = 1/(1+Math.exp(-x));
+    // Lock toward certainty near/at map point.
+    if (sA>=need) p = 1; else if (sB>=need) p = 0;
+    return Math.max(0.02, Math.min(0.98, p));
+  }
+  function updateWinProb(){
+    const pA = computeWinProbA();
+    const a = Math.round(pA*100), b = 100-a;
+    const fa=document.getElementById('wpFillA'), fb=document.getElementById('wpFillB');
+    if (fa) fa.style.width = a+'%';
+    if (fb) fb.style.width = b+'%';
+    const pa=document.getElementById('wpPctA'), pb=document.getElementById('wpPctB');
+    if (pa) pa.textContent = a+'%';
+    if (pb) pb.textContent = b+'%';
   }
 
   function updateScoreboard(){
@@ -1851,11 +2071,12 @@
     document.getElementById('sbRoundLabel').textContent=roundLabel();
     const pipWrap=document.getElementById('sbPips');
     pipWrap.innerHTML='';
-    roundHistory.forEach(w=>{
+    roundHistory.forEach((w,i)=>{
       const d=document.createElement('div');
-      d.className='pip '+(w==='A'?'win-a':'win-b');
+      d.className='pip '+(w==='A'?'win-a':'win-b')+(i===roundHistory.length-1?' pip-new':'');
       pipWrap.appendChild(d);
     });
+    updateWinProb();
   }
 
   let timerHandle=null;
@@ -1892,6 +2113,10 @@
     }
     renderRound(res, tKey);
     updateScoreboard();
+    // Broadcast sound cues (live loop only).
+    if (res.aceInfo || (res.clutchAttempt && res.clutchAttempt.success)) SFX.clutch();
+    else if (res.method==='Bomb Detonation') { SFX.bomb(); SFX.roundWin(res.winner); }
+    else SFX.roundWin(res.winner);
 
     if (phase==='reg'){
       if (scoreA>=13 || scoreB>=13){ endMatch(); return; }
@@ -2130,6 +2355,7 @@
     matchDone=true;
     playing=false;
     clearTimeout(timerHandle);
+    SFX.bigWin();
     recordMapResult(teamA, teamB, scoreA, scoreB);
     const winnerKey = scoreA>scoreB?'A':'B';
     setTimeout(()=>{ if (matchCompleteHook) matchCompleteHook(winnerKey); }, 900);
@@ -2422,9 +2648,84 @@
   function pairKey(x,y){ const i=Math.min(x.seed,y.seed), j=Math.max(x.seed,y.seed); return i+'-'+j; }
   function randMap(){ const p=Object.keys(MAPS); return p[Math.floor(Math.random()*p.length)]; }
 
-  function startMajor(teams){
+  // ---- Major Pick'em ----
+  let pickemTeams = null, pickemPicks = null;
+  const PICKEM_MAX_ADV = 8;
+  function showPickem(teams){
+    pickemTeams = teams;
+    pickemPicks = {undefeated:null, winless:null, advancers:new Set(), champion:null};
+    showScreen('pickemScreen');
+    renderPickemTable();
+  }
+  function renderPickemTable(){
+    const wrap = document.getElementById('pickemTable');
+    wrap.innerHTML = pickemTeams.map((t,i)=>{
+      const nm = t.name;
+      const tag = t.tag ? `<span class="ptag" style="color:var(--t-accent)">${escapeHtml(t.tag)}</span> ` : '';
+      const on = (cat)=> (cat==='advancers' ? pickemPicks.advancers.has(nm) : pickemPicks[cat]===nm);
+      return `<div class="pk-row">
+        <span class="pk-team">${tag}${escapeHtml(nm)}</span>
+        <button class="pk-btn pk-30 ${on('undefeated')?'on':''}" data-cat="undefeated" data-team="${i}">3-0</button>
+        <button class="pk-btn pk-03 ${on('winless')?'on':''}" data-cat="winless" data-team="${i}">0-3</button>
+        <button class="pk-btn pk-adv ${on('advancers')?'on':''}" data-cat="advancers" data-team="${i}">ADV</button>
+        <button class="pk-btn pk-champ ${on('champion')?'on':''}" data-cat="champion" data-team="${i}">★</button>
+      </div>`;
+    }).join('') + `<div class="pk-count" id="pkCount"></div>`;
+    wrap.querySelectorAll('.pk-btn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const cat = b.dataset.cat, nm = pickemTeams[parseInt(b.dataset.team)].name;
+        if (cat==='advancers'){
+          if (pickemPicks.advancers.has(nm)) pickemPicks.advancers.delete(nm);
+          else if (pickemPicks.advancers.size < PICKEM_MAX_ADV) pickemPicks.advancers.add(nm);
+        } else {
+          pickemPicks[cat] = (pickemPicks[cat]===nm) ? null : nm;
+        }
+        renderPickemTable();
+      });
+    });
+    const cnt = document.getElementById('pkCount');
+    if (cnt) cnt.textContent = `Advancers selected: ${pickemPicks.advancers.size} / ${PICKEM_MAX_ADV}`;
+  }
+  document.getElementById('pickemSkip').addEventListener('click', ()=> startMajor(pickemTeams, null));
+  document.getElementById('pickemStart').addEventListener('click', ()=>{
+    const snap = {
+      undefeated: pickemPicks.undefeated, winless: pickemPicks.winless,
+      advancers: Array.from(pickemPicks.advancers), champion: pickemPicks.champion
+    };
+    startMajor(pickemTeams, snap);
+  });
+
+  function computePickemScore(){
+    const ms = majorState, pk = ms.pickem;
+    if (!pk) return null;
+    const actual3_0 = ms.teams.filter(t=>t.swW===3 && t.swL===0).map(t=>t.name);
+    const actual0_3 = ms.teams.filter(t=>t.swL===3 && t.swW===0).map(t=>t.name);
+    const actualAdv = (ms.playoffTeams||[]).map(t=>t.name);
+    const champ = tourneyState && tourneyState.champion ? tourneyState.champion.name : null;
+    const items = [];
+    let score = 0;
+    const add=(label,ok,pts,detail)=>{ items.push({label,ok,pts,detail}); if(ok) score+=pts; };
+    add('3-0 pick', !!(pk.undefeated && actual3_0.includes(pk.undefeated)), 3, pk.undefeated||'—');
+    add('0-3 pick', !!(pk.winless && actual0_3.includes(pk.winless)), 3, pk.winless||'—');
+    const advList = pk.advancers||[];
+    const advCorrect = advList.filter(n=>actualAdv.includes(n)).length;
+    items.push({label:'Advancers', ok:advCorrect>0, pts:advCorrect, detail:`${advCorrect}/${advList.length} correct`});
+    score += advCorrect;
+    add('Champion', !!(pk.champion && pk.champion===champ), 5, pk.champion||'—');
+    return {score, max:3+3+8+5, items};
+  }
+  function renderPickemResultsHtml(){
+    const r = computePickemScore();
+    if (!r) return '';
+    const rows = r.items.map(it=>`<div class="pkr-row ${it.ok?'pkr-ok':'pkr-miss'}"><span class="pkr-label">${it.label}</span><span class="pkr-detail">${escapeHtml(String(it.detail))}</span><span class="pkr-pts">${it.ok?'+'+it.pts:'0'}</span></div>`).join('');
+    return `<div class="pickem-results"><div class="pkr-h">YOUR PICK'EM &mdash; ${r.score} / ${r.max} PTS</div>${rows}</div>`;
+  }
+
+  function startMajor(teams, pickem){
     teams.forEach((t,i)=>{ t.swW=0; t.swL=0; t.seed=i; });
-    majorState = {teams, round:0, matches:[], played:new Set(), advanced:[], eliminated:[], done:false};
+    majorState = {teams, round:0, matches:[], played:new Set(), advanced:[], eliminated:[], done:false,
+      playerAcc:new Map(), pickem:pickem||null};
+    majorStatsActive = true;
     nextSwissRound();
   }
   function pairSwiss(active, playedSet){
@@ -2629,7 +2930,13 @@
         tourneyState.champion = R.F[0].winner;
         const runnerUp = (R.F[0].winner===R.F[0].a) ? R.F[0].b : R.F[0].a;
         recordChampion(tourneyState.champion, runnerUp, 'Major');
+        majorStatsActive = false;
       }
+      const allStar = computeAllStars();
+      const bodyEl = document.getElementById('bracketBody');
+      bodyEl.innerHTML += renderAllStarHtml(allStar);
+      const pk = (majorState && majorState.pickem) ? renderPickemResultsHtml() : '';
+      if (pk) bodyEl.innerHTML += pk;
       actions.innerHTML = `<div class="bk-done">🏆 ${teamLabel(tourneyState.champion)} are your champions!</div>
         <div class="bk-btns" style="margin-top:12px;">
           <button class="ctrl-btn" id="bkExport">⧉ TEXT</button>
@@ -2692,6 +2999,11 @@
   document.getElementById('speed1').addEventListener('click', ()=>setActiveSpeed(1));
   document.getElementById('speed2').addEventListener('click', ()=>setActiveSpeed(2));
   document.getElementById('speed4').addEventListener('click', ()=>setActiveSpeed(4));
+  document.getElementById('muteBtn').addEventListener('click', function(){
+    soundEnabled = !soundEnabled;
+    initAudio();
+    setMuteIcon();
+  });
 
   document.getElementById('skipBtn').addEventListener('click', function(){
     clearTimeout(timerHandle);
