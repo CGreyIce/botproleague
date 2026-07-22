@@ -589,7 +589,7 @@
   <!-- ===================== HISTORY / LEAGUE ===================== -->
   <div id="historyScreen" style="display:none;">
     <div class="setup-header">
-      <div class="kicker">PERSISTENT ACROSS SESSIONS</div>
+      <div class="kicker" id="histStorageMode">PERSISTENT ACROSS SESSIONS</div>
       <h1>STATS &amp; HISTORY</h1>
     </div>
     <div class="hist-section">
@@ -1597,23 +1597,56 @@
   }
 
   /* ================= PERSISTENCE: LEAGUE TABLE + CHAMPIONS ================= */
+  // Three-tier storage so the same file works everywhere:
+  //   1. window.storage  — Claude artifact environment
+  //   2. localStorage    — normal browsers (GitHub Pages, local file, etc.)
+  //   3. in-memory       — last-resort fallback (private mode / storage blocked)
   const _mem = {};
+  const HAS_ARTIFACT_STORE = (()=>{ try { return !!window.storage; } catch(e){ return false; } })();
+  const HAS_LOCAL_STORE = (()=>{
+    try { const k='__cs2sim_probe__'; window.localStorage.setItem(k,'1'); window.localStorage.removeItem(k); return true; }
+    catch(e){ return false; }
+  })();
+  const STORAGE_MODE = HAS_ARTIFACT_STORE ? 'artifact' : (HAS_LOCAL_STORE ? 'local' : 'memory');
   const STORE = {
     async get(key){
-      try { if (window.storage){ const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; } } catch(e){}
+      if (HAS_ARTIFACT_STORE){
+        try { const r = await window.storage.get(key); if (r) return JSON.parse(r.value); } catch(e){}
+      }
+      if (HAS_LOCAL_STORE){
+        try { const raw = window.localStorage.getItem(key); if (raw!=null) return JSON.parse(raw); } catch(e){}
+      }
       return (key in _mem) ? _mem[key] : null;
     },
     async set(key, val){
       _mem[key] = val;
-      try { if (window.storage) await window.storage.set(key, JSON.stringify(val)); } catch(e){}
+      if (HAS_LOCAL_STORE){
+        try { window.localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
+      }
+      if (HAS_ARTIFACT_STORE){
+        try { await window.storage.set(key, JSON.stringify(val)); } catch(e){}
+      }
+    },
+    async remove(key){
+      delete _mem[key];
+      if (HAS_LOCAL_STORE){ try { window.localStorage.removeItem(key); } catch(e){} }
+      if (HAS_ARTIFACT_STORE){ try { await window.storage.set(key, JSON.stringify(null)); } catch(e){} }
     }
   };
+  function storageModeLabel(){
+    if (STORAGE_MODE==='artifact') return 'Saved in this Claude session';
+    if (STORAGE_MODE==='local') return 'Auto-saved in this browser';
+    return 'Not saved — use Save to File';
+  }
   let leagueTable = {};      // teamName -> {tag, mapsW, mapsL, roundsW, roundsL}
   let championsHistory = []; // [{champ, runnerUp, date, kind}]
 
   async function loadPersisted(){
     const lt = await STORE.get('cs2sim_league'); if (lt) leagueTable = lt;
     const ch = await STORE.get('cs2sim_champs'); if (ch) championsHistory = ch;
+    // If the history screen is already open, refresh it now that data has arrived.
+    const hs = document.getElementById('historyScreen');
+    if (hs && hs.style.display === 'block') showHistory();
   }
   loadPersisted();
 
@@ -1718,6 +1751,8 @@
 
   function showHistory(){
     showScreen('historyScreen');
+    const modeEl = document.getElementById('histStorageMode');
+    if (modeEl) modeEl.textContent = storageModeLabel().toUpperCase();
     // Champions
     const ch = document.getElementById('histChamps');
     if (!championsHistory.length){
@@ -1935,7 +1970,7 @@
   document.getElementById('histExport').addEventListener('click', exportLeagueTable);
   document.getElementById('histClear').addEventListener('click', ()=>{
     leagueTable = {}; championsHistory = [];
-    STORE.set('cs2sim_league', leagueTable); STORE.set('cs2sim_champs', championsHistory);
+    STORE.remove('cs2sim_league'); STORE.remove('cs2sim_champs');
     const msg=document.getElementById('histLoadMsg'); if(msg) msg.textContent='';
     showHistory();
   });
