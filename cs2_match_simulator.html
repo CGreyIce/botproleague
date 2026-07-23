@@ -543,6 +543,43 @@
     .rk-sub{display:none;}
   }
   .chat-fa{color:var(--muted);opacity:.8;}
+  /* player profile */
+  .pp-headline{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .pp-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.04em;}
+  .pp-status{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;padding:3px 8px;border-radius:4px;border:1px solid var(--line);}
+  .pp-signed{color:var(--good);border-color:var(--good);}
+  .pp-fa{color:var(--muted);}
+  .pp-ret{color:var(--bomb);border-color:var(--bomb);}
+  .pp-coach{color:var(--ct-accent);border-color:var(--ct-accent);}
+  .pp-awards{display:flex;flex-direction:column;gap:4px;}
+  .pp-award{display:grid;grid-template-columns:20px 1fr auto 30px;gap:8px;align-items:center;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;}
+  .pp-aicon{text-align:center;}
+  .pp-atype{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pp-anote{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
+  .pp-aseason{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--bomb);text-align:right;}
+  .pp-teams{display:flex;flex-direction:column;gap:4px;}
+  .pp-team{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:6px;padding:6px 10px;font-size:12px;}
+  .pp-tname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pp-tmaps{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}
+  .pp-cur{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--good);border:1px solid var(--good);
+    border-radius:3px;padding:1px 4px;margin-left:5px;}
+  /* off-season report */
+  #offseasonScreen{max-width:820px;margin:0 auto;}
+  .off-list{display:flex;flex-direction:column;gap:4px;margin-top:8px;}
+  .off-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:7px 11px;font-size:12px;}
+  .off-nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .off-mid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);}
+  .off-in{color:var(--good);}
+  .off-award{color:var(--bomb);font-weight:600;}
+  .off-out{color:var(--kill);}
+  .off-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-align:right;}
+  @media (max-width:560px){
+    .off-row{grid-template-columns:1fr auto;}
+    .off-row .off-meta{grid-column:1 / -1;text-align:left;}
+  }
   /* open qualifier */
   .qual-logo{width:26px;height:26px;object-fit:contain;flex-shrink:0;}
   .qual-tag{background:var(--panel);border:1px solid var(--line);color:var(--muted);
@@ -893,7 +930,12 @@
     .hl-text{min-width:0;font-size:16px;}
     .h2h-picker{flex-direction:column;align-items:stretch;}
     .h2h-picker select{min-width:0;width:100%;}
-    .prof-top{flex-direction:column;align-items:flex-start;gap:10px;}
+    .prof-top{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+    .prof-stat{min-width:0;padding:8px 4px;}
+    .ps-num{font-size:16px;}
+    .ps-lbl{font-size:8px;letter-spacing:.06em;}
+    .pp-headline{font-size:19px;}
+    .pp-award{grid-template-columns:18px 1fr auto 26px;gap:6px;padding:6px 8px;font-size:11px;}
 
     /* qualifier cards */
     .qual-h{flex-wrap:wrap;}
@@ -1069,6 +1111,17 @@
     <button class="again-btn" id="seedNewBtn">BACK TO SETUP</button>
   </div>
 
+  <!-- ===================== OFF-SEASON ===================== -->
+  <div id="offseasonScreen" style="display:none;">
+    <div class="setup-header">
+      <div class="kicker" id="offKicker">OFF-SEASON</div>
+      <h1>ROSTER SHUFFLE</h1>
+      <div class="sub" id="offSub">Contracts expire, veterans retire, and a new intake arrives.</div>
+    </div>
+    <div id="offBody"></div>
+    <button class="again-btn" id="offDoneBtn">BACK TO SETUP</button>
+  </div>
+
   <!-- ===================== SWISS STAGE ===================== -->
   <div id="swissScreen" style="display:none;">
     <div class="setup-header">
@@ -1125,6 +1178,11 @@
     <div class="hist-section">
       <div class="hist-h">🏅 RECORDS BOARD</div>
       <div id="histRecords"></div>
+    </div>
+    <div class="hist-section">
+      <div class="hist-h">👤 PLAYER PROFILE</div>
+      <div class="h2h-picker"><select id="profilePlayer"></select></div>
+      <div id="histPlayerProfile"></div>
     </div>
     <div class="hist-section">
       <div class="hist-h">🎲 BIGGEST UPSETS</div>
@@ -2108,6 +2166,40 @@
   const AMATEUR_LOGO = TEAM_LOGOS['__AMATEUR__'] || '';
   // Team logo lookup; unknown/custom teams fall back to their tag badge.
   function logoFor(teamName){ return TEAM_LOGOS[teamName] || null; }
+
+  /* ---- Talent pool: who exists, and who's available ---- */
+  // Established pros roll in the 85-98 band; stand-ins, youth and dropped
+  // players carry an explicit rating so their level follows them between teams.
+  const PLAYER_RATING = {};
+  function seedPlayerRatings(){
+    STANDINS.forEach(function(s){ if (PLAYER_RATING[s.name]==null) PLAYER_RATING[s.name] = s.rating; });
+    youthPool.forEach(function(y){ PLAYER_RATING[y.name] = y.rating; });
+  }
+  function basePlayerRating(name){
+    return (PLAYER_RATING[name] != null) ? PLAYER_RATING[name] : null;
+  }
+  function poolRoleOf(name){
+    const s = STANDINS.find(function(x){ return x.name===name; });
+    if (s) return s.role==='fill' ? 'rifle' : s.role;
+    const y = youthPool.find(function(x){ return x.name===name; });
+    return y ? y.role : 'rifle';
+  }
+  // Everyone who could be signed: stand-ins + youth + dropped pros, minus
+  // retirees and anyone already on a roster.
+  function freeAgentList(){
+    rebuildPlayerTeamIndex();
+    const seen = {}, out = [];
+    const add = function(name, rating, role){
+      if (seen[name] || retiredSet[name] || PLAYER_TEAM_INDEX[name]) return;
+      seen[name] = true;
+      out.push({name:name, rating:rating, role:role});
+    };
+    STANDINS.forEach(function(s){ add(s.name, s.rating, s.role==='fill'?'rifle':s.role); });
+    youthPool.forEach(function(y){ add(y.name, y.rating, y.role); });
+    Object.keys(PLAYER_RATING).forEach(function(n){ add(n, PLAYER_RATING[n], poolRoleOf(n)); });
+    return out.sort(function(a,b){ return b.rating - a.rating; });
+  }
+
 
   /* ---- Procedural crests for teams that earn their way in ---- */
   // Deterministic from the team name, so a given name always yields the same
@@ -3097,7 +3189,7 @@
   }
 
   function showScreen(id){
-    ['setupScreen','vetoScreen','draftScreen','pickemScreen','seedScreen','swissScreen','bracketScreen','interScreen','matchScreen','finalScreen','replayScreen','historyScreen'].forEach(s=>{
+    ['setupScreen','vetoScreen','draftScreen','pickemScreen','seedScreen','offseasonScreen','swissScreen','bracketScreen','interScreen','matchScreen','finalScreen','replayScreen','historyScreen'].forEach(s=>{
       const el=document.getElementById(s);
       if (!el) return;
       const show = (s===id);
@@ -3206,10 +3298,26 @@
     AGE_WEIGHTS.forEach(function(e){ for (let i=0;i<e[1];i++) t.push(e[0]); });
     return t;
   })();
-  // Age is FIXED per player, derived from their name so it never changes.
+
+  /* ---- Living world state (seasons, transfers, retirements) ---- */
+  // Everyone ages a year per completed off-season, so the scene turns over:
+  // veterans retire, youth intake climbs, rosters churn.
+  let seasonNo    = 0;    // off-seasons completed
+  let playerBirth = {};   // generated youth: name -> birth season
+  let youthPool   = [];   // generated players: {name, rating, role, nation}
+  let retiredList = [];   // {name, age, team, maps, rating, season}
+  let rosterStore = {};   // teamName -> [[name, base], ...] roster overrides
+  let transferLog = [];   // {season, type, player, from, to}
+  const retiredSet = {};  // name -> true, for fast lookups
+
+  // Base age is fixed per player (name-derived); seasons add to it.
+  function baseAgeOf(name){
+    return AGE_TABLE[hashStr('age:'+name) % AGE_TABLE.length];
+  }
   function playerAge(name){
-    const h = hashStr('age:'+name);
-    return AGE_TABLE[h % AGE_TABLE.length];
+    const b = playerBirth[name];
+    if (b != null) return seasonNo - b;   // youth intake: born mid-timeline
+    return baseAgeOf(name) + seasonNo;
   }
   // Per-Major skill movement based on where they are on the age curve.
   function ageDelta(age){
@@ -3495,9 +3603,11 @@
       Object.keys(qt).forEach(function(k){
         if (!PRESETS[k]) PRESETS[k] = qt[k];
         if (qt[k].logo) TEAM_LOGOS[k] = qt[k].logo;
+        if (qt[k].coach) COACHES[k] = qt[k].coach;
       });
       rebuildPresetNames();
     }
+    const wd = await STORE.get('cs2sim_world'); if (wd) applyWorld(wd);
     // If the history screen is already open, refresh it now that data has arrived.
     const hs = document.getElementById('historyScreen');
     if (hs && hs.style.display === 'block') showHistory();
@@ -3830,6 +3940,7 @@
     renderRecordsBoard();
     renderUpsets();
     renderProfilePicker();
+    renderPlayerPicker();
     renderNations();
     renderHof();
     renderMilestoneLog();
@@ -4400,7 +4511,11 @@
     STORE.remove('cs2sim_records'); STORE.remove('cs2sim_streaks'); STORE.remove('cs2sim_upsets');
     STORE.remove('cs2sim_milestones'); STORE.remove('cs2sim_chem'); STORE.remove('cs2sim_majors');
     STORE.remove('cs2sim_ranksnap');
-    Object.keys(qualifiedTeams).forEach(function(k){ delete PRESETS[k]; delete TEAM_LOGOS[k]; });
+    Object.keys(qualifiedTeams).forEach(function(k){ delete PRESETS[k]; delete TEAM_LOGOS[k]; delete COACHES[k]; });
+    seasonNo=0; playerBirth={}; youthPool=[]; retiredList=[]; rosterStore={}; transferLog=[];
+    playerAwards={}; seasonSnapshot={}; coachPool=[];
+    Object.keys(retiredSet).forEach(function(k){ delete retiredSet[k]; });
+    STORE.remove('cs2sim_world');
     qualifiedTeams = {}; STORE.remove('cs2sim_qualified'); rebuildPresetNames();
     const msg=document.getElementById('histLoadMsg'); if(msg) msg.textContent='';
     showHistory();
@@ -6205,6 +6320,436 @@
   }
   let qualifiedTeams = {};   // promoted winners, persisted and merged into PRESETS
 
+  function showOffseason(rep){
+    showScreen('offseasonScreen');
+    document.getElementById('offKicker').textContent = 'END OF SEASON ' + rep.season;
+    document.getElementById('offSub').textContent =
+      rep.retirements.length + ' retired · ' + rep.drops.length + ' dropped · ' +
+      rep.signings.length + ' signed · ' + rep.youth.length + ' new prospects. Everyone is a year older.';
+    const sec = function(title, note, rows){
+      if (!rows.length) return '';
+      return '<div class="seed-group"><div class="seed-group-h">'+title+'</div>' +
+             (note?'<div class="seed-group-note">'+note+'</div>':'') +
+             '<div class="off-list">'+rows.join('')+'</div></div>';
+    };
+    const retired = rep.retirements.map(function(r){
+      return '<div class="off-row"><span class="off-nm">'+flaggedName(r.name)+'</span>' +
+        '<span class="off-mid">'+(r.team?escapeHtml(r.team):'<i>unsigned</i>')+'</span>' +
+        '<span class="off-meta">age '+r.age+(r.maps?' · '+r.maps+' maps':'')+
+        (r.rating!=null?' · '+r.rating.toFixed(2)+' rating':'')+'</span></div>';
+    });
+    const dropped = rep.drops.map(function(d){
+      return '<div class="off-row"><span class="off-nm">'+flaggedName(d.name)+'</span>' +
+        '<span class="off-mid off-out">← '+escapeHtml(d.team)+'</span>' +
+        '<span class="off-meta">team win rate '+d.winPct.toFixed(0)+'%</span></div>';
+    });
+    const signed = rep.signings.map(function(g){
+      return '<div class="off-row"><span class="off-nm">'+flaggedName(g.name)+'</span>' +
+        '<span class="off-mid off-in">→ '+escapeHtml(g.team)+'</span>' +
+        '<span class="off-meta">'+g.role.toUpperCase()+' · '+g.rating+'</span></div>';
+    });
+    const youth = rep.youth.map(function(y){
+      return '<div class="off-row"><span class="off-nm">'+flaggedName(y.name)+'</span>' +
+        '<span class="off-mid">'+escapeHtml(y.nation)+'</span>' +
+        '<span class="off-meta">age '+y.age+' · '+y.role.toUpperCase()+' · '+y.rating+'</span></div>';
+    });
+    const awards = (rep.awards||[]).map(function(a){
+      return '<div class="off-row"><span class="off-nm">'+flaggedName(a.name)+'</span>' +
+        '<span class="off-mid off-award">'+escapeHtml(a.type)+'</span>' +
+        '<span class="off-meta">'+escapeHtml(a.note||'')+'</span></div>';
+    });
+    const coaches = (rep.coaches||[]).map(function(c){
+      return '<div class="off-row"><span class="off-nm">'+flaggedName(c.name)+'</span>' +
+        '<span class="off-mid off-award">'+escapeHtml(c.spec)+'</span>' +
+        '<span class="off-meta">'+(c.titles?c.titles+' title'+(c.titles===1?'':'s')+' · ':'')+
+        (c.rating!=null?c.rating.toFixed(2)+' career':'')+'</span></div>';
+    });
+    let html = sec('🏅 SEASON AWARDS', 'Judged on the season just finished.', awards)
+             + sec('🎧 INTO COACHING', 'Decorated veterans joining the coaching pool.', coaches)
+             + sec('🎓 RETIREMENTS', 'Age caught up with them.', retired)
+             + sec('📉 DROPPED', 'Cut loose after a losing season — now free agents.', dropped)
+             + sec('✍️ SIGNINGS', 'Strongest teams picked first.', signed)
+             + sec('🌱 NEW INTAKE', 'Fresh prospects added to the talent pool.', youth);
+    if (rep.unfilled.length){
+      html += '<div class="seed-group"><div class="seed-group-h">⚠️ SHORT-HANDED</div>' +
+        '<div class="seed-group-note">The market ran dry — these teams are below five and will use stand-ins: ' +
+        rep.unfilled.map(escapeHtml).join(', ') + '</div></div>';
+    }
+    if (!html) html = '<div class="hist-empty">A quiet off-season — nothing changed.</div>';
+    document.getElementById('offBody').innerHTML = html;
+  }
+  document.getElementById('offDoneBtn').addEventListener('click', function(){
+    majorRun = null; qualifierRun = false; showScreen('setupScreen');
+  });
+
+  /* ---- Player profile ---- */
+  const AWARD_ICON = {
+    'Player of the Year':'🏆', 'Team of the Year':'⭐', 'Breakout Player':'🌱',
+    'Best AWPer':'🎯', 'Best IGL':'🧠', 'Top Fragger':'💥', 'Clutch King':'🧊',
+    'Major MVP':'👑', 'Major All-Star':'✨'
+  };
+  function renderPlayerPicker(){
+    const sel = document.getElementById('profilePlayer');
+    if (!sel) return;
+    // Most-played first — the notable names sit at the top of a long list.
+    const names = Object.keys(careerStats).sort(function(a,b){
+      return (careerStats[b].maps||0) - (careerStats[a].maps||0) || a.localeCompare(b);
+    });
+    if (!names.length){
+      sel.innerHTML = '';
+      document.getElementById('histPlayerProfile').innerHTML = '<div class="hist-empty">No players tracked yet.</div>';
+      return;
+    }
+    const prev = sel.value;
+    sel.innerHTML = names.map(function(n){
+      return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+' — '+(careerStats[n].maps||0)+' maps</option>';
+    }).join('');
+    sel.value = names.indexOf(prev)!==-1 ? prev : names[0];
+    sel.onchange = renderPlayerProfile;
+    renderPlayerProfile();
+  }
+  function renderPlayerProfile(){
+    const el = document.getElementById('histPlayerProfile');
+    const sel = document.getElementById('profilePlayer');
+    if (!el || !sel) return;
+    const name = sel.value;
+    const c = careerStats[name];
+    if (!c){ el.innerHTML = '<div class="hist-empty">No data for this player.</div>'; return; }
+
+    const retired = retiredList.find(function(r){ return r.name===name; });
+    const team = PLAYER_TEAM_INDEX[name] || null;
+    // A retired player may have taken a touchline job, or be waiting for one.
+    let coachingTeam = null;
+    Object.keys(COACHES).forEach(function(t){ if (COACHES[t].name===name) coachingTeam = t; });
+    const inPool = coachPool.some(function(c){ return c.name===name; });
+    let status;
+    if (coachingTeam) status = '<span class="pp-status pp-coach">🎧 COACH — '+escapeHtml(coachingTeam)+'</span>';
+    else if (inPool)  status = '<span class="pp-status pp-coach">🎧 COACHING (available)</span>';
+    else if (retired) status = '<span class="pp-status pp-ret">RETIRED</span>';
+    else if (team)    status = '<span class="pp-status pp-signed">'+escapeHtml(team)+'</span>';
+    else              status = '<span class="pp-status pp-fa">FREE AGENT</span>';
+    const role = roleOfPlayer(name);
+    const roleTxt = role==='awp' ? 'AWP' : (role==='igl' ? 'IGL' : 'RIFLE');
+    const age = retired ? retired.age : playerAge(name);
+    const kd = c.deaths ? (c.kills/c.deaths).toFixed(2) : c.kills.toFixed(2);
+    const adr = c.roundsPlayed ? (c.damage/c.roundsPlayed).toFixed(1) : '0.0';
+    const rating = c.roundsPlayed>=24 ? careerRating(c).toFixed(2) : '—';
+    const dev = devFor(name);
+    const devTxt = (dev>0?'+':'')+dev.toFixed(1);
+
+    const stat = function(v,l){ return '<div class="prof-stat"><span class="ps-num">'+v+'</span><span class="ps-lbl">'+l+'</span></div>'; };
+    const strip = '<div class="prof-top">' +
+      stat(c.maps||0,'MAPS') + stat(kd,'K/D') + stat(adr,'ADR') +
+      stat(rating,'RATING') + stat(c.mvps||0,'MVPS') + stat(c.clutches||0,'CLUTCHES') +
+      stat(devTxt,'DEV') + '</div>';
+
+    // Awards, newest season first
+    const aw = awardsOf(name).slice().sort(function(a,b){ return b.season-a.season; });
+    const awardsHtml = aw.length
+      ? '<div class="pp-awards">' + aw.map(function(a){
+          return '<div class="pp-award"><span class="pp-aicon">'+(AWARD_ICON[a.type]||'🏅')+'</span>' +
+            '<span class="pp-atype">'+escapeHtml(a.type)+'</span>' +
+            '<span class="pp-anote">'+escapeHtml(a.note||'')+'</span>' +
+            '<span class="pp-aseason">S'+a.season+'</span></div>';
+        }).join('') + '</div>'
+      : '<div class="hist-empty">No awards yet.</div>';
+
+    // Team history, most maps first
+    const teams = Object.keys(c.teams||{}).sort(function(a,b){ return c.teams[b]-c.teams[a]; });
+    const teamsHtml = teams.length
+      ? '<div class="pp-teams">' + teams.map(function(t){
+          const cur = (t===team) ? ' <span class="pp-cur">current</span>' : '';
+          return '<div class="pp-team">'+logoImg(t,'sw-logo')+'<span class="pp-tname">'+escapeHtml(t)+cur+'</span>' +
+                 '<span class="pp-tmaps">'+c.teams[t]+' map'+(c.teams[t]===1?'':'s')+'</span></div>';
+        }).join('') + '</div>'
+      : '<div class="hist-empty">No team history.</div>';
+
+    const mile = milestoneLog.filter(function(m){ return m.player===name; }).slice(0,6);
+    const mileHtml = mile.length
+      ? '<div class="pp-teams">' + mile.map(function(m){
+          return '<div class="pp-team"><span class="pp-tname">🎯 '+escapeHtml(m.text||m.label||'Milestone')+'</span></div>';
+        }).join('') + '</div>'
+      : '';
+
+    el.innerHTML =
+      '<div class="prof-id"><div>' +
+        '<div class="pp-headline">'+flaggedName(name)+' '+status+'</div>' +
+        '<div class="pp-sub">age '+age+' · '+roleTxt+(retired?' · retired season '+retired.season:'')+'</div>' +
+      '</div></div>' +
+      strip +
+      '<div class="prof-cols">' +
+        '<div><div class="prof-h">AWARDS ('+aw.length+')</div>'+awardsHtml+'</div>' +
+        '<div><div class="prof-h">TEAM HISTORY</div>'+teamsHtml+
+          (mileHtml?'<div class="prof-h" style="margin-top:14px;">MILESTONES</div>'+mileHtml:'')+'</div>' +
+      '</div>';
+  }
+
+  /* ---- Awards ---- */
+  // careerStats are cumulative, so a season's numbers are the delta against a
+  // snapshot taken at the previous off-season.
+  let playerAwards   = {};   // name -> [{season, type, note}]
+  let seasonSnapshot = {};   // careerStats as of the last off-season
+  const STAT_KEYS = ['maps','kills','deaths','assists','damage','roundsPlayed','mvps','clutches','firstBloods'];
+
+  function grantAward(name, season, type, note){
+    if (!playerAwards[name]) playerAwards[name] = [];
+    playerAwards[name].push({season:season, type:type, note:note||''});
+  }
+  function awardsOf(name){ return playerAwards[name] || []; }
+  function seasonStatsFor(name){
+    const c = careerStats[name];
+    if (!c) return null;
+    const prev = seasonSnapshot[name] || {};
+    const d = {};
+    STAT_KEYS.forEach(function(k){ d[k] = (c[k]||0) - (prev[k]||0); });
+    return d;
+  }
+  function takeSeasonSnapshot(){
+    seasonSnapshot = {};
+    Object.keys(careerStats).forEach(function(n){
+      const c = careerStats[n], o = {};
+      STAT_KEYS.forEach(function(k){ o[k] = c[k]||0; });
+      seasonSnapshot[n] = o;
+    });
+  }
+  // A player's declared role, whether they're rostered or still in the pool.
+  function roleOfPlayer(name){
+    const t = PLAYER_TEAM_INDEX[name];
+    if (t && PRESETS[t]){
+      const e = PRESETS[t].players.find(function(x){ return x[0]===name; });
+      if (e) return e[1];
+    }
+    return poolRoleOf(name);
+  }
+  function computeSeasonAwards(season){
+    const granted = [];
+    const rows = Object.keys(careerStats).map(function(n){
+      const d = seasonStatsFor(n);
+      if (!d || d.roundsPlayed < 120) return null;   // ~5 maps minimum to qualify
+      return {name:n, d:d, rating:careerRating(d), role:roleOfPlayer(n), age:playerAge(n)};
+    }).filter(Boolean);
+    if (!rows.length) return granted;
+    const push = function(row, type, note){
+      if (!row) return;
+      grantAward(row.name, season, type, note);
+      granted.push({name:row.name, type:type, note:note});
+    };
+    const byRating = rows.slice().sort(function(a,b){ return b.rating-a.rating; });
+    push(byRating[0], 'Player of the Year', byRating[0].rating.toFixed(2)+' rating');
+    byRating.slice(0,5).forEach(function(r,i){ push(r, 'Team of the Year', '#'+(i+1)+' overall'); });
+    const young = byRating.filter(function(r){ return r.age<=22 && r.name!==byRating[0].name; });
+    if (young.length) push(young[0], 'Breakout Player', 'age '+young[0].age+' · '+young[0].rating.toFixed(2));
+    const awp = byRating.filter(function(r){ return r.role==='awp'; });
+    if (awp.length) push(awp[0], 'Best AWPer', awp[0].rating.toFixed(2)+' rating');
+    const igl = byRating.filter(function(r){ return r.role==='igl'; });
+    if (igl.length) push(igl[0], 'Best IGL', igl[0].rating.toFixed(2)+' rating');
+    const frags = rows.slice().sort(function(a,b){ return b.d.kills-a.d.kills; });
+    push(frags[0], 'Top Fragger', frags[0].d.kills+' kills');
+    const clutch = rows.slice().sort(function(a,b){ return b.d.clutches-a.d.clutches; });
+    if (clutch[0].d.clutches>0) push(clutch[0], 'Clutch King', clutch[0].d.clutches+' clutches');
+    return granted;
+  }
+
+  /* ---- World persistence (one key holds the whole living-world state) ---- */
+  function saveWorld(){
+    STORE.set('cs2sim_world', {
+      seasonNo: seasonNo, playerBirth: playerBirth, youth: youthPool,
+      retired: retiredList, rosters: rosterStore, transfers: transferLog.slice(-400),
+      awards: playerAwards, snapshot: seasonSnapshot, coachPool: coachPool
+    });
+  }
+  function applyWorld(w){
+    if (!w) return;
+    seasonNo    = w.seasonNo || 0;
+    playerBirth = w.playerBirth || {};
+    youthPool   = w.youth || [];
+    retiredList = w.retired || [];
+    rosterStore = w.rosters || {};
+    transferLog = w.transfers || [];
+    playerAwards = w.awards || {};
+    seasonSnapshot = w.snapshot || {};
+    coachPool = w.coachPool || [];
+    retiredList.forEach(function(r){ retiredSet[r.name] = true; });
+    youthPool.forEach(function(y){
+      PLAYER_RATING[y.name] = y.rating;
+      if (y.nation) PLAYER_NATION[y.name] = y.nation;
+    });
+    // Roster overrides win over the baked-in preset lineups.
+    Object.keys(rosterStore).forEach(function(t){
+      if (PRESETS[t]) PRESETS[t].players = rosterStore[t];
+    });
+    seedPlayerRatings();
+    rebuildPresetNames();
+  }
+
+  /* ================= OFF-SEASON: retirements, transfers, youth intake ================= */
+  // Riflers and AWPers burn out earlier; in-game leaders trade raw aim for
+  // calling and hang on years longer. Each player's number is name-derived, so
+  // it's fixed for their whole career.
+  function retirementAge(name){
+    const h = hashStr('retire:' + name);
+    return (roleOfPlayer(name)==='igl') ? (34 + h % 5)    // IGLs: 34-38
+                                        : (32 + h % 4);   // everyone else: 32-35
+  }
+  const YOUTH_A = ['aki','kai','rei','yuu','mio','sora','hana','riku','nao','kira','yumi','shin','ren','emi','kaze','hoshi','mika','tora','yuki','nagi','sena','tsuki','rina','haru'];
+  const YOUTH_B = ['zen','vex','lyn','dax','nyx','rio','koa','vee','zel','win','pyx','sol','ash','kuro','shiro','mint','echo','lume','vale','kite'];
+  const YOUTH_SUF = ['','','vt','_','xd','ii','o','z','yy','_vt','01','x','.'];
+
+  function ratingOf(name){
+    const c = careerStats[name];
+    return (c && c.roundsPlayed>=24) ? careerRating(c) : null;
+  }
+  // Weighted by the scene's existing make-up so the world keeps its character.
+  function pickYouthNation(){
+    const counts = {};
+    Object.keys(PLAYER_NATION).forEach(function(n){ counts[PLAYER_NATION[n]] = (counts[PLAYER_NATION[n]]||0)+1; });
+    const names = Object.keys(counts);
+    let total = 0; names.forEach(function(n){ total += counts[n]; });
+    let r = Math.random()*total;
+    for (let i=0;i<names.length;i++){ r -= counts[names[i]]; if (r<=0) return names[i]; }
+    return names[0] || 'Singapore';
+  }
+  function generateYouthName(){
+    for (let attempt=0; attempt<80; attempt++){
+      const a = YOUTH_A[Math.floor(Math.random()*YOUTH_A.length)];
+      const b = (Math.random()<0.55) ? YOUTH_B[Math.floor(Math.random()*YOUTH_B.length)] : '';
+      const suf = YOUTH_SUF[Math.floor(Math.random()*YOUTH_SUF.length)];
+      const nm = a + b + suf;
+      if (!PLAYER_RATING[nm] && !PLAYER_NATION[nm] && !PLAYER_TEAM_INDEX[nm] && !retiredSet[nm]) return nm;
+    }
+    return 'rookie' + Math.floor(Math.random()*9000+1000);
+  }
+  function intakeYouth(n){
+    const made = [];
+    for (let i=0;i<n;i++){
+      const nm = generateYouthName();
+      const roll = Math.random();
+      const role = roll<0.62 ? 'rifle' : (roll<0.82 ? 'awp' : 'igl');
+      const rating = 73 + Math.floor(Math.random()*13);   // 73-85, raw but promising
+      const age = 17 + Math.floor(Math.random()*3);       // 17-19
+      const nation = pickYouthNation();
+      const y = {name:nm, rating:rating, role:role, nation:nation};
+      youthPool.push(y);
+      PLAYER_RATING[nm] = rating;
+      PLAYER_NATION[nm] = nation;
+      playerBirth[nm] = seasonNo - age;
+      made.push({name:nm, age:age, rating:rating, role:role, nation:nation});
+    }
+    return made;
+  }
+  // Team strength for signing order: better teams pick first.
+  function teamRankPoints(name){
+    const r = rankingSorted().find(function(x){ return x.name===name; });
+    return r ? r.points : 0;
+  }
+  function teamWinPct(name){
+    const e = leagueTable[name];
+    if (!e) return null;
+    const gp = e.mapsW + e.mapsL;
+    return gp >= 5 ? (100*e.mapsW/gp) : null;
+  }
+
+  function runOffseason(){
+    seasonNo += 1;   // everyone ages a year
+    seedPlayerRatings();
+    rebuildPlayerTeamIndex();
+    const report = {season:seasonNo, retirements:[], drops:[], signings:[], youth:[], unfilled:[], awards:[], coaches:[]};
+    // Awards are judged on the season just finished, so grade before anything moves.
+    report.awards = computeSeasonAwards(seasonNo);
+    takeSeasonSnapshot();
+
+    // --- A. Retirements (rosters first, then the unsigned pool) ---
+    Object.keys(PRESETS).forEach(function(team){
+      PRESETS[team].players.slice().forEach(function(entry){
+        const nm = entry[0], age = playerAge(nm), rate = ratingOf(nm);
+        const cap = retirementAge(nm);
+        // Hit your number, or fade out a year or two early if form has gone.
+        const done = (age >= cap) || (age >= cap-2 && rate != null && rate < 0.95);
+        if (!done) return;
+        const c = careerStats[nm];
+        report.retirements.push({name:nm, team:team, age:age, maps:(c&&c.maps)||0, rating:rate});
+        const gone = considerCoaching(nm, seasonNo);
+        if (gone) report.coaches.push(gone);
+        retiredSet[nm] = true;
+        retiredList.push({name:nm, age:age, team:team, maps:(c&&c.maps)||0, rating:rate, season:seasonNo});
+        transferLog.push({season:seasonNo, type:'retire', player:nm, from:team, to:null});
+      });
+    });
+    // Strip retirees out of every roster.
+    Object.keys(PRESETS).forEach(function(team){
+      PRESETS[team].players = PRESETS[team].players.filter(function(e){ return !retiredSet[e[0]]; });
+    });
+    // Unsigned veterans quietly hang it up too.
+    [STANDINS, youthPool].forEach(function(pool){
+      pool.forEach(function(p){
+        if (retiredSet[p.name] || PLAYER_TEAM_INDEX[p.name]) return;
+        if (playerAge(p.name) >= retirementAge(p.name)){
+          retiredSet[p.name] = true;
+          const g2 = considerCoaching(p.name, seasonNo);
+          if (g2) report.coaches.push(g2);
+          retiredList.push({name:p.name, age:playerAge(p.name), team:null, maps:0, rating:null, season:seasonNo});
+          report.retirements.push({name:p.name, team:null, age:playerAge(p.name), maps:0, rating:null});
+        }
+      });
+    });
+
+    // --- B. Drops: a bad season costs the weakest link his seat ---
+    Object.keys(PRESETS).forEach(function(team){
+      const roster = PRESETS[team].players;
+      if (roster.length < 5) return;               // already short, nothing to cut
+      const wp = teamWinPct(team);
+      if (wp == null || wp >= 45) return;          // only underperformers churn
+      let worst = null, worstScore = Infinity;
+      roster.forEach(function(e){
+        const rate = ratingOf(e[0]);
+        const score = (rate != null) ? rate : 1.05;   // unproven players are safe-ish
+        if (score < worstScore){ worstScore = score; worst = e; }
+      });
+      if (!worst) return;
+      PRESETS[team].players = roster.filter(function(e){ return e[0] !== worst[0]; });
+      // Dropped pros keep a level so they can be picked up again.
+      if (PLAYER_RATING[worst[0]] == null){
+        PLAYER_RATING[worst[0]] = Math.max(70, Math.min(95, Math.round(86 + devFor(worst[0]))));
+      }
+      report.drops.push({name:worst[0], team:team, rating:worstScore, winPct:wp});
+      transferLog.push({season:seasonNo, type:'drop', player:worst[0], from:team, to:null});
+    });
+
+    // --- C. Signings: strongest teams pick from the market first ---
+    rebuildPlayerTeamIndex();
+    const market = freeAgentList();
+    const needy = Object.keys(PRESETS)
+      .filter(function(t){ return PRESETS[t].players.length < 5; })
+      .sort(function(a,b){ return teamRankPoints(b) - teamRankPoints(a); });
+    needy.forEach(function(team){
+      while (PRESETS[team].players.length < 5 && market.length){
+        const have = PRESETS[team].players.map(function(e){ return e[1]; });
+        // Fill the shape: one IGL, one AWP, the rest rifle.
+        const want = have.indexOf('igl')===-1 ? 'igl' : (have.indexOf('awp')===-1 ? 'awp' : 'rifle');
+        let idx = market.findIndex(function(p){ return p.role === want; });
+        if (idx === -1) idx = 0;                    // no exact fit, take best available
+        const sign = market.splice(idx,1)[0];
+        PRESETS[team].players.push([sign.name, want, sign.rating]);
+        PLAYER_RATING[sign.name] = sign.rating;
+        report.signings.push({name:sign.name, team:team, role:want, rating:sign.rating});
+        transferLog.push({season:seasonNo, type:'sign', player:sign.name, from:null, to:team});
+      }
+      if (PRESETS[team].players.length < 5) report.unfilled.push(team);
+    });
+
+    // --- D. Youth intake: replace the departed, plus a few extra ---
+    report.youth = intakeYouth(Math.max(6, report.retirements.length + 4));
+
+    // Persist the new world state.
+    Object.keys(PRESETS).forEach(function(t){
+      rosterStore[t] = PRESETS[t].players.map(function(e){ return e.slice(); });
+    });
+    rebuildPresetNames();
+    saveWorld();
+    return report;
+  }
+
+
   function shuffleArr(a){
     const r = a.slice();
     for (let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=r[i]; r[i]=r[j]; r[j]=t; }
@@ -6256,18 +6801,89 @@
     field.forEach(function(t){ t.tag = uniqueTag(t.name, taken); });
     return field;
   }
+  // A newly promoted org hires its first coach. Names follow the terse,
+  // handle-like style of the established staff; specs are the four the sim
+  // actually reads (veto, timeouts, economy, tilt control).
+  const COACH_NAMES = ['Anchor','Beacon','Cadence','Doctrine','Echelon','Foreman','Gradient','Helm',
+    'Ledger','Lattice','Mandate','Nexus','Origin','Prism','Quorum','Rally','Sentinel','Talisman',
+    'Uplink','Warden','Axiom','Blueprint','Catalyst','Dispatch','Envoy','Fulcrum','Hinge','Index',
+    'Keystone','Lantern','Meridian','Notion','Outline','Pivot','Ranger','Signal','Threshold','Vantage'];
+  const COACH_SPECS = ['Veto Strategist','Timeout Master','Eco Genius','Anti-Tilt'];
+  // Ex-pros who moved into coaching and are waiting for a job.
+  let coachPool = [];
+  function titlesOf(name){
+    return awardsOf(name).filter(function(a){ return /Champion$/.test(a.type); }).length;
+  }
+  function honoursOf(name){
+    return awardsOf(name).filter(function(a){
+      return /MVP|Player of the Year|All-Star|Team of the Year|^Best |Breakout/.test(a.type);
+    }).length;
+  }
+  // What a player brings to the touchline. Coaching is a rare second career —
+  // it takes a real playing résumé, and IGLs make the jump most often.
+  function coachingChance(name){
+    const c = careerStats[name];
+    if (!c || c.roundsPlayed < 240) return 0;         // ~10 maps minimum
+    const rate = careerRating(c);
+    const titles = titlesOf(name), honours = honoursOf(name);
+    if (rate < 0.95 && !titles && !honours) return 0; // journeymen don't get the call
+    let p = 0;
+    if (rate >= 0.95) p += 0.05;
+    if (rate >= 1.10) p += 0.05;
+    p += titles  * 0.07;
+    p += honours * 0.04;
+    if (roleOfPlayer(name)==='igl') p += 0.12;        // callers already coach in-game
+    return Math.min(0.45, p);
+  }
+  function specForRole(role){
+    if (role==='igl')  return Math.random()<0.55 ? 'Veto Strategist' : 'Timeout Master';
+    if (role==='awp')  return Math.random()<0.5  ? 'Timeout Master'  : 'Anti-Tilt';
+    return Math.random()<0.5 ? 'Anti-Tilt' : 'Eco Genius';
+  }
+  // Called as a player retires; may add them to the coaching pool.
+  function considerCoaching(name, season){
+    if (Math.random() >= coachingChance(name)) return null;
+    const c = careerStats[name];
+    const entry = {
+      name: name, spec: specForRole(roleOfPlayer(name)), season: season,
+      titles: titlesOf(name), rating: (c && c.roundsPlayed) ? careerRating(c) : null, expro: true
+    };
+    coachPool.push(entry);
+    return entry;
+  }
+  function generateCoach(){
+    const taken = {};
+    Object.keys(COACHES).forEach(function(t){ taken[COACHES[t].name] = true; });
+    // A retired pro on the market is the more interesting hire — take one when
+    // available, most of the time, and remove them from the pool.
+    const avail = coachPool.filter(function(c){ return !taken[c.name]; });
+    if (avail.length && Math.random() < 0.7){
+      const pick = avail[Math.floor(Math.random()*avail.length)];
+      coachPool = coachPool.filter(function(c){ return c.name !== pick.name; });
+      return {name:pick.name, spec:pick.spec, expro:true, titles:pick.titles};
+    }
+    const free = COACH_NAMES.filter(function(n){ return !taken[n]; });
+    const pool = free.length ? free : COACH_NAMES;
+    let nm = pool[Math.floor(Math.random()*pool.length)];
+    if (!free.length) nm = nm + ' II';   // pool exhausted, keep names unique
+    return {name:nm, spec:COACH_SPECS[Math.floor(Math.random()*COACH_SPECS.length)]};
+  }
+
   // Winner earns a permanent roster slot: usable as a preset from now on, and
   // therefore eligible for the world ranking, Tournaments and Majors.
   function promoteQualifier(team){
     if (!team || PRESETS[team.name]) return null;
     const logo = generateTeamLogo(team.name, team.tag);
+    const coach = generateCoach();
+    COACHES[team.name] = coach;
     const entry = {
       tag: team.tag||'',
       players: team.players.map(function(p){
         return [p.name, (p.pref==='awp' ? 'awp' : (p.role==='IGL' ? 'igl' : 'rifle')), p.skill];
       }),
       qualified: new Date().toISOString().slice(0,10),
-      logo: logo
+      logo: logo,
+      coach: coach
     };
     TEAM_LOGOS[team.name] = logo;
     PRESETS[team.name] = entry;
@@ -6738,10 +7354,24 @@
         const runnerUp = (R.F[0].winner===R.F[0].a) ? R.F[0].b : R.F[0].a;
         const evtKind = majorRun ? 'Major' : (qualifierRun ? 'Qualifier' : 'Tournament');
         recordChampion(tourneyState.champion, runnerUp, evtKind);
+        // Titles land on the players, so career trophy counts are exact.
+        (tourneyState.champion.players||[]).forEach(function(pl){
+          grantAward(pl.name, seasonNo+1, evtKind+' Champion', tourneyState.champion.name);
+        });
         if (majorRun) majorRun.done = true;
         if (qualifierRun){ promotedName = promoteQualifier(tourneyState.champion); }
         applyMajorDevelopment();
         archiveMajor(allStarSnapshot());
+        // Major honours live on the player profile too.
+        const stars = computeAllStars();
+        if (stars){
+          if (stars.mvp && stars.mvp.ref) grantAward(stars.mvp.ref.name, seasonNo+1, 'Major MVP', tourneyState.champion.name);
+          Object.keys(stars.team).forEach(function(role){
+            const a = stars.team[role];
+            if (a && a.ref && !(stars.mvp && stars.mvp.ref === a.ref)) grantAward(a.ref.name, seasonNo+1, 'Major All-Star', role);
+          });
+          saveWorld();
+        }
         majorStatsActive = false;
       }
       const allStar = computeAllStars();
@@ -6754,15 +7384,20 @@
       bodyEl.innerHTML += renderBreakoutHtml();
       const pk = (majorState && majorState.pickem) ? renderPickemResultsHtml() : '';
       if (pk) bodyEl.innerHTML += pk;
+      const offseasonHtml = (majorRun && majorRun.done)
+        ? `<div class="bk-btns" style="margin-top:14px;"><button class="ctrl-btn primary" id="bkOffseason">🗓 ENTER OFF-SEASON →</button></div>`
+        : '';
       const promoHtml = promotedName
-        ? `<div class="promo-note">⭐ <b>${escapeHtml(promotedName)}</b> have qualified — they're now a preset team and can be picked for Tournaments and Majors.</div>`
+        ? `<div class="promo-note">⭐ <b>${escapeHtml(promotedName)}</b> have qualified — they're now a preset team and can be picked for Tournaments and Majors.${COACHES[promotedName]?` They've signed coach <b>${escapeHtml(COACHES[promotedName].name)}</b> (${escapeHtml(COACHES[promotedName].spec)}).`:''}</div>`
         : '';
       actions.innerHTML = promoHtml + `<div class="bk-done">🏆 ${teamLabel(tourneyState.champion)} are your champions!</div>
         <div class="bk-btns" style="margin-top:12px;">
           <button class="ctrl-btn" id="bkExport">⧉ TEXT</button>
           <button class="ctrl-btn" id="bkImage">🖼 IMAGE</button>
           <button class="ctrl-btn" id="bkHistory">📊 HISTORY & LEAGUE</button>
-        </div>`;
+        </div>` + offseasonHtml;
+      const offBtn = document.getElementById('bkOffseason');
+      if (offBtn) offBtn.onclick = function(){ showOffseason(runOffseason()); };
       document.getElementById('bkExport').onclick = ()=> exportMajorSummary();
       document.getElementById('bkImage').onclick = ()=> exportMajorImage();
       document.getElementById('bkHistory').onclick = ()=> showHistory();
