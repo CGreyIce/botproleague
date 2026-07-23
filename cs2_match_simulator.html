@@ -544,6 +544,7 @@
   }
   .chat-fa{color:var(--muted);opacity:.8;}
   /* open qualifier */
+  .qual-logo{width:26px;height:26px;object-fit:contain;flex-shrink:0;}
   .qual-tag{background:var(--panel);border:1px solid var(--line);color:var(--muted);
     font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;
     width:52px;padding:3px 5px;border-radius:3px;text-align:center;}
@@ -848,6 +849,71 @@
   .h2h-bar-a{background:var(--t-accent);transition:width .4s ease;}
   .h2h-bar-b{background:var(--ct-accent);transition:width .4s ease;}
   .h2h-meta{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:6px;}
+  /* ============================ MOBILE ============================ */
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  @media (max-width:820px){
+    #app{padding:18px 12px 48px;}
+    #historyScreen,#seedScreen,#replayScreen,#vetoScreen,#bracketScreen,#interScreen,#pickemScreen{max-width:100%;}
+  }
+  @media (max-width:640px){
+    /* nothing should push the page sideways */
+    html,body{overflow-x:hidden;}
+    #app{padding:14px 10px 44px;}
+    .setup-header h1{font-size:30px;}
+    .setup-header .sub,.setup-header .kicker{font-size:11px;}
+
+    /* mode bar: six modes need to wrap, not squeeze */
+    .mode-bar{flex-direction:column;gap:8px;}
+    .mode-group,.fmt-group{flex-wrap:wrap;justify-content:center;width:100%;}
+    .mode-btn,.fmt-btn{flex:1 1 auto;min-height:38px;}
+
+    /* scoreboard stays readable and stops eating the viewport */
+    .scoreboard{padding:10px 12px;top:6px;gap:8px;}
+    .sb-name{font-size:14px;}
+    .sb-score{font-size:22px;}
+    .sb-team{gap:8px;}
+    .sb-map{font-size:11px;}
+    .sb-round-label{font-size:9px;}
+    .sb-pips{max-width:130px;}
+
+    /* wide tables scroll rather than crush */
+    .league-table{min-width:560px;}
+
+    /* buttons: comfortable touch targets, allowed to wrap */
+    .ctrl-btn{padding:9px 12px;font-size:11px;min-height:38px;}
+    .bk-btns,.controls-bar{flex-wrap:wrap;justify-content:center;}
+    .start-btn{font-size:15px;}
+
+    /* panels sized for a phone screen */
+    .feed-panel{height:320px;}
+    .chat-body{max-height:220px;}
+    .veto-map{min-width:106px;padding:12px 10px;font-size:15px;}
+    .bk-col{min-width:0;}
+    .cmp-k{min-width:0;}
+    .hl-text{min-width:0;font-size:16px;}
+    .h2h-picker{flex-direction:column;align-items:stretch;}
+    .h2h-picker select{min-width:0;width:100%;}
+    .prof-top{flex-direction:column;align-items:flex-start;gap:10px;}
+
+    /* qualifier cards */
+    .qual-h{flex-wrap:wrap;}
+    .qual-name{flex:1 1 100%;font-size:15px;}
+
+    /* iOS zooms the page when focusing any input under 16px — pin them at 16 */
+    input,select,textarea{font-size:16px !important;}
+    .qual-tag{width:58px;}
+  }
+  @media (max-width:400px){
+    #app{padding:12px 8px 40px;}
+    .setup-header h1{font-size:25px;}
+    .sb-name{font-size:12px;}
+    .sb-score{font-size:19px;}
+    .sb-logo{width:24px;height:24px;}
+    .ctrl-btn{padding:8px 10px;font-size:10px;}
+    .rank-row{padding:7px 8px;gap:6px;}
+    .rk-name{font-size:13px;}
+    .rk-pts{font-size:16px;}
+  }
 </style>
 </head>
 <body>
@@ -1362,17 +1428,17 @@
     "France": {flag:"\ud83c\uddeb\ud83c\uddf7", code:"FRA"},
     "Netherlands": {flag:"\ud83c\uddf3\ud83c\uddf1", code:"NLD"},
     "New Zealand": {flag:"\ud83c\uddf3\ud83c\uddff", code:"NZL"},
-    "Austria": {flag:"\u1f1e6\u1f1f9", code:"AUT"},
-    "Belgium": {flag:"\u1f1e7\u1f1ea", code:"BEL"},
-    "Canada": {flag:"\u1f1e8\u1f1e6", code:"CAN"},
-    "Finland": {flag:"\u1f1eb\u1f1ee", code:"FIN"},
-    "Hong Kong": {flag:"\u1f1ed\u1f1f0", code:"HKG"},
-    "Iceland": {flag:"\u1f1ee\u1f1f8", code:"ISL"},
-    "Italy": {flag:"\u1f1ee\u1f1f9", code:"ITA"},
-    "Kazakhstan": {flag:"\u1f1f0\u1f1ff", code:"KAZ"},
-    "Korea": {flag:"\u1f1f0\u1f1f7", code:"KOR"},
-    "Poland": {flag:"\u1f1f5\u1f1f1", code:"POL"},
-    "Sweden": {flag:"\u1f1f8\u1f1ea", code:"SWE"}
+    "Austria": {flag:"\ud83c\udde6\ud83c\uddf9", code:"AUT"},
+    "Belgium": {flag:"\ud83c\udde7\ud83c\uddea", code:"BEL"},
+    "Canada": {flag:"\ud83c\udde8\ud83c\udde6", code:"CAN"},
+    "Finland": {flag:"\ud83c\uddeb\ud83c\uddee", code:"FIN"},
+    "Hong Kong": {flag:"\ud83c\udded\ud83c\uddf0", code:"HKG"},
+    "Iceland": {flag:"\ud83c\uddee\ud83c\uddf8", code:"ISL"},
+    "Italy": {flag:"\ud83c\uddee\ud83c\uddf9", code:"ITA"},
+    "Kazakhstan": {flag:"\ud83c\uddf0\ud83c\uddff", code:"KAZ"},
+    "Korea": {flag:"\ud83c\uddf0\ud83c\uddf7", code:"KOR"},
+    "Poland": {flag:"\ud83c\uddf5\ud83c\uddf1", code:"POL"},
+    "Sweden": {flag:"\ud83c\uddf8\ud83c\uddea", code:"SWE"}
   };
   const PLAYER_NATION = {
     "Pearlim": "Singapore",
@@ -1531,12 +1597,12 @@
     "AcroBlaze": "Singapore",
     "yuuki_PS": "Singapore",
     "koen": "Malaysia",
-    "CRex": "Singapore",
+    "CRex": "Malaysia",
     "ebi": "Malaysia",
     "des506": "Singapore",
     "treblest": "Singapore",
     "caturteer": "Singapore",
-    "murasakibara_tsuki1": "Taiwan",
+    "murasakibara_tsuki1": "Hong Kong",
     "daifuku.wu": "Singapore",
     "le_pyrrhic": "Singapore",
     "TiF2": "Singapore",
@@ -2042,6 +2108,56 @@
   const AMATEUR_LOGO = TEAM_LOGOS['__AMATEUR__'] || '';
   // Team logo lookup; unknown/custom teams fall back to their tag badge.
   function logoFor(teamName){ return TEAM_LOGOS[teamName] || null; }
+
+  /* ---- Procedural crests for teams that earn their way in ---- */
+  // Deterministic from the team name, so a given name always yields the same
+  // crest — but varied enough across names to look hand-made. Returned as an
+  // inline SVG data URI, which drops straight into the existing <img> pipeline.
+  const LOGO_PALETTES = [
+    ['#E8A33D','#3a2810'], ['#4C8FD1','#152b3f'], ['#5FC98D','#123c2a'],
+    ['#E14B4B','#3d1414'], ['#B07CD9','#2e1d3b'], ['#E0C64B','#3a3310'],
+    ['#4BC9C0','#123634'], ['#F0813C','#3d2110'], ['#7FB4FF','#1a2740'],
+    ['#FF7FA8','#3d1a26']
+  ];
+  function logoShapePath(kind){
+    switch(kind){
+      case 0: return '<path d="M32 4 L58 14 V34 C58 48 46 57 32 61 C18 57 6 48 6 34 V14 Z"/>';         // shield
+      case 1: return '<polygon points="32,4 56,18 56,46 32,60 8,46 8,18"/>';                            // hexagon
+      case 2: return '<circle cx="32" cy="32" r="27"/>';                                                 // roundel
+      case 3: return '<rect x="7" y="7" width="50" height="50" rx="12"/>';                               // rounded square
+      default: return '<polygon points="32,3 61,32 32,61 3,32"/>';                                       // diamond
+    }
+  }
+  function generateTeamLogo(name, tag){
+    let seed = hashStr('logo:' + name) || 1;
+    const rnd = function(){ seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+    const pal   = LOGO_PALETTES[Math.floor(rnd() * LOGO_PALETTES.length)];
+    const main  = pal[0], dark = pal[1];
+    const kind  = Math.floor(rnd() * 5);
+    const accent = Math.floor(rnd() * 3);
+    // Monogram: prefer the tag, else initials from the name.
+    let mono = String(tag || '').replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,3);
+    if (mono.length < 2){
+      const words = String(name).replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean);
+      mono = (words.length >= 2 ? words.map(function(w){ return w[0]; }).join('') : (words[0]||'TM'))
+        .toUpperCase().slice(0,3);
+    }
+    const fontSize = mono.length >= 3 ? 19 : 24;
+    let extra = '';
+    if (accent === 0) extra = '<path d="M6 40 L58 26" stroke="'+main+'" stroke-width="3" opacity="0.35" fill="none"/>';
+    else if (accent === 1) extra = '<circle cx="32" cy="32" r="21" fill="none" stroke="'+main+'" stroke-width="1.5" opacity="0.4"/>';
+    const shape = logoShapePath(kind);
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">' +
+        '<g fill="'+dark+'" stroke="'+main+'" stroke-width="3">' + shape + '</g>' +
+        extra +
+        '<text x="32" y="32" text-anchor="middle" dominant-baseline="central" ' +
+          'font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="'+fontSize+'" ' +
+          'fill="'+main+'" letter-spacing="0.5">' + mono + '</text>' +
+      '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
   function logoImg(teamName, cls){
     const src = logoFor(teamName);
     if (!src) return '';
@@ -3376,7 +3492,10 @@
     const qt = await STORE.get('cs2sim_qualified');
     if (qt){
       qualifiedTeams = qt;
-      Object.keys(qt).forEach(function(k){ if (!PRESETS[k]) PRESETS[k] = qt[k]; });
+      Object.keys(qt).forEach(function(k){
+        if (!PRESETS[k]) PRESETS[k] = qt[k];
+        if (qt[k].logo) TEAM_LOGOS[k] = qt[k].logo;
+      });
       rebuildPresetNames();
     }
     // If the history screen is already open, refresh it now that data has arrived.
@@ -3727,9 +3846,9 @@
       el.innerHTML = `<div class="hist-empty">Nobody inducted yet.${best?` Closest: ${escapeHtml(best.n)} at ${best.s.toFixed(0)}/${HOF_THRESHOLD} points.`:''}</div>`;
       return;
     }
-    el.innerHTML = `<table class="league-table"><thead><tr><th>#</th><th>Player</th><th>Maps</th><th>Kills</th><th>Clutches</th><th>Rating</th><th>HOF pts</th></tr></thead><tbody>`+
+    el.innerHTML = `<div class="table-scroll"><table class="league-table"><thead><tr><th>#</th><th>Player</th><th>Maps</th><th>Kills</th><th>Clutches</th><th>Rating</th><th>HOF pts</th></tr></thead><tbody>`+
       hof.map((e,i)=>`<tr><td>${i+1}</td><td class="lt-name">🏛 ${flaggedName(e.name)}</td><td>${e.c.maps}</td><td>${e.c.kills}</td><td>${e.c.clutches}</td><td>${e.rating.toFixed(2)}</td><td class="cr-rating">${e.score.toFixed(0)}</td></tr>`).join('')
-      +'</tbody></table>';
+      +'</tbody></table></div>';
   }
   function renderMilestoneLog(){
     const el = document.getElementById('histMilestones');
@@ -3846,11 +3965,11 @@
     const rows = Object.keys(agg).map(n=>({nat:n, ...agg[n], count:agg[n].players.size}))
       .sort((a,b)=>b.kills-a.kills);
     if (!rows.length){ el.innerHTML = '<div class="hist-empty">No nation stats yet — play some matches.</div>'; return; }
-    el.innerHTML = `<table class="league-table"><thead><tr><th>#</th><th>Nation</th><th>Players</th><th>Maps</th><th>Kills</th><th>MVPs</th></tr></thead><tbody>`+
+    el.innerHTML = `<div class="table-scroll"><table class="league-table"><thead><tr><th>#</th><th>Nation</th><th>Players</th><th>Maps</th><th>Kills</th><th>MVPs</th></tr></thead><tbody>`+
       rows.map((r,i)=>{
         const meta = NATIONS[r.nat];
         return `<tr><td>${i+1}</td><td class="lt-name">${meta?meta.flag:''} ${escapeHtml(r.nat)}</td><td>${r.count}</td><td>${r.maps}</td><td>${r.kills}</td><td>${r.mvps}</td></tr>`;
-      }).join('')+'</tbody></table>';
+      }).join('')+'</tbody></table></div>';
   }
 
   const RECORD_ORDER = ['rating','comeback','kills','clutches','adr','firstBloods','winStreak','blowout','overtime'];
@@ -3889,24 +4008,28 @@
   }
   // Who plays for a team. Prefer the canonical preset lineup; otherwise
   // reconstruct it from whoever has actually logged maps for the team.
-  // Stand-ins are kept separate — they're borrowed, never really rostered.
+  // A stand-in only counts as a stand-in for teams they AREN'T rostered on —
+  // once a qualifier side is promoted, its five are its real roster.
   function teamRoster(name){
     const playedFor = Object.keys(careerStats)
       .filter(p => careerStats[p].teams && careerStats[p].teams[name] > 0);
     const mapsFor = p => (careerStats[p] && careerStats[p].teams && careerStats[p].teams[name]) || 0;
-    const standIns = playedFor.filter(isStandInName)
-      .map(p=>({name:p, maps:mapsFor(p)}))
-      .sort((a,b)=>b.maps-a.maps);
     const preset = PRESETS[name];
     let roster;
     if (preset){
       roster = preset.players.map(entry=>({name:entry[0], base:entry[1], maps:mapsFor(entry[0])}));
     } else {
-      roster = playedFor.filter(p=>!isStandInName(p))
+      roster = playedFor.filter(p=>!isStandInName(p) || PLAYER_TEAM_INDEX[p]===name)
         .map(p=>({name:p, base:null, maps:mapsFor(p)}))
         .sort((a,b)=>b.maps-a.maps)
         .slice(0,5);
     }
+    const rostered = {};
+    roster.forEach(function(r){ rostered[r.name] = true; });
+    const standIns = playedFor
+      .filter(p => isStandInName(p) && !rostered[p])
+      .map(p=>({name:p, maps:mapsFor(p)}))
+      .sort((a,b)=>b.maps-a.maps);
     return {roster, standIns, fromPreset:!!preset};
   }
   function rosterRowHtml(p){
@@ -4017,19 +4140,24 @@
       .sort((x,y)=> y.rating-x.rating)
       .slice(0,15);
     if (!rows.length){ el.innerHTML = '<div class="hist-empty">No career stats yet — play some matches.</div>'; return; }
-    el.innerHTML = `<table class="league-table"><thead><tr><th>#</th><th>Player</th><th>Age</th><th>Team</th><th>Maps</th><th>K/D</th><th>ADR</th><th>Dev</th><th>Rating</th></tr></thead><tbody>`+
+    el.innerHTML = `<div class="table-scroll"><table class="league-table"><thead><tr><th>#</th><th>Player</th><th>Age</th><th>Team</th><th>Maps</th><th>K/D</th><th>ADR</th><th>Dev</th><th>Rating</th></tr></thead><tbody>`+
       rows.map((r,i)=>{
         const c=r.c;
         const kd = c.deaths? (c.kills/c.deaths).toFixed(2) : c.kills.toFixed(2);
         const adr = c.roundsPlayed? (c.damage/c.roundsPlayed).toFixed(0) : '0';
-        const teamTxt = isStandInName(r.name)
-          ? '<span class="cr-noteam">— no team</span>'
-          : (escapeHtml(r.team) + (r.teamCount>1?` <span class="cr-multi">+${r.teamCount-1}</span>`:''));
+        // A stand-in who won a qualifier is now genuinely rostered, so show
+        // that team; only the still-unsigned ones read as team-less.
+        const rosteredOn = PLAYER_TEAM_INDEX[r.name];
+        const teamTxt = rosteredOn
+          ? escapeHtml(rosteredOn)
+          : (isStandInName(r.name)
+              ? '<span class="cr-noteam">— no team</span>'
+              : (escapeHtml(r.team) + (r.teamCount>1?` <span class="cr-multi">+${r.teamCount-1}</span>`:'')));
         const age = playerAge(r.name);
         const dev = devFor(r.name);
         const devTxt = dev>0.05 ? `<span class="dev-up">+${dev.toFixed(1)}</span>` : (dev<-0.05 ? `<span class="dev-down">${dev.toFixed(1)}</span>` : '<span class="dev-flat">–</span>');
         return `<tr><td>${i+1}</td><td class="lt-name">${flaggedName(r.name)}</td><td class="cr-age ${'age-'+ageBracket(age)}">${age}</td><td class="cr-team">${teamTxt}</td><td>${c.maps}</td><td>${kd}</td><td>${adr}</td><td>${devTxt}</td><td class="cr-rating">${r.rating.toFixed(2)}</td></tr>`;
-      }).join('')+'</tbody></table>';
+      }).join('')+'</tbody></table></div>';
   }
 
   function renderH2HPickers(){
@@ -4272,7 +4400,7 @@
     STORE.remove('cs2sim_records'); STORE.remove('cs2sim_streaks'); STORE.remove('cs2sim_upsets');
     STORE.remove('cs2sim_milestones'); STORE.remove('cs2sim_chem'); STORE.remove('cs2sim_majors');
     STORE.remove('cs2sim_ranksnap');
-    Object.keys(qualifiedTeams).forEach(function(k){ delete PRESETS[k]; });
+    Object.keys(qualifiedTeams).forEach(function(k){ delete PRESETS[k]; delete TEAM_LOGOS[k]; });
     qualifiedTeams = {}; STORE.remove('cs2sim_qualified'); rebuildPresetNames();
     const msg=document.getElementById('histLoadMsg'); if(msg) msg.textContent='';
     showHistory();
@@ -6132,13 +6260,16 @@
   // therefore eligible for the world ranking, Tournaments and Majors.
   function promoteQualifier(team){
     if (!team || PRESETS[team.name]) return null;
+    const logo = generateTeamLogo(team.name, team.tag);
     const entry = {
       tag: team.tag||'',
       players: team.players.map(function(p){
         return [p.name, (p.pref==='awp' ? 'awp' : (p.role==='IGL' ? 'igl' : 'rifle')), p.skill];
       }),
-      qualified: new Date().toISOString().slice(0,10)
+      qualified: new Date().toISOString().slice(0,10),
+      logo: logo
     };
+    TEAM_LOGOS[team.name] = logo;
     PRESETS[team.name] = entry;
     qualifiedTeams[team.name] = entry;
     STORE.set('cs2sim_qualified', qualifiedTeams);
@@ -6181,6 +6312,7 @@
       const avg = Math.round(t.players.reduce(function(s,p){return s+p.skill;},0)/t.players.length);
       return '<div class="qual-card">' +
         '<div class="qual-h">' +
+          '<img class="qual-logo" src="'+generateTeamLogo(t.name, t.tag)+'" alt="">' +
           '<input class="qual-tag" data-qi="'+i+'" value="'+escapeHtml(t.tag)+'" maxlength="8" spellcheck="false" aria-label="Team tag">' +
           '<input class="qual-name" data-qi="'+i+'" value="'+escapeHtml(t.name)+'" maxlength="28" spellcheck="false" aria-label="Team name">' +
           '<span class="qual-avg">avg '+avg+'</span>' +
