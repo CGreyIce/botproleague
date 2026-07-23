@@ -542,6 +542,10 @@
     .rank-row{grid-template-columns:26px 26px 1fr auto;gap:8px;padding:8px 10px;}
     .rk-sub{display:none;}
   }
+  /* random field picker */
+  .rand-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;}
+  .rand-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.04em;}
+  .rand-note b{color:var(--good);font-weight:600;}
   /* major seeding */
   #seedScreen{max-width:900px;margin:0 auto;}
   #majorPreview{margin-bottom:18px;}
@@ -833,6 +837,10 @@
     </div>
 
     <datalist id="presetList"></datalist>
+    <div class="rand-row" id="randRow" style="display:none;">
+      <button type="button" class="ctrl-btn" id="randFieldBtn">🎲 RANDOMISE FIELD FROM RANKING</button>
+      <span class="rand-note" id="randNote">Weighted toward teams outside the world top 32.</span>
+    </div>
     <div id="teamsContainer"></div>
     <div id="majorPreview" style="display:none;"></div>
 
@@ -1976,6 +1984,8 @@
     document.getElementById('mapPicker').style.display = (appMode==='single') ? 'block' : 'none';
     teamsContainer.style.display = (appMode==='draft'||appMode==='major') ? 'none' : '';
     document.getElementById('majorPreview').style.display = (appMode==='major') ? 'block' : 'none';
+    document.getElementById('randRow').style.display = (appMode==='tournament') ? 'flex' : 'none';
+    document.getElementById('randNote').textContent = 'Weighted toward teams outside the world top 32.';
     const startBtn = document.getElementById('startBtn');
     startBtn.textContent = appMode==='single' ? 'START MATCH'
       : (appMode==='series' ? 'GO TO MAP VETO'
@@ -5601,7 +5611,54 @@
     return `<div class="pickem-results"><div class="pkr-h">YOUR PICK'EM &mdash; ${r.score} / ${r.max} PTS</div>${rows}</div>`;
   }
 
-  /* ================= MAJOR: world-ranked seeding + 3 Swiss stages ================= */
+  /* ---- Randomised Tournament field, weighted below the world top 32 ---- */
+  // The Major takes the world top 32, so the Tournament is where everyone else
+  // gets a shot: anything outside the top 32 (including unranked teams) is far
+  // likelier to be drawn, and inside the top 32 the lower seeds are favoured.
+  const TOURNEY_OUTSIDER_WEIGHT = 4;
+  function tourneyDrawWeight(rank){
+    if (rank == null) return TOURNEY_OUTSIDER_WEIGHT;   // unranked = definitely not top 32
+    if (rank > 32) return TOURNEY_OUTSIDER_WEIGHT;
+    return 0.5 + (rank / 32) * 0.9;   // #1 ≈ 0.53, #32 ≈ 1.40
+  }
+  // Weighted sampling without replacement.
+  function weightedSample(pool, n){
+    const items = pool.slice(), out = [];
+    while (out.length < n && items.length){
+      const total = items.reduce((s,it)=>s+it.w, 0);
+      let r = Math.random() * total, idx = 0;
+      for (; idx < items.length - 1; idx++){
+        r -= items[idx].w;
+        if (r <= 0) break;
+      }
+      out.push(items[idx]);
+      items.splice(idx, 1);
+    }
+    return out;
+  }
+  function randomiseTournamentField(){
+    const look = worldRankLookup();
+    const pool = PRESET_NAMES.map(n=>{
+      const w = look[n];
+      const rank = w ? w.rank : null;
+      return {name:n, rank, w: tourneyDrawWeight(rank)};
+    });
+    const picked = weightedSample(pool, 16);
+    // Seed the panels best-to-worst so the Swiss stage pairs sensibly.
+    picked.sort((a,b)=>{
+      if (a.rank != null && b.rank != null) return a.rank - b.rank;
+      if (a.rank != null) return -1;
+      if (b.rank != null) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    picked.forEach((p,i)=> applyPreset(i, p.name));
+    const outsiders = picked.filter(p=>p.rank == null || p.rank > 32).length;
+    const note = document.getElementById('randNote');
+    if (note){
+      note.innerHTML = `Drew <b>${outsiders}</b> from outside the top 32 and <b>${16-outsiders}</b> from inside it. Roll again or edit any team below.`;
+    }
+  }
+  document.getElementById('randFieldBtn').addEventListener('click', randomiseTournamentField);
   // Build a playable team straight from a preset, no DOM involved. Mirrors the
   // skill roll applyPreset() uses so an auto-built field matches a hand-built one.
   function teamFromPreset(key){
