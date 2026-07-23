@@ -784,6 +784,28 @@
   .ps-num{display:block;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:20px;}
   .ps-lbl{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--muted);margin-top:2px;}
   .prof-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .prof-roster-wrap{margin-bottom:16px;}
+  .prof-roster{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:4px 10px;}
+  .prof-player{display:grid;grid-template-columns:1fr 50px 32px 38px 44px 46px;gap:8px;align-items:center;
+    padding:6px 2px;border-bottom:1px solid var(--line);font-size:12px;}
+  .prof-player:last-child{border-bottom:none;}
+  .prof-player.pp-head{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);}
+  .prof-player.pp-head .pp-name{font-weight:500;}
+  .prof-player.pp-head .pp-rating{color:var(--muted);font-weight:500;}
+  .prof-player.pp-head .pp-role{background:none;color:var(--muted);}
+  .pp-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pp-role{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.05em;text-align:center;
+    border-radius:3px;padding:2px 0;}
+  .pp-age,.pp-maps,.pp-kd{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);text-align:center;}
+  .pp-rating{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--good);text-align:right;font-weight:600;}
+  .prof-standin{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:6px 2px;
+    border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);}
+  .prof-standin:last-child{border-bottom:none;}
+  @media (max-width:560px){
+    .prof-player{grid-template-columns:1fr 44px 34px 42px;}
+    .prof-player .pp-kd,.prof-player .pp-age{display:none;}
+  }
   .prof-h{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-bottom:8px;}
   .prof-map{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:5px 0;border-bottom:1px solid var(--panel-2);font-size:12px;}
   .prof-map:last-child{border-bottom:none;}
@@ -2833,10 +2855,24 @@
 
   /* ---- Player age & development arcs ---- */
   let playerDev = {};   // playerName -> {dev: number, majors: number}
+  // Age distribution: ~87% of players land in the 20–28 competitive prime,
+  // peaking around 22–24, with a thin tail of teenage prodigies and veterans.
+  // Weights are per-100 so the flattened table is a clean percentile lookup.
+  const AGE_WEIGHTS = [
+    // core 20–28 — 87%
+    [20,8],[21,11],[22,13],[23,14],[24,13],[25,11],[26,8],[27,6],[28,3],
+    // outliers — 13%
+    [17,1],[18,2],[19,3],[29,3],[30,2],[31,1],[34,1]
+  ];
+  const AGE_TABLE = (function(){
+    const t = [];
+    AGE_WEIGHTS.forEach(function(e){ for (let i=0;i<e[1];i++) t.push(e[0]); });
+    return t;
+  })();
   // Age is FIXED per player, derived from their name so it never changes.
   function playerAge(name){
     const h = hashStr('age:'+name);
-    return 17 + (h % 18); // 17..34
+    return AGE_TABLE[h % AGE_TABLE.length];
   }
   // Per-Major skill movement based on where they are on the age curve.
   function ageDelta(age){
@@ -3617,6 +3653,61 @@
     sel.onchange = renderTeamProfile;
     renderTeamProfile();
   }
+  // Who plays for a team. Prefer the canonical preset lineup; otherwise
+  // reconstruct it from whoever has actually logged maps for the team.
+  // Stand-ins are kept separate — they're borrowed, never really rostered.
+  function teamRoster(name){
+    const playedFor = Object.keys(careerStats)
+      .filter(p => careerStats[p].teams && careerStats[p].teams[name] > 0);
+    const mapsFor = p => (careerStats[p] && careerStats[p].teams && careerStats[p].teams[name]) || 0;
+    const standIns = playedFor.filter(isStandInName)
+      .map(p=>({name:p, maps:mapsFor(p)}))
+      .sort((a,b)=>b.maps-a.maps);
+    const preset = PRESETS[name];
+    let roster;
+    if (preset){
+      roster = preset.players.map(entry=>({name:entry[0], base:entry[1], maps:mapsFor(entry[0])}));
+    } else {
+      roster = playedFor.filter(p=>!isStandInName(p))
+        .map(p=>({name:p, base:null, maps:mapsFor(p)}))
+        .sort((a,b)=>b.maps-a.maps)
+        .slice(0,5);
+    }
+    return {roster, standIns, fromPreset:!!preset};
+  }
+  function rosterRowHtml(p){
+    const c = careerStats[p.name];
+    const kd = (c && c.deaths) ? (c.kills/c.deaths).toFixed(2) : (c && c.kills ? c.kills.toFixed(2) : '—');
+    const rating = (c && c.roundsPlayed>=24) ? careerRating(c).toFixed(2) : '—';
+    const age = playerAge(p.name);
+    const roleTxt = p.base==='awp' ? 'AWP' : (p.base==='igl' ? 'IGL' : (p.base ? 'RIFLE' : '—'));
+    const roleCls = p.base ? ('dp-'+p.base) : 'dp-rifle';
+    return `<div class="prof-player">
+      <span class="pp-name">${flaggedName(p.name)}</span>
+      <span class="pp-role ${roleCls}">${roleTxt}</span>
+      <span class="pp-age">${age}</span>
+      <span class="pp-maps">${p.maps}</span>
+      <span class="pp-kd">${kd}</span>
+      <span class="pp-rating">${rating}</span>
+    </div>`;
+  }
+  function rosterHtml(name){
+    const {roster, standIns, fromPreset} = teamRoster(name);
+    if (!roster.length) return '<div class="prof-h">ROSTER</div><div class="hist-empty">No roster data for this team.</div>';
+    const head = `<div class="prof-player pp-head">
+      <span class="pp-name">Player</span><span class="pp-role">Role</span><span class="pp-age">Age</span>` +
+      `<span class="pp-maps">Maps</span><span class="pp-kd">K/D</span><span class="pp-rating">Rating</span></div>`;
+    const note = fromPreset ? '' : ' <span class="hist-note">(reconstructed from match history)</span>';
+    let html = `<div class="prof-h">ROSTER${note}</div><div class="prof-roster">${head}${roster.map(rosterRowHtml).join('')}</div>`;
+    if (standIns.length){
+      html += `<div class="prof-h" style="margin-top:12px;">STAND-INS USED <span class="hist-note">(not rostered)</span></div>` +
+        `<div class="prof-roster">${standIns.map(s=>
+          `<div class="prof-standin"><span class="pp-name">🩹 ${flaggedName(s.name)}</span><span class="pp-maps">${s.maps} map${s.maps===1?'':'s'}</span></div>`
+        ).join('')}</div>`;
+    }
+    return html;
+  }
+
   function renderTeamProfile(){
     const out = document.getElementById('histProfile');
     const name = document.getElementById('profileTeam').value;
@@ -3663,6 +3754,7 @@
         <div class="prof-stat"><span class="ps-num ${fl.cls}">${fl.txt}</span><span class="ps-lbl">FORM</span></div>
         ${preset?`<div class="prof-stat"><span class="ps-num">${chemistryLabel({players:preset.players.map(([pn])=>({name:pn}))})}</span><span class="ps-lbl">CHEMISTRY</span></div>`:''}
       </div>
+      <div class="prof-roster-wrap">${rosterHtml(name)}</div>
       <div class="prof-cols">
         <div>
           <div class="prof-h">MAP RECORD</div>
