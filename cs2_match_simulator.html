@@ -542,6 +542,25 @@
     .rank-row{grid-template-columns:26px 26px 1fr auto;gap:8px;padding:8px 10px;}
     .rk-sub{display:none;}
   }
+  .chat-fa{color:var(--muted);opacity:.8;}
+  /* open qualifier */
+  .qual-tag{background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;
+    width:52px;padding:3px 5px;border-radius:3px;text-align:center;}
+  .qual-name{background:transparent;border:1px solid transparent;color:var(--text);
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;padding:2px 4px;
+    border-radius:4px;min-width:0;flex:1;}
+  .qual-name:hover{border-color:var(--line);}
+  .qual-tag:focus,.qual-name:focus{outline:none;border-color:var(--bomb);color:var(--text);}
+  .qual-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .qual-card{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;}
+  .qual-h{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;margin-bottom:6px;
+    display:flex;align-items:center;gap:5px;}
+  .qual-avg{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--good);}
+  .promo-note{background:rgba(255,193,69,.10);border:1px solid var(--bomb);border-radius:8px;
+    padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--text);}
+  .promo-note b{color:var(--bomb);}
+  @media (max-width:700px){ .qual-grid{grid-template-columns:1fr;} }
   /* random field picker */
   .rand-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;}
   .rand-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.04em;}
@@ -849,6 +868,7 @@
         <button type="button" class="mode-btn" data-mode="series">Series</button>
         <button type="button" class="mode-btn" data-mode="tournament">Tournament (16)</button>
         <button type="button" class="mode-btn" data-mode="major">Major (32)</button>
+        <button type="button" class="mode-btn" data-mode="qualifier">Qualifier (16)</button>
         <button type="button" class="mode-btn" data-mode="draft">Draft</button>
       </div>
       <div class="fmt-group" id="fmtGroup" style="display:none;">
@@ -865,6 +885,11 @@
     </div>
     <div id="teamsContainer"></div>
     <div id="majorPreview" style="display:none;"></div>
+    <div id="qualPreview" style="display:none;"></div>
+    <div class="rand-row" id="qualRow" style="display:none;">
+      <button type="button" class="ctrl-btn" id="qualRerollBtn">🎲 REDRAW QUALIFIER FIELD</button>
+      <span class="rand-note">Winner is promoted to a preset team.</span>
+    </div>
 
     <div class="map-picker" id="mapPicker">
       <span class="map-label">MAP</span>
@@ -1336,7 +1361,18 @@
     "Germany": {flag:"\ud83c\udde9\ud83c\uddea", code:"DEU"},
     "France": {flag:"\ud83c\uddeb\ud83c\uddf7", code:"FRA"},
     "Netherlands": {flag:"\ud83c\uddf3\ud83c\uddf1", code:"NLD"},
-    "New Zealand": {flag:"\ud83c\uddf3\ud83c\uddff", code:"NZL"}
+    "New Zealand": {flag:"\ud83c\uddf3\ud83c\uddff", code:"NZL"},
+    "Austria": {flag:"\u1f1e6\u1f1f9", code:"AUT"},
+    "Belgium": {flag:"\u1f1e7\u1f1ea", code:"BEL"},
+    "Canada": {flag:"\u1f1e8\u1f1e6", code:"CAN"},
+    "Finland": {flag:"\u1f1eb\u1f1ee", code:"FIN"},
+    "Hong Kong": {flag:"\u1f1ed\u1f1f0", code:"HKG"},
+    "Iceland": {flag:"\u1f1ee\u1f1f8", code:"ISL"},
+    "Italy": {flag:"\u1f1ee\u1f1f9", code:"ITA"},
+    "Kazakhstan": {flag:"\u1f1f0\u1f1ff", code:"KAZ"},
+    "Korea": {flag:"\u1f1f0\u1f1f7", code:"KOR"},
+    "Poland": {flag:"\u1f1f5\u1f1f1", code:"POL"},
+    "Sweden": {flag:"\u1f1f8\u1f1ea", code:"SWE"}
   };
   const PLAYER_NATION = {
     "Pearlim": "Singapore",
@@ -1548,7 +1584,177 @@
     "StrigidaeVT": "Singapore",
     "TokieShepherdVT": "USA",
     "Cursiffe": "Australia",
-    "88EXP": "Australia"
+    "88EXP": "Australia",
+    "TearsofDeath": "Singapore",
+    "okjustsmd": "Singapore",
+    "EXaCT": "Singapore",
+    "Luneforrune": "Singapore",
+    "Laurel": "Phillipines",
+    "AyanOwOT": "Malaysia",
+    "Dianya": "USA",
+    "thehidz": "Singapore",
+    "bodexx": "Singapore",
+    "Karasu": "Malaysia",
+    "TRPaki": "Singapore",
+    "Nightveil Lycoris": "Malaysia",
+    "ProPHOcy_": "USA",
+    "Kaga Nazuna": "Japan",
+    "Sendo Yuuhi": "Japan",
+    "Ichinose Uruha": "Japan",
+    "Aizawa Ema": "Japan",
+    "yinnzx": "Singapore",
+    "Hyvred": "Singapore",
+    "TiniiBee": "Australia",
+    "Juno Umezono": "Japan",
+    "Aleaka": "United Kingdom",
+    "FumishiroYummy": "Japan",
+    "Hanabusa Lisa": "Japan",
+    "YinghuVT": "Singapore",
+    "Yumeno Akari": "Japan",
+    "LeilaMayadah": "Canada",
+    "KrinoJ": "Singapore",
+    "Kaminari Qpi": "Japan",
+    "twentyrosie": "Singapore",
+    "Narin Mikure": "Korea",
+    "Choya Hanabi": "Japan",
+    "Jasticar": "Singapore",
+    "akuluvr": "Singapore",
+    "Kamito": "Japan",
+    "Hamzyy": "Singapore",
+    "Nataleste": "Singapore",
+    "djsalty_": "Singapore",
+    "kimmixd": "Malaysia",
+    "itswendy_": "Singapore",
+    "Niamocha": "Canada",
+    "Tigeraxd": "Australia",
+    "L2Strike": "Singapore",
+    "Just_Ansel": "Malaysia",
+    "RumiRumi": "Singapore",
+    "Aweberry": "Singapore",
+    "Loonatic": "Malaysia",
+    "Nerfox": "Poland",
+    "RaviasEir": "Singapore",
+    "Skiazelle": "Singapore",
+    "Asumi Sena": "Japan",
+    "Kogara Toto": "Japan",
+    "kaikaijins": "Singapore",
+    "voxslefthorn": "USA",
+    "JigglyPingu": "Singapore",
+    "boopydoopy": "Singapore",
+    "SachiMizora": "Australia",
+    "keikatamori": "Australia",
+    "Nekota Tsuna": "Korea",
+    "Syrrith": "Singapore",
+    "Ginjo Saine": "Japan",
+    "sURF": "Singapore",
+    "rittan0x0": "Malaysia",
+    "kimonra": "Singapore",
+    "Kurumi Noah": "Japan",
+    "ruamamiya": "Singapore",
+    "swoopsy": "Singapore",
+    "wushii": "Malaysia",
+    "rach.elx_": "Singapore",
+    "Kyu": "Singapore",
+    "Vyphogrid": "Phillipines",
+    "briant": "Singapore",
+    "Yaekia": "Australia",
+    "CryingNutz": "Malaysia",
+    "ErineRurie": "Malaysia",
+    "pastellows": "USA",
+    "kanarivt": "Singapore",
+    "HakoP": "Taiwan",
+    "emmabutnormal": "USA",
+    "MizukiiMoon": "Italy",
+    "KurmitSuicidal": "Singapore",
+    "Kaito_Oshino": "Australia",
+    "Xyrren": "Singapore",
+    "XueQiii": "Singapore",
+    "tiger.lark": "Singapore",
+    "UtsuhoNull": "Singapore",
+    "JStarWolf": "Singapore",
+    "MKakili": "Australia",
+    "VSSMB": "Singapore",
+    "Michimouto": "Singapore",
+    "JustYoong": "Singapore",
+    "Jira Jisaki": "USA",
+    "Yakumo Beni": "Japan",
+    "leachubby": "Singapore",
+    "anju_o": "Phillipines",
+    "Airizu": "Austria",
+    "PSYSTRA": "United Kingdom",
+    "SoapiiSereia": "New Zealand",
+    "cwstalVT": "USA",
+    "bloodbane": "Australia",
+    "moricorovt": "USA",
+    "Pattsuu": "Canada",
+    "Arya Kuroha": "USA",
+    "ItzMaigo": "Singapore",
+    "stitchkyui": "USA",
+    "Shuvimo": "Japan",
+    "nyxcatto": "Singapore",
+    "kenzieyii": "Singapore",
+    "PenguChi": "Phillipines",
+    "HiguVT": "Australia",
+    "rattecs": "Finland",
+    "afayctionate": "Singapore",
+    "Amayui Moka": "Japan",
+    "Yarimell": "Malaysia",
+    "Jenakai": "Singapore",
+    "zhizyii": "Singapore",
+    "Kaga Sumire": "Japan",
+    "Tatsumaki Chise": "Japan",
+    "Riko Solari": "Belgium",
+    "Spinafex": "Australia",
+    "Dazeido": "Indonesia",
+    "Ryujin": "Malaysia",
+    "StrandedPond": "Malaysia",
+    "Karoni": "Poland",
+    "vixi": "Australia",
+    "dla.wo": "Singapore",
+    "Kojadayo": "Iceland",
+    "shirou_kitakami": "USA",
+    "Bajiru_EN": "USA",
+    "xmeijixx": "Singapore",
+    "ssseiso": "Australia",
+    "Yano Kuromu": "Japan",
+    "NOTORIOUS47": "Malaysia",
+    "voidnw": "USA",
+    "itswinter__": "USA",
+    "_froggiee": "Australia",
+    "kyomikoo": "Singapore",
+    "AkanersVT": "Singapore",
+    "KiokoCheiko": "Phillipines",
+    "Xevaria": "Malaysia",
+    "cherri_vt": "Australia",
+    "MilliannaVT": "Netherlands",
+    "Zarlard": "Sweden",
+    "yukihimeowo": "USA",
+    "AuraSinVT": "USA",
+    "KydaSana": "Singapore",
+    "scorn": "Singapore",
+    "MiyaLeile": "Netherlands",
+    "Hanyachi": "Germany",
+    "qebo": "Malaysia",
+    "Codiant": "Kazakhstan",
+    "candybar_isblue": "Singapore",
+    "ostc.x": "Singapore",
+    "arcimoon": "Canada",
+    "yumezukiyomi": "Singapore",
+    "miruaamaochi": "Japan",
+    "iceenblue": "USA",
+    "xaeela": "Singapore",
+    "aoi_chibi": "Australia",
+    "sayupurin": "Hong Kong",
+    "CodedEcho": "Singapore",
+    "sengjung123": "Singapore",
+    "haze_vt": "Canada",
+    "AnjuValse": "USA",
+    "SeaEmV": "Phillipines",
+    "Miki Nakai": "Japan",
+    "y0xie": "USA",
+    "AkiraTsukiyono": "Japan",
+    "RIHSURI": "USA",
+    "sakistars": "Singapore"
   };
 
   // Nationality lookups. Unknown players fall back to a neutral marker.
@@ -1616,176 +1822,176 @@
     "xPlosiv": {name:"Blueprint", spec:"Eco Genius"}
   };
   const STANDINS = [
-    {name:"TearsofDeath", rating:83},
-    {name:"okjustsmd", rating:84},
-    {name:"EXaCT", rating:80},
-    {name:"Luneforrune", rating:80},
-    {name:"Laurel", rating:86},
-    {name:"AyanOwOT", rating:87},
-    {name:"Dianya", rating:88},
-    {name:"thehidz", rating:82},
-    {name:"bodexx", rating:89},
-    {name:"Karasu", rating:88},
-    {name:"TRPaki", rating:83},
-    {name:"Nightveil Lycoris", rating:85},
-    {name:"ProPHOcy_", rating:78},
-    {name:"Kaga Nazuna", rating:92},
-    {name:"Sendo Yuuhi", rating:84},
-    {name:"Ichinose Uruha", rating:84},
-    {name:"Aizawa Ema", rating:86},
-    {name:"yinnzx", rating:81},
-    {name:"Hyvred", rating:88},
-    {name:"TiniiBee", rating:87},
-    {name:"Juno Umezono", rating:82},
-    {name:"Aleaka", rating:78},
-    {name:"FumishiroYummy", rating:81},
-    {name:"Hanabusa Lisa", rating:83},
-    {name:"YinghuVT", rating:80},
-    {name:"Yumeno Akari", rating:84},
-    {name:"LeilaMayadah", rating:81},
-    {name:"KrinoJ", rating:83},
-    {name:"Kaminari Qpi", rating:81},
-    {name:"twentyrosie", rating:83},
-    {name:"Narin Mikure", rating:85},
-    {name:"Choya Hanabi", rating:85},
-    {name:"Jasticar", rating:84},
-    {name:"akuluvr", rating:85},
-    {name:"Kamito", rating:84},
-    {name:"Hamzyy", rating:84},
-    {name:"Nataleste", rating:84},
-    {name:"djsalty_", rating:88},
-    {name:"kimmixd", rating:85},
-    {name:"itswendy_", rating:80},
-    {name:"Niamocha", rating:84},
-    {name:"Tigeraxd", rating:86},
-    {name:"L2Strike", rating:81},
-    {name:"Just_Ansel", rating:77},
-    {name:"RumiRumi", rating:81},
-    {name:"Aweberry", rating:80},
-    {name:"Loonatic", rating:84},
-    {name:"Nerfox", rating:83},
-    {name:"RaviasEir", rating:86},
-    {name:"Skiazelle", rating:79},
-    {name:"Asumi Sena", rating:77},
-    {name:"Kogara Toto", rating:88},
-    {name:"kaikaijins", rating:78},
-    {name:"voxslefthorn", rating:85},
-    {name:"JigglyPingu", rating:83},
-    {name:"boopydoopy", rating:81},
-    {name:"SachiMizora", rating:83},
-    {name:"keikatamori", rating:81},
-    {name:"Nekota Tsuna", rating:79},
-    {name:"Syrrith", rating:81},
-    {name:"Ginjo Saine", rating:81},
-    {name:"sURF", rating:85},
-    {name:"rittan0x0", rating:89},
-    {name:"kimonra", rating:83},
-    {name:"Kurumi Noah", rating:87},
-    {name:"ruamamiya", rating:90},
-    {name:"swoopsy", rating:83},
-    {name:"wushii", rating:86},
-    {name:"rach.elx_", rating:85},
-    {name:"Kyu", rating:87},
-    {name:"Vyphogrid", rating:88},
-    {name:"briant", rating:90},
-    {name:"Yaekia", rating:79},
-    {name:"CryingNutz", rating:89},
-    {name:"ErineRurie", rating:83},
-    {name:"pastellows", rating:80},
-    {name:"kanarivt", rating:79},
-    {name:"HakoP", rating:79},
-    {name:"emmabutnormal", rating:79},
-    {name:"MizukiiMoon", rating:78},
-    {name:"KurmitSuicidal", rating:84},
-    {name:"Kaito_Oshino", rating:82},
-    {name:"Xyrren", rating:83},
-    {name:"XueQiii", rating:83},
-    {name:"tiger.lark", rating:79},
-    {name:"UtsuhoNull", rating:90},
-    {name:"JStarWolf", rating:82},
-    {name:"MKakili", rating:88},
-    {name:"VSSMB", rating:89},
-    {name:"Michimouto", rating:88},
-    {name:"JustYoong", rating:84},
-    {name:"Jira Jisaki", rating:77},
-    {name:"Yakumo Beni", rating:78},
-    {name:"leachubby", rating:88},
-    {name:"anju_o", rating:86},
-    {name:"Airizu", rating:78},
-    {name:"PSYSTRA", rating:90},
-    {name:"SoapiiSereia", rating:83},
-    {name:"cwstalVT", rating:77},
-    {name:"bloodbane", rating:79},
-    {name:"moricorovt", rating:86},
-    {name:"Pattsuu", rating:79},
-    {name:"Arya Kuroha", rating:82},
-    {name:"ItzMaigo", rating:79},
-    {name:"stitchkyui", rating:85},
-    {name:"Shuvimo", rating:85},
-    {name:"nyxcatto", rating:83},
-    {name:"kenzieyii", rating:91},
-    {name:"PenguChi", rating:81},
-    {name:"HiguVT", rating:85},
-    {name:"rattecs", rating:77},
-    {name:"afayctionate", rating:83},
-    {name:"Amayui Moka", rating:81},
-    {name:"Yarimell", rating:85},
-    {name:"Jenakai", rating:86},
-    {name:"zhizyii", rating:77},
-    {name:"Kaga Sumire", rating:82},
-    {name:"Tatsumaki Chise", rating:78},
-    {name:"Riko Solari", rating:79},
-    {name:"Spinafex", rating:89},
-    {name:"Dazeido", rating:83},
-    {name:"Ryujin", rating:83},
-    {name:"StrandedPond", rating:81},
-    {name:"Karoni", rating:84},
-    {name:"vixi", rating:85},
-    {name:"dla.wo", rating:79},
-    {name:"Kojadayo", rating:90},
-    {name:"shirou_kitakami", rating:81},
-    {name:"Bajiru_EN", rating:85},
-    {name:"xmeijixx", rating:81},
-    {name:"ssseiso", rating:84},
-    {name:"Yano Kuromu", rating:81},
-    {name:"NOTORIOUS47", rating:82},
-    {name:"voidnw", rating:85},
-    {name:"itswinter__", rating:79},
-    {name:"_froggiee", rating:81},
-    {name:"kyomikoo", rating:80},
-    {name:"AkanersVT", rating:80},
-    {name:"KiokoCheiko", rating:82},
-    {name:"Xevaria", rating:86},
-    {name:"cherri_vt", rating:84},
-    {name:"MilliannaVT", rating:89},
-    {name:"Zarlard", rating:83},
-    {name:"yukihimeowo", rating:84},
-    {name:"AuraSinVT", rating:78},
-    {name:"KydaSana", rating:88},
-    {name:"scorn", rating:79},
-    {name:"MiyaLeile", rating:81},
-    {name:"Hanyachi", rating:82},
-    {name:"qebo", rating:78},
-    {name:"Codiant", rating:83},
-    {name:"candybar_isblue", rating:89},
-    {name:"ostc.x", rating:80},
-    {name:"arcimoon", rating:86},
-    {name:"yumezukiyomi", rating:82},
-    {name:"miruaamaochi", rating:85},
-    {name:"iceenblue", rating:90},
-    {name:"xaeela", rating:83},
-    {name:"aoi_chibi", rating:86},
-    {name:"sayupurin", rating:79},
-    {name:"CodedEcho", rating:85},
-    {name:"sengjung123", rating:80},
-    {name:"haze_vt", rating:86},
-    {name:"AnjuValse", rating:83},
-    {name:"SeaEmV", rating:79},
-    {name:"Miki Nakai", rating:82},
-    {name:"y0xie", rating:87},
-    {name:"AkiraTsukiyono", rating:79},
-    {name:"RIHSURI", rating:86},
-    {name:"sakistars", rating:81}
+    {name:"TearsofDeath", rating:83, role:"igl"},
+    {name:"okjustsmd", rating:84, role:"igl"},
+    {name:"EXaCT", rating:80, role:"rifle"},
+    {name:"Luneforrune", rating:80, role:"rifle"},
+    {name:"Laurel", rating:86, role:"rifle"},
+    {name:"AyanOwOT", rating:87, role:"awp"},
+    {name:"Dianya", rating:88, role:"rifle"},
+    {name:"thehidz", rating:82, role:"rifle"},
+    {name:"bodexx", rating:89, role:"rifle"},
+    {name:"Karasu", rating:88, role:"rifle"},
+    {name:"TRPaki", rating:83, role:"rifle"},
+    {name:"Nightveil Lycoris", rating:85, role:"igl"},
+    {name:"ProPHOcy_", rating:78, role:"awp"},
+    {name:"Kaga Nazuna", rating:92, role:"rifle"},
+    {name:"Sendo Yuuhi", rating:84, role:"rifle"},
+    {name:"Ichinose Uruha", rating:84, role:"rifle"},
+    {name:"Aizawa Ema", rating:86, role:"rifle"},
+    {name:"yinnzx", rating:81, role:"rifle"},
+    {name:"Hyvred", rating:88, role:"rifle"},
+    {name:"TiniiBee", rating:87, role:"rifle"},
+    {name:"Juno Umezono", rating:82, role:"rifle"},
+    {name:"Aleaka", rating:78, role:"rifle"},
+    {name:"FumishiroYummy", rating:81, role:"rifle"},
+    {name:"Hanabusa Lisa", rating:83, role:"igl"},
+    {name:"YinghuVT", rating:80, role:"rifle"},
+    {name:"Yumeno Akari", rating:84, role:"awp"},
+    {name:"LeilaMayadah", rating:81, role:"awp"},
+    {name:"KrinoJ", rating:83, role:"fill"},
+    {name:"Kaminari Qpi", rating:81, role:"rifle"},
+    {name:"twentyrosie", rating:83, role:"rifle"},
+    {name:"Narin Mikure", rating:85, role:"awp"},
+    {name:"Choya Hanabi", rating:85, role:"rifle"},
+    {name:"Jasticar", rating:84, role:"rifle"},
+    {name:"akuluvr", rating:85, role:"rifle"},
+    {name:"Kamito", rating:84, role:"awp"},
+    {name:"Hamzyy", rating:84, role:"rifle"},
+    {name:"Nataleste", rating:84, role:"rifle"},
+    {name:"djsalty_", rating:88, role:"awp"},
+    {name:"kimmixd", rating:85, role:"awp"},
+    {name:"itswendy_", rating:80, role:"igl"},
+    {name:"Niamocha", rating:84, role:"igl"},
+    {name:"Tigeraxd", rating:86, role:"igl"},
+    {name:"L2Strike", rating:81, role:"igl"},
+    {name:"Just_Ansel", rating:77, role:"igl"},
+    {name:"RumiRumi", rating:81, role:"rifle"},
+    {name:"Aweberry", rating:80, role:"awp"},
+    {name:"Loonatic", rating:84, role:"awp"},
+    {name:"Nerfox", rating:83, role:"rifle"},
+    {name:"RaviasEir", rating:86, role:"rifle"},
+    {name:"Skiazelle", rating:79, role:"igl"},
+    {name:"Asumi Sena", rating:77, role:"rifle"},
+    {name:"Kogara Toto", rating:88, role:"rifle"},
+    {name:"kaikaijins", rating:78, role:"rifle"},
+    {name:"voxslefthorn", rating:85, role:"rifle"},
+    {name:"JigglyPingu", rating:83, role:"rifle"},
+    {name:"boopydoopy", rating:81, role:"awp"},
+    {name:"SachiMizora", rating:83, role:"rifle"},
+    {name:"keikatamori", rating:81, role:"awp"},
+    {name:"Nekota Tsuna", rating:79, role:"rifle"},
+    {name:"Syrrith", rating:81, role:"rifle"},
+    {name:"Ginjo Saine", rating:81, role:"rifle"},
+    {name:"sURF", rating:85, role:"igl"},
+    {name:"rittan0x0", rating:89, role:"rifle"},
+    {name:"kimonra", rating:83, role:"rifle"},
+    {name:"Kurumi Noah", rating:87, role:"rifle"},
+    {name:"ruamamiya", rating:90, role:"awp"},
+    {name:"swoopsy", rating:83, role:"awp"},
+    {name:"wushii", rating:86, role:"rifle"},
+    {name:"rach.elx_", rating:85, role:"rifle"},
+    {name:"Kyu", rating:87, role:"igl"},
+    {name:"Vyphogrid", rating:88, role:"igl"},
+    {name:"briant", rating:90, role:"igl"},
+    {name:"Yaekia", rating:79, role:"rifle"},
+    {name:"CryingNutz", rating:89, role:"rifle"},
+    {name:"ErineRurie", rating:83, role:"rifle"},
+    {name:"pastellows", rating:80, role:"rifle"},
+    {name:"kanarivt", rating:79, role:"rifle"},
+    {name:"HakoP", rating:79, role:"igl"},
+    {name:"emmabutnormal", rating:79, role:"awp"},
+    {name:"MizukiiMoon", rating:78, role:"rifle"},
+    {name:"KurmitSuicidal", rating:84, role:"igl"},
+    {name:"Kaito_Oshino", rating:82, role:"rifle"},
+    {name:"Xyrren", rating:83, role:"igl"},
+    {name:"XueQiii", rating:83, role:"rifle"},
+    {name:"tiger.lark", rating:79, role:"rifle"},
+    {name:"UtsuhoNull", rating:90, role:"rifle"},
+    {name:"JStarWolf", rating:82, role:"igl"},
+    {name:"MKakili", rating:88, role:"rifle"},
+    {name:"VSSMB", rating:89, role:"igl"},
+    {name:"Michimouto", rating:88, role:"rifle"},
+    {name:"JustYoong", rating:84, role:"rifle"},
+    {name:"Jira Jisaki", rating:77, role:"rifle"},
+    {name:"Yakumo Beni", rating:78, role:"rifle"},
+    {name:"leachubby", rating:88, role:"igl"},
+    {name:"anju_o", rating:86, role:"rifle"},
+    {name:"Airizu", rating:78, role:"rifle"},
+    {name:"PSYSTRA", rating:90, role:"awp"},
+    {name:"SoapiiSereia", rating:83, role:"rifle"},
+    {name:"cwstalVT", rating:77, role:"igl"},
+    {name:"bloodbane", rating:79, role:"rifle"},
+    {name:"moricorovt", rating:86, role:"awp"},
+    {name:"Pattsuu", rating:79, role:"igl"},
+    {name:"Arya Kuroha", rating:82, role:"rifle"},
+    {name:"ItzMaigo", rating:79, role:"rifle"},
+    {name:"stitchkyui", rating:85, role:"rifle"},
+    {name:"Shuvimo", rating:85, role:"igl"},
+    {name:"nyxcatto", rating:83, role:"rifle"},
+    {name:"kenzieyii", rating:91, role:"rifle"},
+    {name:"PenguChi", rating:81, role:"rifle"},
+    {name:"HiguVT", rating:85, role:"rifle"},
+    {name:"rattecs", rating:77, role:"rifle"},
+    {name:"afayctionate", rating:83, role:"rifle"},
+    {name:"Amayui Moka", rating:81, role:"rifle"},
+    {name:"Yarimell", rating:85, role:"awp"},
+    {name:"Jenakai", rating:86, role:"awp"},
+    {name:"zhizyii", rating:77, role:"igl"},
+    {name:"Kaga Sumire", rating:82, role:"awp"},
+    {name:"Tatsumaki Chise", rating:78, role:"rifle"},
+    {name:"Riko Solari", rating:79, role:"rifle"},
+    {name:"Spinafex", rating:89, role:"rifle"},
+    {name:"Dazeido", rating:83, role:"rifle"},
+    {name:"Ryujin", rating:83, role:"rifle"},
+    {name:"StrandedPond", rating:81, role:"rifle"},
+    {name:"Karoni", rating:84, role:"rifle"},
+    {name:"vixi", rating:85, role:"rifle"},
+    {name:"dla.wo", rating:79, role:"rifle"},
+    {name:"Kojadayo", rating:90, role:"rifle"},
+    {name:"shirou_kitakami", rating:81, role:"rifle"},
+    {name:"Bajiru_EN", rating:85, role:"rifle"},
+    {name:"xmeijixx", rating:81, role:"igl"},
+    {name:"ssseiso", rating:84, role:"rifle"},
+    {name:"Yano Kuromu", rating:81, role:"awp"},
+    {name:"NOTORIOUS47", rating:82, role:"awp"},
+    {name:"voidnw", rating:85, role:"rifle"},
+    {name:"itswinter__", rating:79, role:"rifle"},
+    {name:"_froggiee", rating:81, role:"awp"},
+    {name:"kyomikoo", rating:80, role:"rifle"},
+    {name:"AkanersVT", rating:80, role:"rifle"},
+    {name:"KiokoCheiko", rating:82, role:"rifle"},
+    {name:"Xevaria", rating:86, role:"rifle"},
+    {name:"cherri_vt", rating:84, role:"rifle"},
+    {name:"MilliannaVT", rating:89, role:"awp"},
+    {name:"Zarlard", rating:83, role:"igl"},
+    {name:"yukihimeowo", rating:84, role:"rifle"},
+    {name:"AuraSinVT", rating:78, role:"igl"},
+    {name:"KydaSana", rating:88, role:"awp"},
+    {name:"scorn", rating:79, role:"rifle"},
+    {name:"MiyaLeile", rating:81, role:"rifle"},
+    {name:"Hanyachi", rating:82, role:"rifle"},
+    {name:"qebo", rating:78, role:"igl"},
+    {name:"Codiant", rating:83, role:"rifle"},
+    {name:"candybar_isblue", rating:89, role:"rifle"},
+    {name:"ostc.x", rating:80, role:"igl"},
+    {name:"arcimoon", rating:86, role:"awp"},
+    {name:"yumezukiyomi", rating:82, role:"awp"},
+    {name:"miruaamaochi", rating:85, role:"rifle"},
+    {name:"iceenblue", rating:90, role:"awp"},
+    {name:"xaeela", rating:83, role:"rifle"},
+    {name:"aoi_chibi", rating:86, role:"rifle"},
+    {name:"sayupurin", rating:79, role:"rifle"},
+    {name:"CodedEcho", rating:85, role:"awp"},
+    {name:"sengjung123", rating:80, role:"rifle"},
+    {name:"haze_vt", rating:86, role:"rifle"},
+    {name:"AnjuValse", rating:83, role:"rifle"},
+    {name:"SeaEmV", rating:79, role:"rifle"},
+    {name:"Miki Nakai", rating:82, role:"rifle"},
+    {name:"y0xie", rating:87, role:"rifle"},
+    {name:"AkiraTsukiyono", rating:79, role:"rifle"},
+    {name:"RIHSURI", rating:86, role:"rifle"},
+    {name:"sakistars", rating:81, role:"awp"}
   ];
 
   const TEAM_LOGOS = {
@@ -1842,7 +2048,15 @@
     return `<img class="${cls||'team-logo'}" src="${src}" alt="" loading="lazy">`;
   }
 
-  const PRESET_NAMES = Object.keys(PRESETS);
+  let PRESET_NAMES = Object.keys(PRESETS);
+  // Qualifier winners get folded into PRESETS at runtime, so the name list and
+  // the setup datalist both need to be rebuildable.
+  function rebuildPresetNames(){
+    PRESET_NAMES = Object.keys(PRESETS).sort((a,b)=>a.localeCompare(b));
+    if (typeof rebuildPlayerTeamIndex === 'function') rebuildPlayerTeamIndex();
+    const dl = document.getElementById('presetList');
+    if (dl) dl.innerHTML = PRESET_NAMES.map(n=>`<option value="${n.replace(/"/g,'&quot;')}"></option>`).join('');
+  }
 
   let appMode = 'single';   // 'single' | 'series' | 'tournament'
   let seriesFormat = 3;     // 3 = Bo3, 5 = Bo5 (series/tournament)
@@ -1934,7 +2148,9 @@
       // then shifted by whatever career development they've accumulated.
       const skillEl = teamsContainer.querySelector(`.skill-slider[data-team="${teamIdx}"][data-idx="${i}"]`);
       const skillVal = teamsContainer.querySelector(`.skill-val[data-team="${teamIdx}"][data-idx="${i}"]`);
-      const baseSkill = 85 + Math.floor(Math.random()*14); // 85..98
+      // Promoted qualifier teams carry their real (lower) ratings in slot 2;
+      // established presets roll fresh in the pro band.
+      const baseSkill = (entry && entry[2] != null) ? entry[2] : 85 + Math.floor(Math.random()*14);
       const rolled = Math.max(60, Math.min(99, Math.round(baseSkill + devFor(nm))));
       if (skillEl) skillEl.value = rolled;
       if (skillVal) skillVal.textContent = rolled;
@@ -1944,6 +2160,7 @@
 
   function renderTeams(){
     if (appMode==='major'){ teamsContainer.innerHTML=''; renderMajorPreview(); return; }
+    if (appMode==='qualifier'){ teamsContainer.innerHTML=''; renderQualifierPreview(); return; }
     const count = (appMode==='tournament') ? 16 : 2;
     teamsContainer.className = (count===2) ? 'teams-grid' : 'teams-grid-8';
     teamsContainer.innerHTML = '';
@@ -2004,22 +2221,26 @@
     document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active', b===btn));
     document.getElementById('fmtGroup').style.display = (appMode==='series') ? 'flex' : 'none';
     document.getElementById('mapPicker').style.display = (appMode==='single') ? 'block' : 'none';
-    teamsContainer.style.display = (appMode==='draft'||appMode==='major') ? 'none' : '';
+    teamsContainer.style.display = (appMode==='draft'||appMode==='major'||appMode==='qualifier') ? 'none' : '';
     document.getElementById('majorPreview').style.display = (appMode==='major') ? 'block' : 'none';
     document.getElementById('randRow').style.display = (appMode==='tournament') ? 'flex' : 'none';
+    document.getElementById('qualPreview').style.display = (appMode==='qualifier') ? 'block' : 'none';
+    document.getElementById('qualRow').style.display = (appMode==='qualifier') ? 'flex' : 'none';
     document.getElementById('randNote').textContent = 'Weighted toward teams outside the world top 32.';
     const startBtn = document.getElementById('startBtn');
     startBtn.textContent = appMode==='single' ? 'START MATCH'
       : (appMode==='series' ? 'GO TO MAP VETO'
       : (appMode==='draft' ? 'START DRAFT'
-      : (appMode==='major' ? 'SEED THE MAJOR' : 'BUILD BRACKET')));
+      : (appMode==='major' ? 'SEED THE MAJOR'
+      : (appMode==='qualifier' ? 'START QUALIFIER' : 'BUILD BRACKET'))));
     const note = document.getElementById('setupNote');
     note.textContent = appMode==='single'
       ? 'Single map. Side A opens on T; sides swap at round 13.'
       : (appMode==='series' ? `Best-of-${seriesFormat}. You'll veto maps next, then play the series live.`
       : (appMode==='draft' ? 'Snake draft 8 teams from every preset player, then play the bracket.'
       : (appMode==='major' ? 'Field is the top 32 of your world ranking. Three Swiss stages (1: seeds 17–32, 2: seeds 9–16, 3: seeds 1–8), top 8 each time, then playoffs.'
-                           : '16 teams, Swiss stage then single elimination. Quarters & semis are Bo3; the grand final is Bo5.')));
+      : (appMode==='qualifier' ? 'Open qualifier: stand-ins drawn into 16 amateur teams. Swiss stage, then playoffs — the winner is promoted to a preset team and can enter Tournaments and Majors.'
+                           : '16 teams, Swiss stage then single elimination. Quarters & semis are Bo3; the grand final is Bo5.'))));
     renderTeams();
   });
   document.getElementById('fmtGroup').addEventListener('click', (e)=>{
@@ -3152,6 +3373,12 @@
     const ch2 = await STORE.get('cs2sim_chem'); if (ch2) chemistryTable = ch2;
     const ma = await STORE.get('cs2sim_majors'); if (ma) majorArchive = ma;
     const rk = await STORE.get('cs2sim_ranksnap'); if (rk) rankSnapshot = rk;
+    const qt = await STORE.get('cs2sim_qualified');
+    if (qt){
+      qualifiedTeams = qt;
+      Object.keys(qt).forEach(function(k){ if (!PRESETS[k]) PRESETS[k] = qt[k]; });
+      rebuildPresetNames();
+    }
     // If the history screen is already open, refresh it now that data has arrived.
     const hs = document.getElementById('historyScreen');
     if (hs && hs.style.display === 'block') showHistory();
@@ -3164,6 +3391,7 @@
     else leagueTable[k].tag = team.tag||leagueTable[k].tag;
     if (!leagueTable[k].byMap) leagueTable[k].byMap = {};
     if (team.isDraft) leagueTable[k].isDraft = true;
+    if (team.isQualifier) leagueTable[k].isQualifier = true;
     return leagueTable[k];
   }
 
@@ -3178,6 +3406,12 @@
   function isDraftTeam(name){
     const e = leagueTable[name];
     return !!(e && e.isDraft) || isDraftTeamName(name);
+  }
+  // Amateur qualifier sides are invisible in the world ranking until one of them
+  // wins and gets promoted — at which point it ranks with the record it earned.
+  function isUnpromotedQualifier(name){
+    const e = leagueTable[name];
+    return !!(e && e.isQualifier) && !qualifiedTeams[name];
   }
   // Stand-ins are borrowed fill-ins, never truly rostered — treat them as team-less.
   function isStandInName(name){
@@ -3396,7 +3630,7 @@
   // Ranking = league data minus fantasy-draft teams, scored and sorted by points.
   function rankingSorted(){
     return leagueSorted()
-      .filter(r => r.gp >= 1 && !isDraftTeam(r.name))
+      .filter(r => r.gp >= 1 && !isDraftTeam(r.name) && !isUnpromotedQualifier(r.name))
       .map(r => ({...r, points: rankPoints(r), titles: titleCounts(r.name)}))
       .sort((a,b)=> b.points-a.points || b.winPct-a.winPct || b.rdiff-a.rdiff);
   }
@@ -4038,6 +4272,8 @@
     STORE.remove('cs2sim_records'); STORE.remove('cs2sim_streaks'); STORE.remove('cs2sim_upsets');
     STORE.remove('cs2sim_milestones'); STORE.remove('cs2sim_chem'); STORE.remove('cs2sim_majors');
     STORE.remove('cs2sim_ranksnap');
+    Object.keys(qualifiedTeams).forEach(function(k){ delete PRESETS[k]; });
+    qualifiedTeams = {}; STORE.remove('cs2sim_qualified'); rebuildPresetNames();
     const msg=document.getElementById('histLoadMsg'); if(msg) msg.textContent='';
     showHistory();
   });
@@ -4159,7 +4395,7 @@
   });
 
   function handleStart(){
-    majorRun = null;   // any new event starts clean
+    majorRun = null; qualifierRun = false; promotedName = null;   // any new event starts clean
     if (appMode==='single'){
       const a = collectTeam(0), b = collectTeam(1);
       beginMap(a, b, selectedMap, showFinalScreen);
@@ -4170,6 +4406,11 @@
       });
     } else if (appMode==='draft'){
       startDraft();
+    } else if (appMode==='qualifier'){
+      if (!qualifierField) renderQualifierPreview();
+      syncQualifierNames();
+      qualifierRun = true;
+      startMajor(qualifierField.slice(), null);
     } else if (appMode==='major'){
       const auto = autoMajorField();
       showMajorSeeding(auto.field, auto);
@@ -4737,9 +4978,25 @@
   /* ================= SCENE CHAT ================= */
   // Ambient chatter generated from the persisted world state: rivalries, form,
   // recent champions, upsets and milestones.
+  // Name -> preset team, rebuilt whenever PRESETS changes (e.g. a qualifier win).
+  // Lets a stand-in who's been promoted chat as a rostered player, tag and all.
+  let PLAYER_TEAM_INDEX = {};
+  function rebuildPlayerTeamIndex(){
+    PLAYER_TEAM_INDEX = {};
+    Object.keys(PRESETS).forEach(function(t){
+      PRESETS[t].players.forEach(function(e){ PLAYER_TEAM_INDEX[e[0]] = t; });
+    });
+  }
+  rebuildPlayerTeamIndex();
   function allPresetPlayers(){
     const out = [];
     PRESET_NAMES.forEach(t=>PRESETS[t].players.forEach(([n,base])=>out.push({name:n, team:t, base})));
+    // Stand-ins talk too — as free agents, until one of them qualifies and
+    // lands on a real roster, at which point they're already in the list above.
+    STANDINS.forEach(function(sp){
+      if (PLAYER_TEAM_INDEX[sp.name]) return;
+      out.push({name:sp.name, team:null, base:(sp.role==='fill'?'rifle':sp.role), freeAgent:true});
+    });
     return out;
   }
   function chatPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
@@ -4762,11 +5019,25 @@
     if (Object.keys(h2hTable).length) kinds.push('rivalry');
 
     for (let i=0;i<count;i++){
-      const kind = chatPick(kinds);
       const me = chatPick(players);
+      // Free agents have no team, so team-flavoured lines don't apply to them.
+      const kind = me.freeAgent
+        ? chatPick(['fa','fa','fa', recentChamp?'champ':'fa', topUpset?'upset':'fa'])
+        : chatPick(kinds);
       let text = null;
 
-      if (kind==='rivalry'){
+      if (kind==='fa'){
+        text = chatPick([
+          `free agent btw, dm me`, `standing in again this week`,
+          `benched but still grinding faceit`, `someone needs a fifth right`,
+          `qualifier grind never ends`, `trial went ok i think. we'll see`,
+          `if any org is reading this. hello`, `no team, no problem (there is a problem)`,
+          `been playing the best cs of my life for nobody`,
+          `open qualifier is my whole personality now`,
+          `waiting on a callback like it's a job interview`,
+          `stand-in life: new comms every week`
+        ]);
+      } else if (kind==='rivalry'){
         const keys = Object.keys(h2hTable).filter(k=>k.split('|').includes(me.team));
         if (keys.length){
           const e = h2hTable[chatPick(keys)];
@@ -4805,7 +5076,9 @@
              : f<=-3 ? chatPick([`back to the drawing board`, `rough patch but the work doesn't change`, `we'll fix it in practice, no panic`])
              : chatPick([`solid prac today`, `grinding aim maps til it clicks`, `feeling alright about the next one`]);
       } else if (kind==='matchup'){
-        const other = chatPick(players.filter(p=>p.team!==me.team));
+        const withTeams = players.filter(p=>p.team && p.team!==me.team);
+        const other = withTeams.length ? chatPick(withTeams) : null;
+        if (!other) { text = null; } else
         text = chatPick([`would love to run it vs ${other.team} again`,
                          `${other.name} is a problem, respect`,
                          `anyone scrimming? we're free`,
@@ -4826,7 +5099,7 @@
         text = chatPick([`who's queueing`, `solid prac today`, `new crosshair, new me`,
                          `anyone scrimming? we're free`, `grinding aim maps til it clicks`]);
       }
-      msgs.push({name:me.name, team:me.team, text});
+      msgs.push({name:me.name, team:me.team, text, freeAgent:!!me.freeAgent});
     }
     return msgs;
   }
@@ -4835,9 +5108,13 @@
   let chatTimer = null, chatLive = true, chatStuckToBottom = true;
 
   function chatMsgHtml(m){
-    const tag = PRESETS[m.team] ? PRESETS[m.team].tag : '';
+    // A promoted qualifier team is a preset like any other, so its tag shows here.
+    const tag = (m.team && PRESETS[m.team]) ? PRESETS[m.team].tag : '';
+    const badge = tag
+      ? `<span class="ptag" style="color:var(--ct-accent)">${escapeHtml(tag)}</span> `
+      : (m.freeAgent ? `<span class="ptag chat-fa">FA</span> ` : '');
     return `<div class="chat-msg">
-      <span class="chat-who">${tag?`<span class="ptag" style="color:var(--ct-accent)">${escapeHtml(tag)}</span> `:''}${flaggedName(m.name)}</span>
+      <span class="chat-who">${badge}${flaggedName(m.name)}</span>
       <span class="chat-text">${escapeHtml(m.text)}</span>
     </div>`;
   }
@@ -5751,6 +6028,180 @@
     }
   }
   document.getElementById('randFieldBtn').addEventListener('click', randomiseTournamentField);
+
+  /* ============ OPEN QUALIFIER: stand-ins fighting for a preset slot ============ */
+  // 170 stand-ins drawn into 16 five-man teams. Their ratings sit below the
+  // 85-98 pro band, so a qualifier team reaching a Major is a real underdog.
+  const QUALIFIER_NAMES = [
+    'Backline','Cellar Door','Dust Devils','Eleventh Hour','Free Agents','Garage Band',
+    'Hard Reset','Interlopers','Journeymen','Kitchen Table','Last Call','Moonlighters',
+    'Night Shift','Open Circuit','Practice Server','Queue Dodgers','Rank S','Second Wind',
+    'Tryout','Understudy','Void Runners','Waiting List','Xtra Time','Zero Hour',
+    'Basement Five','Coin Flip','Dark Horse','Ember Rise','Fifth Man','Ghost Lobby',
+    'Home Ground','Ice Cold','Late Registration','Minor League','No Shows','Overtime Only',
+    'Pug Life','Quiet Riot','Rain Check','Stand In','Trial Run','Unsigned'
+  ];
+  // Build a plausible tag from a team name — initials, truncations, or a
+  // vowel-stripped squash — picked at random so redraws don't repeat.
+  function makeTeamTag(name){
+    const words = String(name).replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean);
+    const opts = [];
+    if (words.length >= 2){
+      opts.push(words.map(function(w){ return w[0]; }).join(''));
+      opts.push(words[0].slice(0,2) + words[1][0]);
+      opts.push(words[0].slice(0,3));
+      opts.push(words[0][0] + words[1].slice(0,2));
+      opts.push(words[0].slice(0,2) + words[1].slice(0,2));
+    } else {
+      const w = words[0] || 'TEAM';
+      opts.push(w.slice(0,3));
+      opts.push(w.slice(0,4));
+      opts.push(w[0] + w.slice(-2));
+      opts.push(w.replace(/[aeiou]/gi,'').slice(0,4));
+    }
+    const uniq = opts.map(function(o){ return String(o||'').toUpperCase(); })
+      .filter(function(v,i,a){ return v.length>=2 && a.indexOf(v)===i; });
+    if (!uniq.length) return 'TM';
+    return uniq[Math.floor(Math.random()*uniq.length)];
+  }
+  // Keep tags distinct inside a single field.
+  function uniqueTag(name, taken){
+    let t = makeTeamTag(name);
+    if (!taken[t]){ taken[t] = true; return t; }
+    for (let i=2;i<=9;i++){
+      const alt = t.slice(0,3) + i;
+      if (!taken[alt]){ taken[alt] = true; return alt; }
+    }
+    taken[t] = true;
+    return t;
+  }
+  let qualifiedTeams = {};   // promoted winners, persisted and merged into PRESETS
+
+  function shuffleArr(a){
+    const r = a.slice();
+    for (let i=r.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=r[i]; r[i]=r[j]; r[j]=t; }
+    return r;
+  }
+  // Draw five-man teams from the stand-in pool; each player is used at most once.
+  // Line-ups are built to a real shape — 1 IGL, 1 AWP, 3 riflers — using each
+  // player's declared role. "Fill" players are wildcards for any empty slot.
+  function buildQualifierField(){
+    const names = shuffleArr(QUALIFIER_NAMES);
+    const igls   = shuffleArr(STANDINS.filter(function(p){ return p.role==='igl'; }));
+    const awps   = shuffleArr(STANDINS.filter(function(p){ return p.role==='awp'; }));
+    const rifles = shuffleArr(STANDINS.filter(function(p){ return p.role==='rifle'; }));
+    const fills  = shuffleArr(STANDINS.filter(function(p){ return p.role==='fill'; }));
+    // A wildcard covers whichever slot runs dry first.
+    const take = function(primary){
+      if (primary.length) return primary.shift();
+      if (fills.length) return fills.shift();
+      return null;
+    };
+    const teamCount = Math.min(16, names.length,
+      Math.floor((igls.length + awps.length + rifles.length + fills.length) / 5));
+    const field = [];
+    for (let i=0;i<teamCount;i++){
+      const picked = [];
+      const igl = take(igls), awp = take(awps);
+      if (igl) picked.push({sp:igl, base:'igl'});
+      if (awp) picked.push({sp:awp, base:'awp'});
+      while (picked.length < 5){
+        const r = take(rifles);
+        if (!r) break;
+        picked.push({sp:r, base:'rifle'});
+      }
+      if (picked.length < 5) break;   // pool exhausted, stop cleanly
+      const players = picked.map(function(e){
+        const role = (e.base==='awp') ? 'AWPer' : (e.base==='igl' ? 'IGL' : randomRifleRole());
+        const skill = Math.max(60, Math.min(99, Math.round(e.sp.rating + devFor(e.sp.name))));
+        return makePlayer(e.sp.name, e.base==='awp'?'awp':'rifle', skill, role);
+      });
+      field.push({name:names[i], tag:'', players, isQualifier:true});
+    }
+    // Seed strongest-first so the Swiss stage pairs sensibly.
+    field.sort(function(a,b){
+      const av=a.players.reduce(function(s,p){return s+p.skill;},0);
+      const bv=b.players.reduce(function(s,p){return s+p.skill;},0);
+      return bv-av;
+    });
+    const taken = {};
+    field.forEach(function(t){ t.tag = uniqueTag(t.name, taken); });
+    return field;
+  }
+  // Winner earns a permanent roster slot: usable as a preset from now on, and
+  // therefore eligible for the world ranking, Tournaments and Majors.
+  function promoteQualifier(team){
+    if (!team || PRESETS[team.name]) return null;
+    const entry = {
+      tag: team.tag||'',
+      players: team.players.map(function(p){
+        return [p.name, (p.pref==='awp' ? 'awp' : (p.role==='IGL' ? 'igl' : 'rifle')), p.skill];
+      }),
+      qualified: new Date().toISOString().slice(0,10)
+    };
+    PRESETS[team.name] = entry;
+    qualifiedTeams[team.name] = entry;
+    STORE.set('cs2sim_qualified', qualifiedTeams);
+    rebuildPresetNames();
+    return team.name;
+  }
+
+  let qualifierField = null;   // the drawn field, previewed on setup
+  // Names and tags are free-text: read whatever's in the inputs before kickoff.
+  function syncQualifierNames(){
+    if (!qualifierField) return;
+    const root = document.getElementById('qualPreview');
+    if (!root) return;
+    root.querySelectorAll('.qual-name').forEach(function(inp){
+      const i = parseInt(inp.dataset.qi, 10);
+      const v = inp.value.trim();
+      if (qualifierField[i] && v) qualifierField[i].name = v;
+    });
+    root.querySelectorAll('.qual-tag').forEach(function(inp){
+      const i = parseInt(inp.dataset.qi, 10);
+      const v = inp.value.trim();
+      if (qualifierField[i]) qualifierField[i].tag = v;
+    });
+    // Two teams sharing a name would collide in the league table, so de-dupe.
+    const seenName = {}, seenTag = {};
+    qualifierField.forEach(function(t, i){
+      let n = t.name || ('Team ' + (i+1));
+      if (seenName[n]){ let k=2; while (seenName[n+' '+k]) k++; n = n+' '+k; }
+      seenName[n] = true; t.name = n;
+      let g = t.tag || makeTeamTag(n);
+      if (seenTag[g]){ let k=2; while (seenTag[g.slice(0,3)+k]) k++; g = g.slice(0,3)+k; }
+      seenTag[g] = true; t.tag = g;
+    });
+  }
+  function renderQualifierPreview(){
+    const el = document.getElementById('qualPreview');
+    if (!el) return;
+    qualifierField = buildQualifierField();
+    const rows = qualifierField.map(function(t, i){
+      const avg = Math.round(t.players.reduce(function(s,p){return s+p.skill;},0)/t.players.length);
+      return '<div class="qual-card">' +
+        '<div class="qual-h">' +
+          '<input class="qual-tag" data-qi="'+i+'" value="'+escapeHtml(t.tag)+'" maxlength="8" spellcheck="false" aria-label="Team tag">' +
+          '<input class="qual-name" data-qi="'+i+'" value="'+escapeHtml(t.name)+'" maxlength="28" spellcheck="false" aria-label="Team name">' +
+          '<span class="qual-avg">avg '+avg+'</span>' +
+        '</div>' +
+        t.players.map(function(p){
+          const rc = p.pref==='awp' ? 'awp' : (p.role==='IGL' ? 'igl' : 'rifle');
+          const rt = p.pref==='awp' ? 'AWP' : (p.role==='IGL' ? 'IGL' : 'R');
+          return '<div class="dt-p"><span class="dt-pv">'+p.skill+'</span> '+flaggedName(p.name)+
+                 ' <span class="dt-pr dp-'+rc+'">'+rt+'</span></div>';
+        }).join('') + '</div>';
+    }).join('');
+    const promoted = Object.keys(qualifiedTeams);
+    const prevLine = promoted.length
+      ? '<div class="seed-group-note">Previously qualified: <b>'+promoted.map(escapeHtml).join(', ')+'</b> — now available as preset teams.</div>'
+      : '';
+    el.innerHTML = '<div class="seed-group">' +
+      '<div class="seed-group-h">OPEN QUALIFIER FIELD — '+qualifierField.length+' TEAMS</div>' +
+      '<div class="seed-group-note">'+STANDINS.length+' stand-ins drawn into fresh line-ups. Names and tags are editable — click any to rename. The winner is promoted to a preset team and can enter Tournaments and Majors.</div>' +
+      prevLine + '<div class="qual-grid">'+rows+'</div></div>';
+  }
+  document.getElementById('qualRerollBtn').addEventListener('click', renderQualifierPreview);
   // Build a playable team straight from a preset, no DOM involved. Mirrors the
   // skill roll applyPreset() uses so an auto-built field matches a hand-built one.
   function teamFromPreset(key){
@@ -5758,7 +6209,7 @@
     if (!preset) return null;
     const players = preset.players.map(entry=>{
       const nm = entry[0], base = entry[1];
-      const baseSkill = 85 + Math.floor(Math.random()*14);   // 85..98, same as applyPreset
+      const baseSkill = (entry[2] != null) ? entry[2] : 85 + Math.floor(Math.random()*14);
       const skill = Math.max(60, Math.min(99, Math.round(baseSkill + devFor(nm))));
       const pref = (base==='awp') ? 'awp' : 'rifle';
       const role = (base==='awp') ? 'AWPer' : (base==='igl' ? 'IGL' : randomRifleRole());
@@ -5788,6 +6239,8 @@
   // Stage 1 opens with seeds 17–32. The top 8 join seeds 9–16 for Stage 2.
   // The top 8 of that join seeds 1–8 for Stage 3. The top 8 of Stage 3 make playoffs.
   let majorRun = null;   // {teams (seeded 0..31), stage, survivors, playerAcc, done}
+  let qualifierRun = false;   // true while an open qualifier is being played
+  let promotedName = null;    // set when a qualifier winner is promoted
 
   function worldRankLookup(){
     const m = {};
@@ -6151,8 +6604,10 @@
       if (!tourneyState.champion){
         tourneyState.champion = R.F[0].winner;
         const runnerUp = (R.F[0].winner===R.F[0].a) ? R.F[0].b : R.F[0].a;
-        recordChampion(tourneyState.champion, runnerUp, majorRun ? 'Major' : 'Tournament');
+        const evtKind = majorRun ? 'Major' : (qualifierRun ? 'Qualifier' : 'Tournament');
+        recordChampion(tourneyState.champion, runnerUp, evtKind);
         if (majorRun) majorRun.done = true;
+        if (qualifierRun){ promotedName = promoteQualifier(tourneyState.champion); }
         applyMajorDevelopment();
         archiveMajor(allStarSnapshot());
         majorStatsActive = false;
@@ -6167,7 +6622,10 @@
       bodyEl.innerHTML += renderBreakoutHtml();
       const pk = (majorState && majorState.pickem) ? renderPickemResultsHtml() : '';
       if (pk) bodyEl.innerHTML += pk;
-      actions.innerHTML = `<div class="bk-done">🏆 ${teamLabel(tourneyState.champion)} are your champions!</div>
+      const promoHtml = promotedName
+        ? `<div class="promo-note">⭐ <b>${escapeHtml(promotedName)}</b> have qualified — they're now a preset team and can be picked for Tournaments and Majors.</div>`
+        : '';
+      actions.innerHTML = promoHtml + `<div class="bk-done">🏆 ${teamLabel(tourneyState.champion)} are your champions!</div>
         <div class="bk-btns" style="margin-top:12px;">
           <button class="ctrl-btn" id="bkExport">⧉ TEXT</button>
           <button class="ctrl-btn" id="bkImage">🖼 IMAGE</button>
