@@ -543,6 +543,40 @@
     .rk-sub{display:none;}
   }
   .chat-fa{color:var(--muted);opacity:.8;}
+  .chat-nick{color:var(--bomb);font-size:10px;font-style:italic;opacity:.85;}
+  /* season archive */
+  .ar-head{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:17px;margin-bottom:12px;}
+  .ar-row{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:6px;padding:6px 10px;font-size:12px;margin-bottom:4px;}
+  .ar-pos{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:var(--muted);min-width:16px;}
+  .ar-main{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ar-note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-align:right;}
+  .ar-more{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);padding:4px 10px;}
+  .ar-extras{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);
+    line-height:1.7;border-top:1px solid var(--line);padding-top:10px;}
+  /* top 20 countdown */
+  #top20Screen{max-width:780px;margin:0 auto;}
+  .t20-card{display:grid;grid-template-columns:54px 1fr auto;gap:14px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:8px;
+    animation:t20in .35s ease;}
+  @keyframes t20in{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:none;}}
+  .t20-card.t20-top{border-color:var(--bomb);background:linear-gradient(90deg,rgba(255,193,69,.10),var(--panel) 55%);}
+  .t20-rank{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:32px;text-align:center;color:var(--muted);line-height:1;}
+  .t20-card.t20-top .t20-rank{color:var(--bomb);}
+  .t20-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:19px;}
+  .t20-nick{color:var(--bomb);font-style:italic;font-size:15px;}
+  .t20-team{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+  .t20-awards{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;}
+  .t20-aw{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.05em;color:var(--bomb);
+    border:1px solid var(--bomb);border-radius:3px;padding:2px 5px;}
+  .t20-stats{text-align:right;display:flex;flex-direction:column;gap:2px;}
+  .t20-rating{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:24px;color:var(--good);line-height:1;}
+  .t20-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);}
+  @media (max-width:560px){
+    .t20-card{grid-template-columns:40px 1fr;gap:10px;padding:10px 12px;}
+    .t20-stats{grid-column:1 / -1;text-align:left;flex-direction:row;gap:10px;align-items:baseline;flex-wrap:wrap;}
+    .t20-rank{font-size:24px;}
+  }
   /* player profile */
   .pp-headline{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .pp-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.04em;}
@@ -551,6 +585,7 @@
   .pp-fa{color:var(--muted);}
   .pp-ret{color:var(--bomb);border-color:var(--bomb);}
   .pp-coach{color:var(--ct-accent);border-color:var(--ct-accent);}
+  .pp-nick{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:17px;color:var(--bomb);font-style:italic;}
   .pp-awards{display:flex;flex-direction:column;gap:4px;}
   .pp-award{display:grid;grid-template-columns:20px 1fr auto 30px;gap:8px;align-items:center;
     background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;}
@@ -574,6 +609,7 @@
   .off-mid{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);}
   .off-in{color:var(--good);}
   .off-award{color:var(--bomb);font-weight:600;}
+  .off-nick{color:var(--ct-accent);font-weight:600;font-style:italic;}
   .off-out{color:var(--kill);}
   .off-meta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-align:right;}
   @media (max-width:560px){
@@ -1111,6 +1147,21 @@
     <button class="again-btn" id="seedNewBtn">BACK TO SETUP</button>
   </div>
 
+  <!-- ===================== TOP 20 ===================== -->
+  <div id="top20Screen" style="display:none;">
+    <div class="setup-header">
+      <div class="kicker" id="t20Kicker">TOP 20 PLAYERS</div>
+      <h1>PLAYERS OF THE YEAR</h1>
+      <div class="sub">Ranked on that season's play alone. Revealed from twenty down to one.</div>
+    </div>
+    <div class="pickem-actions">
+      <button class="ctrl-btn primary" id="t20Next">REVEAL NEXT ▼</button>
+      <button class="ctrl-btn" id="t20All">REVEAL ALL</button>
+    </div>
+    <div id="t20Body"></div>
+    <button class="again-btn" id="t20Back">BACK</button>
+  </div>
+
   <!-- ===================== OFF-SEASON ===================== -->
   <div id="offseasonScreen" style="display:none;">
     <div class="setup-header">
@@ -1166,6 +1217,11 @@
     <div class="setup-header">
       <div class="kicker" id="histStorageMode">PERSISTENT ACROSS SESSIONS</div>
       <h1>STATS &amp; HISTORY</h1>
+    </div>
+    <div class="hist-section">
+      <div class="hist-h">📖 SEASON ARCHIVE</div>
+      <div class="h2h-picker"><select id="archiveSeason"></select></div>
+      <div id="histArchive"></div>
     </div>
     <div class="hist-section">
       <div class="hist-h">🏆 CHAMPIONS HISTORY</div>
@@ -3189,7 +3245,7 @@
   }
 
   function showScreen(id){
-    ['setupScreen','vetoScreen','draftScreen','pickemScreen','seedScreen','offseasonScreen','swissScreen','bracketScreen','interScreen','matchScreen','finalScreen','replayScreen','historyScreen'].forEach(s=>{
+    ['setupScreen','vetoScreen','draftScreen','pickemScreen','seedScreen','offseasonScreen','top20Screen','swissScreen','bracketScreen','interScreen','matchScreen','finalScreen','replayScreen','historyScreen'].forEach(s=>{
       const el=document.getElementById(s);
       if (!el) return;
       const show = (s===id);
@@ -3308,6 +3364,13 @@
   let retiredList = [];   // {name, age, team, maps, rating, season}
   let rosterStore = {};   // teamName -> [[name, base], ...] roster overrides
   let transferLog = [];   // {season, type, player, from, to}
+  // Declared here rather than beside their own logic: initChat() runs during
+  // script evaluation and reads nicknames, so these must exist before it does.
+  let playerAwards    = {};   // name -> [{season, type, note}]
+  let seasonSnapshot  = {};   // careerStats as of the last off-season
+  let playerNicknames = {};   // name -> {nick, tier}
+  let coachPool       = [];   // retired pros waiting for a coaching job
+  let seasonArchive   = [];   // one record per completed season
   const retiredSet = {};  // name -> true, for fast lookups
 
   // Base age is fixed per player (name-derived); seasons add to it.
@@ -3815,7 +3878,8 @@
     championsHistory.unshift({
       champ: champ.name, champTag: champ.tag||'',
       runnerUp: runnerUp?runnerUp.name:'', runnerUpTag: runnerUp?(runnerUp.tag||''):'',
-      date: new Date().toISOString().slice(0,10), kind: kind||'Major'
+      date: new Date().toISOString().slice(0,10), kind: kind||'Major',
+      season: seasonNo+1   // seasonNo counts completed off-seasons; play happens in the next one
     });
     if (championsHistory.length>50) championsHistory.length = 50;
     STORE.set('cs2sim_champs', championsHistory);
@@ -3941,6 +4005,7 @@
     renderUpsets();
     renderProfilePicker();
     renderPlayerPicker();
+    renderArchivePicker();
     renderNations();
     renderHof();
     renderMilestoneLog();
@@ -4513,7 +4578,7 @@
     STORE.remove('cs2sim_ranksnap');
     Object.keys(qualifiedTeams).forEach(function(k){ delete PRESETS[k]; delete TEAM_LOGOS[k]; delete COACHES[k]; });
     seasonNo=0; playerBirth={}; youthPool=[]; retiredList=[]; rosterStore={}; transferLog=[];
-    playerAwards={}; seasonSnapshot={}; coachPool=[];
+    playerAwards={}; seasonSnapshot={}; coachPool=[]; playerNicknames={}; seasonArchive=[];
     Object.keys(retiredSet).forEach(function(k){ delete retiredSet[k]; });
     STORE.remove('cs2sim_world');
     qualifiedTeams = {}; STORE.remove('cs2sim_qualified'); rebuildPresetNames();
@@ -5353,11 +5418,12 @@
   function chatMsgHtml(m){
     // A promoted qualifier team is a preset like any other, so its tag shows here.
     const tag = (m.team && PRESETS[m.team]) ? PRESETS[m.team].tag : '';
+    const nick = nicknameOf(m.name);
     const badge = tag
       ? `<span class="ptag" style="color:var(--ct-accent)">${escapeHtml(tag)}</span> `
       : (m.freeAgent ? `<span class="ptag chat-fa">FA</span> ` : '');
     return `<div class="chat-msg">
-      <span class="chat-who">${badge}${flaggedName(m.name)}</span>
+      <span class="chat-who">${badge}${flaggedName(m.name)}${nick?` <span class="chat-nick">“${escapeHtml(nick)}”</span>`:''}</span>
       <span class="chat-text">${escapeHtml(m.text)}</span>
     </div>`;
   }
@@ -6364,7 +6430,13 @@
         '<span class="off-meta">'+(c.titles?c.titles+' title'+(c.titles===1?'':'s')+' · ':'')+
         (c.rating!=null?c.rating.toFixed(2)+' career':'')+'</span></div>';
     });
+    const nicks = (rep.nicknames||[]).map(function(n){
+      return '<div class="off-row"><span class="off-nm">'+flaggedName(n.name)+'</span>' +
+        '<span class="off-mid off-nick">“'+escapeHtml(n.nick)+'”</span>' +
+        '<span class="off-meta">'+(n.upgraded?'upgraded':'earned')+'</span></div>';
+    });
     let html = sec('🏅 SEASON AWARDS', 'Judged on the season just finished.', awards)
+             + sec('💬 NEW NICKNAMES', 'What the scene has started calling them.', nicks)
              + sec('🎧 INTO COACHING', 'Decorated veterans joining the coaching pool.', coaches)
              + sec('🎓 RETIREMENTS', 'Age caught up with them.', retired)
              + sec('📉 DROPPED', 'Cut loose after a losing season — now free agents.', dropped)
@@ -6378,9 +6450,140 @@
     if (!html) html = '<div class="hist-empty">A quiet off-season — nothing changed.</div>';
     document.getElementById('offBody').innerHTML = html;
   }
+  document.getElementById('t20Next').addEventListener('click', function(){
+    if (!t20Season) return;
+    t20Shown = Math.min(t20Season.top20.length, t20Shown+1);
+    renderTop20();
+  });
+  document.getElementById('t20All').addEventListener('click', function(){
+    if (!t20Season) return;
+    t20Shown = t20Season.top20.length; renderTop20();
+  });
+  document.getElementById('t20Back').addEventListener('click', function(){ showHistory(); });
   document.getElementById('offDoneBtn').addEventListener('click', function(){
     majorRun = null; qualifierRun = false; showScreen('setupScreen');
   });
+
+  /* ---- Season archive + Top 20 countdown ---- */
+  let t20Season = null, t20Shown = 0;
+
+  function renderArchivePicker(){
+    const sel = document.getElementById('archiveSeason');
+    if (!sel) return;
+    if (!seasonArchive.length){
+      sel.innerHTML = '';
+      document.getElementById('histArchive').innerHTML =
+        '<div class="hist-empty">No seasons on record yet. Finish a Major and run the off-season to close out a season.</div>';
+      return;
+    }
+    const prev = sel.value;
+    sel.innerHTML = seasonArchive.slice().reverse().map(function(a){
+      return '<option value="'+a.season+'">Season '+a.season+'</option>';
+    }).join('');
+    sel.value = prev && seasonArchive.some(function(a){ return String(a.season)===prev; })
+      ? prev : String(seasonArchive[seasonArchive.length-1].season);
+    sel.onchange = renderArchive;
+    renderArchive();
+  }
+
+  function renderArchive(){
+    const el = document.getElementById('histArchive');
+    const sel = document.getElementById('archiveSeason');
+    if (!el || !sel) return;
+    const a = seasonArchive.find(function(x){ return String(x.season)===sel.value; });
+    if (!a){ el.innerHTML = '<div class="hist-empty">Nothing recorded for that season.</div>'; return; }
+
+    const poty = (a.awards||[]).find(function(w){ return w.type==='Player of the Year'; });
+    const champs = (a.champions||[]).length
+      ? a.champions.map(function(c){
+          return '<div class="ar-row">'+logoImg(c.champ,'sw-logo')+
+            '<span class="ar-main">'+escapeHtml(c.champ)+'</span>'+
+            '<span class="ar-note">'+escapeHtml(c.kind)+(c.runnerUp?' · beat '+escapeHtml(c.runnerUp):'')+'</span></div>';
+        }).join('')
+      : '<div class="hist-empty">No titles decided this season.</div>';
+
+    const ranking = (a.ranking||[]).map(function(r,i){
+      return '<div class="ar-row"><span class="ar-pos">'+(i+1)+'</span>'+logoImg(r.name,'sw-logo')+
+        '<span class="ar-main">'+escapeHtml(r.name)+'</span>'+
+        '<span class="ar-note">'+r.points+'pts · '+r.w+'-'+r.l+'</span></div>';
+    }).join('') || '<div class="hist-empty">No ranked teams.</div>';
+
+    const awards = (a.awards||[]).map(function(w){
+      return '<div class="ar-row"><span class="ar-main">'+escapeHtml(w.type)+'</span>'+
+        '<span class="ar-note">'+flaggedName(w.name)+(w.note?' · '+escapeHtml(w.note):'')+'</span></div>';
+    }).join('') || '<div class="hist-empty">No awards.</div>';
+
+    const departures = (a.retired||[]).length
+      ? (a.retired||[]).slice(0,10).map(function(r){
+          return '<div class="ar-row"><span class="ar-main">'+flaggedName(r.name)+'</span>'+
+            '<span class="ar-note">age '+r.age+(r.team?' · '+escapeHtml(r.team):'')+'</span></div>';
+        }).join('') + ((a.retired.length>10)?'<div class="ar-more">+'+(a.retired.length-10)+' more</div>':'')
+      : '<div class="hist-empty">Nobody retired.</div>';
+
+    const extras = [];
+    if (a.moves) extras.push(a.moves.signed+' signed · '+a.moves.dropped+' dropped · '+a.moves.youth+' new prospects');
+    if ((a.coaches||[]).length) extras.push('Into coaching: '+a.coaches.map(escapeHtml).join(', '));
+    if ((a.nicknames||[]).length) extras.push('New nicknames: '+a.nicknames.map(function(n){
+      return escapeHtml(n.name)+' “'+escapeHtml(n.nick)+'”'; }).join(', '));
+
+    el.innerHTML =
+      '<div class="ar-head">Season '+a.season+
+        (poty ? ' · <b>'+escapeHtml(poty.name)+'</b> player of the year' : '')+'</div>'+
+      ((a.top20||[]).length ? '<div class="pickem-actions" style="margin:0 0 14px;">'+
+        '<button class="ctrl-btn primary" id="arTop20">🏅 VIEW TOP 20 OF SEASON '+a.season+' →</button></div>' : '')+
+      '<div class="prof-cols">'+
+        '<div><div class="prof-h">TITLES</div>'+champs+
+             '<div class="prof-h" style="margin-top:14px;">FINAL WORLD RANKING</div>'+ranking+'</div>'+
+        '<div><div class="prof-h">AWARDS</div>'+awards+
+             '<div class="prof-h" style="margin-top:14px;">RETIREMENTS</div>'+departures+'</div>'+
+      '</div>'+
+      (extras.length ? '<div class="ar-extras">'+extras.map(function(x){ return '<div>'+x+'</div>'; }).join('')+'</div>' : '');
+
+    const btn = document.getElementById('arTop20');
+    if (btn) btn.onclick = function(){ openTop20(a.season); };
+  }
+
+  function openTop20(season){
+    const a = seasonArchive.find(function(x){ return x.season===season; });
+    if (!a || !(a.top20||[]).length) return;
+    t20Season = a; t20Shown = 0;
+    showScreen('top20Screen');
+    document.getElementById('t20Kicker').textContent = 'SEASON '+a.season;
+    renderTop20();
+  }
+  function renderTop20(){
+    const a = t20Season;
+    if (!a) return;
+    const list = a.top20;
+    const total = list.length;
+    // Count down: the first card revealed is the lowest-placed of the twenty.
+    const shown = list.slice(Math.max(0, total - t20Shown)).map(function(p, i){
+      const rank = Math.max(1, total - t20Shown + 1) + i;
+      const medal = rank<=3 ? ' t20-top' : '';
+      const seasonAwards = (a.awards||[]).filter(function(w){ return w.name===p.name; });
+      return '<div class="t20-card'+medal+'">'+
+        '<div class="t20-rank">'+rank+'</div>'+
+        '<div class="t20-id">'+
+          '<div class="t20-name">'+flaggedName(p.name)+
+            (p.nick?' <span class="t20-nick">“'+escapeHtml(p.nick)+'”</span>':'')+'</div>'+
+          '<div class="t20-team">'+(p.team?escapeHtml(p.team):'<i>free agent</i>')+'</div>'+
+          (seasonAwards.length?'<div class="t20-awards">'+seasonAwards.map(function(w){
+            return '<span class="t20-aw">'+escapeHtml(w.type)+'</span>'; }).join('')+'</div>':'')+
+        '</div>'+
+        '<div class="t20-stats">'+
+          '<span class="t20-rating">'+p.rating.toFixed(2)+'</span>'+
+          '<span class="t20-sub">'+p.maps+' maps · '+p.kd.toFixed(2)+' K/D · '+p.adr.toFixed(0)+' ADR</span>'+
+          '<span class="t20-sub">'+p.mvps+' MVPs · '+p.clutches+' clutches</span>'+
+        '</div></div>';
+    }).join('');
+    document.getElementById('t20Body').innerHTML = t20Shown
+      ? shown
+      : '<div class="hist-empty">Hit reveal to start the countdown from #'+total+'.</div>';
+    const next = document.getElementById('t20Next');
+    next.disabled = (t20Shown >= total);
+    next.textContent = (t20Shown >= total) ? 'COMPLETE'
+      : 'REVEAL #'+(total - t20Shown)+' ▼';
+  }
 
   /* ---- Player profile ---- */
   const AWARD_ICON = {
@@ -6473,7 +6676,9 @@
 
     el.innerHTML =
       '<div class="prof-id"><div>' +
-        '<div class="pp-headline">'+flaggedName(name)+' '+status+'</div>' +
+        '<div class="pp-headline">'+flaggedName(name)+
+          (nicknameOf(name)?' <span class="pp-nick">“'+escapeHtml(nicknameOf(name))+'”</span>':'')+
+          ' '+status+'</div>' +
         '<div class="pp-sub">age '+age+' · '+roleTxt+(retired?' · retired season '+retired.season:'')+'</div>' +
       '</div></div>' +
       strip +
@@ -6484,11 +6689,68 @@
       '</div>';
   }
 
+  /* ---- Earned nicknames ---- */
+  // A nickname is a title the world gives you, so it comes from what you've won
+  // and what you've done — never from raw skill. Rules are ordered by prestige;
+  // a player carries one nickname and upgrades into a better one if they earn it.
+  // playerNicknames is declared with the other world state, near the top.
+  const NICKNAME_RULES = [
+    {id:'goat',    test:function(s){ return s.poty>=2; },                      pool:['The G.O.A.T.','The Standard','Immortal']},
+    {id:'dynasty', test:function(s){ return s.titles>=4; },                    pool:['The Dynasty','Silverware','King Midas']},
+    {id:'bigGame', test:function(s){ return s.majorMvp>=2; },                  pool:['Big Game','The Closer','Mr. Major']},
+    {id:'poty',    test:function(s){ return s.poty>=1; },                      pool:['The Maestro','The Machine','Virtuoso']},
+    {id:'clutch',  test:function(s){ return s.clutches>=50; },                 pool:['The Iceman','Last Man Standing','Cold Blood']},
+    {id:'awp',     test:function(s){ return s.bestAwp>=2; },                   pool:['The Scope','One Tap','Crosshair']},
+    {id:'igl',     test:function(s){ return s.bestIgl>=2; },                   pool:['The General','Mastermind','The Blueprint']},
+    {id:'frag',    test:function(s){ return s.topFrag>=2; },                   pool:['The Cannon','Overkill','Bodybagger']},
+    {id:'entry',   test:function(s){ return s.firstBloods>=250; },             pool:['The Opener','First Light','Doorkicker']},
+    {id:'star',    test:function(s){ return s.titles>=1 && s.rating>=1.15; },  pool:['The Prodigy','Headliner','Showtime']},
+    {id:'vet',     test:function(s){ return s.maps>=400; },                    pool:['Evergreen','The Veteran','Timeless']},
+    {id:'allstar', test:function(s){ return s.allStar>=3; },                   pool:['Ever-Present','Regular','The Fixture']},
+    {id:'break',   test:function(s){ return s.breakout>=1; },                  pool:['Wonderkid','The Next One','Sensation']}
+  ];
+  function nicknameStats(name){
+    const c = careerStats[name] || {};
+    const aw = awardsOf(name);
+    const count = function(re){ return aw.filter(function(a){ return re.test(a.type); }).length; };
+    return {
+      poty: count(/^Player of the Year$/), titles: count(/Champion$/),
+      majorMvp: count(/^Major MVP$/), allStar: count(/^Major All-Star$/),
+      bestAwp: count(/^Best AWPer$/), bestIgl: count(/^Best IGL$/),
+      topFrag: count(/^Top Fragger$/), breakout: count(/^Breakout Player$/),
+      clutches: c.clutches||0, firstBloods: c.firstBloods||0, maps: c.maps||0,
+      rating: (c.roundsPlayed>=240) ? careerRating(c) : 0
+    };
+  }
+  function nicknameOf(name){
+    const n = playerNicknames[name];
+    return n ? n.nick : null;
+  }
+  // Returns a list of {name, nick, upgraded} for anyone who earned one this pass.
+  function evaluateNicknames(){
+    const news = [];
+    Object.keys(careerStats).forEach(function(name){
+      const s = nicknameStats(name);
+      let tier = -1;
+      for (let i=0;i<NICKNAME_RULES.length;i++){
+        if (NICKNAME_RULES[i].test(s)){ tier = i; break; }   // rules are prestige-ordered
+      }
+      if (tier === -1) return;
+      const cur = playerNicknames[name];
+      if (cur && cur.tier <= tier) return;                   // already holds this or better
+      const pool = NICKNAME_RULES[tier].pool;
+      // Deterministic pick so a player's nickname never churns between sessions.
+      const nick = pool[hashStr('nick:'+name) % pool.length];
+      playerNicknames[name] = {nick:nick, tier:tier};
+      news.push({name:name, nick:nick, upgraded:!!cur});
+    });
+    return news;
+  }
+
   /* ---- Awards ---- */
   // careerStats are cumulative, so a season's numbers are the delta against a
   // snapshot taken at the previous off-season.
-  let playerAwards   = {};   // name -> [{season, type, note}]
-  let seasonSnapshot = {};   // careerStats as of the last off-season
+  // playerAwards / seasonSnapshot are declared with the other world state.
   const STAT_KEYS = ['maps','kills','deaths','assists','damage','roundsPlayed','mvps','clutches','firstBloods'];
 
   function grantAward(name, season, type, note){
@@ -6521,6 +6783,40 @@
     }
     return poolRoleOf(name);
   }
+  // The season's twenty best, by rating over that season's play only.
+  // Must run before takeSeasonSnapshot() resets the baseline.
+  function computeTop20(){
+    return Object.keys(careerStats).map(function(n){
+      const d = seasonStatsFor(n);
+      if (!d || d.roundsPlayed < 120) return null;
+      return {
+        name:n, rating:careerRating(d), maps:d.maps, kills:d.kills, deaths:d.deaths,
+        kd: d.deaths ? d.kills/d.deaths : d.kills,
+        adr: d.roundsPlayed ? d.damage/d.roundsPlayed : 0,
+        mvps:d.mvps, clutches:d.clutches, firstBloods:d.firstBloods,
+        team: PLAYER_TEAM_INDEX[n] || null, nick: nicknameOf(n)
+      };
+    }).filter(Boolean).sort(function(a,b){ return b.rating-a.rating; }).slice(0,20);
+  }
+  // Freeze everything worth remembering about the season that just ended.
+  function archiveSeason(season, report, top20){
+    seasonArchive.push({
+      season: season,
+      top20: top20,
+      awards: (report.awards||[]).slice(),
+      ranking: rankingSorted().slice(0,10).map(function(r){
+        return {name:r.name, tag:r.tag, points:r.points, w:r.mapsW, l:r.mapsL};
+      }),
+      champions: championsHistory.filter(function(c){ return c.season===season; })
+        .map(function(c){ return {champ:c.champ, kind:c.kind, runnerUp:c.runnerUp}; }),
+      retired: (report.retirements||[]).map(function(r){ return {name:r.name, age:r.age, team:r.team}; }),
+      coaches: (report.coaches||[]).map(function(c){ return c.name; }),
+      nicknames: (report.nicknames||[]).map(function(n){ return {name:n.name, nick:n.nick}; }),
+      moves: {signed:(report.signings||[]).length, dropped:(report.drops||[]).length, youth:(report.youth||[]).length}
+    });
+    if (seasonArchive.length > 60) seasonArchive.shift();
+  }
+
   function computeSeasonAwards(season){
     const granted = [];
     const rows = Object.keys(careerStats).map(function(n){
@@ -6555,7 +6851,8 @@
     STORE.set('cs2sim_world', {
       seasonNo: seasonNo, playerBirth: playerBirth, youth: youthPool,
       retired: retiredList, rosters: rosterStore, transfers: transferLog.slice(-400),
-      awards: playerAwards, snapshot: seasonSnapshot, coachPool: coachPool
+      awards: playerAwards, snapshot: seasonSnapshot, coachPool: coachPool,
+      nicknames: playerNicknames, archive: seasonArchive
     });
   }
   function applyWorld(w){
@@ -6569,6 +6866,8 @@
     playerAwards = w.awards || {};
     seasonSnapshot = w.snapshot || {};
     coachPool = w.coachPool || [];
+    playerNicknames = w.nicknames || {};
+    seasonArchive = w.archive || [];
     retiredList.forEach(function(r){ retiredSet[r.name] = true; });
     youthPool.forEach(function(y){
       PLAYER_RATING[y.name] = y.rating;
@@ -6656,6 +6955,8 @@
     const report = {season:seasonNo, retirements:[], drops:[], signings:[], youth:[], unfilled:[], awards:[], coaches:[]};
     // Awards are judged on the season just finished, so grade before anything moves.
     report.awards = computeSeasonAwards(seasonNo);
+    report.nicknames = evaluateNicknames();   // titles are earned, so check after awards
+    const top20 = computeTop20();             // still on this season's numbers
     takeSeasonSnapshot();
 
     // --- A. Retirements (rosters first, then the unsigned pool) ---
@@ -6745,6 +7046,7 @@
       rosterStore[t] = PRESETS[t].players.map(function(e){ return e.slice(); });
     });
     rebuildPresetNames();
+    archiveSeason(seasonNo, report, top20);
     saveWorld();
     return report;
   }
@@ -6810,7 +7112,7 @@
     'Keystone','Lantern','Meridian','Notion','Outline','Pivot','Ranger','Signal','Threshold','Vantage'];
   const COACH_SPECS = ['Veto Strategist','Timeout Master','Eco Genius','Anti-Tilt'];
   // Ex-pros who moved into coaching and are waiting for a job.
-  let coachPool = [];
+  // coachPool is declared with the other world state.
   function titlesOf(name){
     return awardsOf(name).filter(function(a){ return /Champion$/.test(a.type); }).length;
   }
@@ -7370,6 +7672,7 @@
             const a = stars.team[role];
             if (a && a.ref && !(stars.mvp && stars.mvp.ref === a.ref)) grantAward(a.ref.name, seasonNo+1, 'Major All-Star', role);
           });
+          evaluateNicknames();
           saveWorld();
         }
         majorStatsActive = false;
