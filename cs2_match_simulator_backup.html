@@ -318,6 +318,9 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
 
 .hred{color:#e8452c;font-weight:600} .hgold{color:#ffd94a;font-weight:600}
 .helm{font-size:9px;margin-left:3px}
+
+.cachew{color:#5aa9f0;font-weight:600}
+.sty-farmer{color:#ffd94a;border:1px solid rgba(255,217,74,.4)}
 </style>
 </head><body><div class="wrap">
 
@@ -488,6 +491,15 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     }
     p.shieldMax = armorCap(p);
     return null;
+  }
+  // An EVO Cache is raw EVO \u2014 it hands you the next armor level outright.
+  function grantCache(p, t, ring, events){
+    if ((p.evoLevel||1) >= EVO_THRESHOLDS.length) return;
+    const need = EVO_THRESHOLDS[p.evoLevel] - (p.evo||0);
+    const lv = addEvo(p, Math.max(1, need));
+    events.push({t:'cache', ring:ring, team:t.i, player:p.name,
+                 level:p.evoLevel, tier:armorTier(p),
+                 shield:p.shield, shieldMax:p.shieldMax, hp:p.hp});
   }
   function ampById(id){ return AMPS.find(function(a){ return a.id===id; }) || null; }
   function rollAmp(){
@@ -867,17 +879,20 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       {n:'Terraformer',t:3,c:2},{n:'Perpetual Core',t:3,c:2},{n:'The Foundry',t:3,c:2},{n:'Dry Gulch',t:2,c:2},{n:'Breaker Wharf',t:2,c:2},{n:'Production Yard',t:2,c:1},{n:'Eternal Gardens',t:2,c:1},{n:'Bionomics',t:2,c:1},{n:'Promenade',t:2,c:1},{n:'Stasis Array',t:2,c:1},{n:'Cliff Side',t:1,c:1},{n:'The Divide',t:1,c:1},{n:'Underpass',t:1,c:1},{n:'Alpha Base',t:1,c:1},{n:'Atmostation',t:1,c:1},{n:'Backwater',t:1,c:1}
     ]
   };
+  const HARVESTERS = 15;                     // per map, as in the real game
+  const WILDLIFE = {'Storm Point':true};     // spiders and prowlers to farm
   function poisFor(m){ return MAP_POIS[m] || MAP_POIS['World\u2019s Edge']; }
 
   // How a team plays. Fixed per org, but nudged by the comp they actually field.
   const PLAYSTYLES = {
-    aggressive: {label:'Hot drop',  tier:3, fight:0.55, edge:'kills'},
-    balanced:   {label:'Balanced',  tier:2, fight:0.08, edge:'\u2014'},
-    passive:    {label:'Edge drop', tier:1, fight:-0.55, edge:'placement'}
+    aggressive: {label:'Hot drop',  tier:3, fight:0.55,  farm:0.5, edge:'kills'},
+    balanced:   {label:'Balanced',  tier:2, fight:0.08,  farm:1.0, edge:'\u2014'},
+    passive:    {label:'Edge drop', tier:1, fight:-0.55, farm:1.3, edge:'placement'},
+    farmer:     {label:'EVO farm',  tier:1, fight:-0.70, farm:2.4, edge:'armor'}
   };
   function teamPlaystyle(t){
     const h = hashStr('style:' + t.name) % 100;
-    let base = (h < 32) ? 'aggressive' : (h < 70 ? 'balanced' : 'passive');
+    let base = (h < 30) ? 'aggressive' : (h < 62 ? 'balanced' : (h < 84 ? 'passive' : 'farmer'));
     // An Assault-heavy roster leans forward; Controllers and Support hold back.
     let lean = 0;
     t.roster.forEach(function(p){
@@ -1100,7 +1115,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
                   move:p.move||0, techs:p.techs||[],
                   state:'alive', hp:100, shield:start, shieldMax:start,
                   evo:0, evoLevel:1, over:0,
-                  kills:0, dmg:0, red:false, banner:false, amp:null};
+                  kills:0, assists:0, dmg:0, red:false, banner:false, amp:null};
         }),
         kills:0, place:null, alive:true
       };
@@ -1108,6 +1123,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     const events = [];
     const RINGS = 7;
     let mythicTaken = false;
+    let lastWipeCredit = -1;
     let nextPlace = 20;
     state.forEach(function(t){ t.style = teamPlaystyle(t.ref); });
 
@@ -1119,6 +1135,12 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       if (t.live.every(function(p){ return p.state==='dead'; })){
         t.alive = false; t.place = nextPlace; nextPlace--;
         events.push({t:'wipe', ring:ring, team:t.i, place:t.place, kills:t.kills});
+        // Everyone who helped put them down banks squad-wipe EVO.
+        state.forEach(function(o){
+          if (!o.alive || o === t) return;
+          if (o.i !== lastWipeCredit) return;
+          o.live.forEach(function(p){ if (p.state!=='dead') addEvo(p, 120); });
+        });
       }
     };
 
@@ -1134,7 +1156,9 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       // Ring damage on anyone caught out — light, but it finishes off weak squads.
       alive.forEach(function(t){
         t.live.forEach(function(p){
-          const ringOdds = Math.max(0.04, 0.16 - squadFx(t,'ringResist')*0.5 - squadFx(t,'rotate')*0.15);
+          // Time spent farming is time not spent rotating.
+          const farmCost = (t.style==='farmer') ? 0.09 : 0;
+          const ringOdds = Math.max(0.04, 0.16 + farmCost - squadFx(t,'ringResist')*0.5 - squadFx(t,'rotate')*0.15);
           if (p.state==='alive' && Math.random()<ringOdds){
             // The ring burns through health directly \u2014 shields don't stop it,
             // and it bites harder the later it gets.
@@ -1170,6 +1194,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
           p.guns = p.guns.map(function(g){ return g===drop ? got : g; });
           p.gun = got; p.red = true;
           events.push({t:'care', ring:ring, team:t.i, player:p.name, gun:got, guns:p.guns.slice()});
+          if (Math.random()<0.22) grantCache(p, t, ring, events);
         }
       }
 
@@ -1213,19 +1238,62 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
         });
       }
 
-      // EVO comes from far more than raw damage: harvesters, survey beacons,
-      // assists and squad EVO all feed it, which is why squads poke and farm
-      // rather than sitting still.
+      // ---- EVO sources other than raw damage ----
+      // Harvesters: 15 on the map, +350 to the whole squad, once per squad each.
+      // How many a squad bothers with depends on how they play.
+      const harvested = [];
       aliveTeams().forEach(function(t){
-        const beacon = 1 + squadFx(t,'initiate')*1.5;      // Recon scans are worth EVO
+        const style = PLAYSTYLES[t.style];
+        const want = style.farm * (ring<=2 ? 0.75 : 0.55);
+        let hits = (Math.random() < want % 1 ? 1 : 0) + Math.floor(want);
+        hits = Math.min(hits, HARVESTERS - (t.harvests||0));
+        if (hits <= 0) return;
+        t.harvests = (t.harvests||0) + hits;
+        let levelled = false;
         t.live.forEach(function(p){
-          if (p.state!=='alive') return;
-          const gain = Math.round((125 + Math.random()*105) * beacon);
-          const lv = addEvo(p, gain);
+          if (p.state==='dead') return;
+          const lv = addEvo(p, 350*hits);
+          if (lv){ levelled = true;
+            events.push({t:'evo', ring:ring, team:t.i, player:p.name, level:lv,
+                         tier:armorTier(p), shieldMax:p.shieldMax, shield:p.shield, hp:p.hp}); }
+        });
+        harvested.push({team:t.i, n:hits});
+      });
+      if (harvested.length){
+        events.push({t:'harvest', ring:ring, squads:harvested,
+                     total:harvested.reduce(function(s,h){ return s+h.n; },0)});
+      }
+
+      // Class map interactions: Recon scans survey beacons, Controllers scan
+      // ring consoles. +50 EVO to the squad.
+      aliveTeams().forEach(function(t){
+        const canScan = t.live.some(function(p){
+          if (p.state==='dead') return false;
+          const c = LEGENDS[p.legend];
+          return c==='Recon' || c==='Controller';
+        });
+        if (!canScan || Math.random() > 0.55) return;
+        t.live.forEach(function(p){
+          if (p.state==='dead') return;
+          const lv = addEvo(p, 50);
           if (lv) events.push({t:'evo', ring:ring, team:t.i, player:p.name, level:lv,
                                tier:armorTier(p), shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
         });
       });
+
+      // Wildlife. Storm Point has spiders and prowlers worth farming; the other
+      // maps don't, so EVO paces differently there.
+      if (WILDLIFE[mapName] && ring<=4){
+        aliveTeams().forEach(function(t){
+          if (Math.random() > 0.30 * PLAYSTYLES[t.style].farm) return;
+          t.live.forEach(function(p){
+            if (p.state==='dead') return;
+            const lv = addEvo(p, 60 + Math.floor(Math.random()*70));
+            if (lv) events.push({t:'evo', ring:ring, team:t.i, player:p.name, level:lv,
+                                 tier:armorTier(p), shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
+          });
+        });
+      }
 
       // Overcharge is temporary \u2014 it drains away a ring after you took it.
       aliveTeams().forEach(function(t){
@@ -1277,6 +1345,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
           p.gun = got; p.red = true;
           mythicTaken = true;
           events.push({t:'mythic', ring:ring, team:t.i, player:p.name, gun:got, guns:p.guns.slice()});
+          if (Math.random()<0.45) grantCache(p, t, ring, events);
         }
       }
 
@@ -1361,6 +1430,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
           if (back.sling){ back.guns = back.guns.concat([back.sling]); }
           back.gun = back.guns[0];
           const viaBanner = back.banner; back.banner = false;
+          t.live.forEach(function(p){ if (p.state!=='dead') addEvo(p, 100); });
           events.push({t:'respawn', ring:ring, team:t.i, player:back.name, hp:60,
                        shield:25, shieldMax:back.shieldMax, evoLevel:back.evoLevel||1,
                        gun:back.gun, guns:back.guns.slice(), banner:viaBanner});
@@ -1436,6 +1506,16 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
                                tier:armorTier(winner.p), shieldMax:winner.p.shieldMax,
                                shield:winner.p.shield, hp:winner.p.hp});
         const gun = pickGun(winner.p), hs = Math.random()<0.22;
+        // Whoever else is up on the winning side picks up the assist.
+        const helpers = winner.s.live.filter(function(p){
+          return p.state==='alive' && p !== winner.p; });
+        if (helpers.length && Math.random()<0.62){
+          const h = helpers[Math.floor(Math.random()*helpers.length)];
+          h.assists++;
+          addEvo(h, 60);
+        }
+        // Knocking someone with better armor than you is worth extra.
+        if ((winner.q.evoLevel||1) > (winner.p.evoLevel||1)) addEvo(winner.p, 90);
         winner.q.state = 'down'; winner.q.hp = 0; winner.q.shield = 0;
         events.push({t:'knock', ring:ring, team:winner.s.i, player:winner.p.name,
                      vteam:winner.o.i, victim:winner.q.name, gun:gun, hs:hs,
@@ -1446,14 +1526,26 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
                                           - squadFx(winner.s,'antiEscape')*0.35);
         if (mates.length && Math.random() < reviveOdds){
           winner.q.state='alive'; winner.q.hp=45; winner.q.shield=0;
+          // First two revives per squad are worth full EVO, then it tapers.
+          winner.o.revives = (winner.o.revives||0) + 1;
+          const rEvo = Math.max(0, 100 - Math.max(0, winner.o.revives-2)*25);
+          if (rEvo) winner.o.live.forEach(function(p){ if (p.state!=='dead') addEvo(p, rEvo); });
           events.push({t:'revive', ring:ring, team:winner.o.i, player:winner.q.name,
                        hp:45, shield:0, shieldMax:winner.q.shieldMax});
         } else {
           winner.q.state='dead';
           winner.p.kills++; winner.s.kills++;
+          // Finishers are worth 100 EVO but leave you exposed, so squads only
+          // go for them when they aren't under pressure.
+          if (Math.random() < (winner.s.style==='aggressive' ? 0.26 : 0.16)){
+            addEvo(winner.p, 100);
+            events.push({t:'finisher', ring:ring, team:winner.s.i,
+                         player:winner.p.name, victim:winner.q.name});
+          }
           events.push({t:'kill', ring:ring, team:winner.s.i, player:winner.p.name,
                        vteam:winner.o.i, victim:winner.q.name, gun:gun, hs:hs});
           lootBox(winner.s, winner.q, ring, events);
+          lastWipeCredit = winner.s.i;
           wipeCheck(winner.o, ring);
         }
         const esc = 0.16 + squadFx(winner.o,'escape')*0.5 + squadFx(winner.o,'teamEscape')*0.6
@@ -1478,7 +1570,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
               style:t.style, poi:t.poi ? t.poi.n : null, drafted:drafted,
               pts: t.kills + placementPoints(t.place),
               players: t.live.map(function(p){
-                return {name:p.name, kills:p.kills, dmg:Math.round(p.dmg),
+                return {name:p.name, kills:p.kills, assists:p.assists||0, dmg:Math.round(p.dmg),
                         gun:p.gun, guns:p.guns, sling:p.sling, red:p.red, amp:p.amp||null,
                         legend:p.legend, move:p.move||0, techs:p.techs||[],
                         evo:Math.round(p.evo||0), evoLevel:p.evoLevel||1}; })};
@@ -1781,7 +1873,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
   function playerRating(name){
     const s = world.playerStats[name];
     if (!s || !s.matches) return 0;
-    const per = (s.kills*1.6 + s.dmg/220 + s.placePts*0.9) / s.matches;
+    const per = (s.kills*1.6 + (s.assists||0)*0.55 + s.dmg/220 + s.placePts*0.9) / s.matches;
     return per * 10 + (s.titles||0) * 20 + (s.majors||0) * 150;
   }
   // Running per-event totals so we can name the event's best performers.
@@ -1826,8 +1918,9 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       ts.best = Math.min(ts.best, r.place);
       r.players.forEach(function(p){
         const ps = world.playerStats[p.name] = world.playerStats[p.name] ||
-          {matches:0, kills:0, dmg:0, placePts:0, titles:0, wins:0};
+          {matches:0, kills:0, assists:0, dmg:0, placePts:0, titles:0, wins:0};
         ps.matches++; ps.kills += p.kills; ps.dmg += p.dmg;
+        ps.assists = (ps.assists||0) + (p.assists||0);
         ps.placePts += placementPoints(r.place);
         if (r.place===1) ps.wins++;
       });
@@ -1999,6 +2092,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       });
     }
     else if (e.t==='evo'){ const p = find(e.team, e.player); if (p){ p.shieldMax=e.shieldMax; p.shield=e.shield; p.hp=e.hp; if(e.level) p.evoLevel=e.level; } }
+    else if (e.t==='cache'){ const p = find(e.team, e.player); if (p){ p.evoLevel=e.level; p.shield=e.shield; p.shieldMax=e.shieldMax; p.hp=e.hp; } }
     else if (e.t==='overgone'){ const p = find(e.team, e.player); if (p){ p.over=0; p.shield=Math.min(e.shield,e.shieldMax); p.shieldMax=e.shieldMax; } }
     else if (e.t==='knock'){
       const s = find(e.team, e.player), q = find(e.vteam, e.victim);
@@ -2025,7 +2119,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
          : e.t==='care' ? 'care' : e.t==='move' ? 'mv'
          : e.t==='drop' ? 'info' : e.t==='contest' ? 'elim'
          : e.t==='heal' ? 'dim' : e.t==='amp' ? 'info' : e.t==='mythic' ? 'care'
-         : e.t==='loot' ? 'info' : e.t==='overgone' ? 'dim' : 'kill';
+         : e.t==='loot' ? 'info' : e.t==='overgone' ? 'dim'
+         : e.t==='harvest' ? 'dim' : e.t==='cache' ? 'care' : e.t==='finisher' ? 'elim' : 'kill';
   }
   function nm(i){ return live.view[i] ? esc(live.view[i].name) : '?'; }
   function feedText(e){
@@ -2048,6 +2143,13 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
                                return /amp$/.test(x) ? '<span class="ampw">'+esc(x)+'</span>'
                                     : (/\u00d7/.test(x) ? '<span class="dim">'+esc(x)+'</span>'
                                     : '<span class="redw">'+esc(x)+'</span>'); }).join(', ');
+      case 'harvest': return '\ud83d\udfe1 <span class="dim">' + e.squads.length + ' squad' +
+                             (e.squads.length===1?'':'s') + ' hit EVO harvesters (' + e.total +
+                             ' total, +350 squad-wide each)</span>';
+      case 'cache':   return '\ud83d\udd35 <b>' + esc(e.player) + '</b> cracked an <span class="cachew">EVO Cache</span>' +
+                             ' \u2014 straight to <span class="armr a' + e.level + '">' + esc(e.tier) + '</span>';
+      case 'finisher':return '\ud83d\udde1\ufe0f <b>' + esc(e.player) + '</b> finished <b>' + esc(e.victim) +
+                             '</b> <span class="dim">+100 EVO</span>';
       case 'amp':     return '\u26a1 <b>' + esc(e.player) + '</b> picked up the <span class="ampw">' +
                              esc(e.name) + '</span> amp';
       case 'mythic':  return '\ud83d\udc8e ' + nm(e.team) + ' cracked the mythic bin \u2014 <b>' +
@@ -2237,7 +2339,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     const rows = res.results.slice().sort(function(a,b){ return a.place-b.place; });
     const ps = [];
     res.results.forEach(function(r){
-      r.players.forEach(function(p){ ps.push({name:p.name, kills:p.kills, dmg:p.dmg, team:r.name}); });
+      r.players.forEach(function(p){ ps.push({name:p.name, kills:p.kills, assists:p.assists||0,
+        dmg:p.dmg, team:r.name, move:p.move, sling:p.sling, red:p.red}); });
     });
     const topK = ps.slice().sort(function(a,b){ return b.kills-a.kills || b.dmg-a.dmg; })[0];
     const topD = ps.slice().sort(function(a,b){ return b.dmg-a.dmg || b.kills-a.kills; })[0];
@@ -2255,7 +2358,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       rows.map(function(r){
         const cls = r.place<=3 ? ' st-top' : '';
         const pl = r.players.slice().sort(function(a,b){ return b.dmg-a.dmg; }).map(function(p){
-          return '<span class="mps"><b>'+esc(p.name)+'</b> '+p.kills+'K \u00b7 '+p.dmg +
+          return '<span class="mps"><b>'+esc(p.name)+'</b> '+p.kills+'K'+
+                 (p.assists?'/'+p.assists+'A':'')+' \u00b7 '+p.dmg +
                  (p.move===2?' <span class="mv2">\u26a1</span>':(p.move===1?' <span class="mv1">\u26a1</span>':'')) +
                  (p.sling?' <span class="goldw">\u2b50</span>':'') + (p.red?' <span class="redw">\u2726</span>':'') + '</span>';
         }).join('');
@@ -2268,12 +2372,12 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
           '<span class="mprow">'+pl+'</span></div>';
       }).join('') +
       '<div class="note">PLAYER STATS \u2014 ALL 60</div>' +
-      '<div class="rhead pshead"><span>#</span><span>PLAYER</span><span>TEAM</span><span>KILLS</span><span>DMG</span></div>' +
+      '<div class="rhead pshead"><span>#</span><span>PLAYER</span><span>TEAM</span><span>K/A</span><span>DMG</span></div>' +
       '<div class="psbox">' + byDmg.map(function(p,i){
         return '<div class="psrow"><span class="stpos">'+(i+1)+'</span>' +
           '<span class="stname">'+esc(p.name)+'</span>' +
           '<span class="psteam">'+esc(p.team)+'</span>' +
-          '<span class="rk">'+p.kills+'</span>' +
+          '<span class="rk">'+p.kills+(p.assists?'/'+p.assists:'')+'</span>' +
           '<span class="psd">'+p.dmg.toLocaleString()+'</span></div>';
       }).join('') + '</div>';
   }
@@ -2330,7 +2434,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
         : '<span class="gun">'+pbar(p)+'</span>') +
       '</div>';
   }
-  const STYLE_LABEL = {aggressive:'HOT DROP', balanced:'BALANCED', passive:'EDGE'};
+  const STYLE_LABEL = {aggressive:'HOT DROP', balanced:'BALANCED', passive:'EDGE', farmer:'EVO FARM'};
   function teamCard(t, aliveView){
     if (!aliveView){
       return '<div class="tc out"><div class="th"><span class="plc">#'+t.place+'</span>' +
@@ -2523,7 +2627,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       .sort(function(a,b){ return b.r-a.r; }).slice(0,40);
     const players = Object.keys(world.playerStats)
       .map(function(n){ const s=world.playerStats[n];
-        return {name:n, r:playerRating(n), m:s.matches, k:s.kills,
+        return {name:n, r:playerRating(n), m:s.matches, k:s.kills, a:s.assists||0,
                 t:s.titles||0, mj:s.majors||0}; })
       .filter(function(p){ return p.m>=3; })
       .sort(function(a,b){ return b.r-a.r; }).slice(0,40);
@@ -2538,7 +2642,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     document.getElementById('rPlayers').innerHTML = players.length ? players.map(function(p,i){
       return '<div class="strow"><span class="stpos">'+(i+1)+'</span>' +
         '<span class="stname">'+esc(p.name)+' <span class="natx">'+esc(nationOf(p.name))+'</span></span>' +
-        '<span class="stk">'+p.k+'K \u00b7 '+p.m+'m' +
+        '<span class="stk">'+p.k+'K'+(p.a?'/'+p.a+'A':'')+' \u00b7 '+p.m+'m' +
           (p.mj?' \u00b7 '+p.mj+'\ud83d\udc51':'') + (p.t?' \u00b7 '+p.t+'\ud83c\udfc6':'') + '</span>' +
         '<span class="stpts">'+p.r.toFixed(0)+'</span></div>';
     }).join('') : '<div class="empty">No player data yet.</div>';
