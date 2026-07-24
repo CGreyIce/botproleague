@@ -321,6 +321,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
 
 .cachew{color:#5aa9f0;font-weight:600}
 .sty-farmer{color:#ffd94a;border:1px solid rgba(255,217,74,.4)}
+.dwn.cov{color:#5aa9f0;border:1px solid rgba(90,169,240,.45);padding:0 3px}
 </style>
 </head><body><div class="wrap">
 
@@ -1036,18 +1037,20 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     }
 
 
-    // Shield Core swap. A higher-level core overcharges you for a while; an
-    // equal or lower one just tops your own armor back up. Either way your
-    // Legend Armor level is untouched \u2014 that's your own EVO.
+    // Armor swap off the box. The Shield Core itself is never lootable \u2014 it's
+    // bound to the player and carries their EVO progression, which is why a
+    // respawn keeps it. What changes hands is the armor: swapping in a higher
+    // tier overcharges you briefly, an equal or lower one just refills you.
+    // Either way your own armor level is untouched.
     if ((victim.evoLevel||1) > (looter.evoLevel||1)){
       const bonus = ARMOR_CAP[(victim.evoLevel||1)-1] - ARMOR_CAP[(looter.evoLevel||1)-1];
       looter.shield = looter.shieldMax;
       looter.over = Math.max(looter.over||0, bonus);
       looter.overRing = ring;
-      took.push('L'+victim.evoLevel+' core (+'+bonus+' overcharge)');
+      took.push('L'+victim.evoLevel+' armor (+'+bonus+' overcharge)');
     } else if (looter.shield < looter.shieldMax){
       looter.shield = looter.shieldMax;
-      took.push('shield core');
+      took.push('armor swap');
     }
 
     // Consumables: shields and health off the box, shared round the squad.
@@ -1408,8 +1411,12 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
         const tpResist = (squadFx(A,'thirdPartyResist') + squadFx(B,'thirdPartyResist')) * 0.5;
         const C = (ring>=4 && rest.length && Math.random() < Math.max(0.06, 0.25 - tpResist)) ? pick(rest) : null;
         resolveFight(A, B, C, ring);
+        [A,B].concat(C?[C]:[]).forEach(function(s){ settleDowns(s, ring); });
         if (aliveTeams().length<=1) break;
       }
+
+      // Nobody should still be knocked when the ring closes.
+      aliveTeams().forEach(function(t){ settleDowns(t, ring); });
 
       // Respawns between rings — much likelier with a Support legend alive.
       aliveTeams().forEach(function(t){
@@ -1441,9 +1448,17 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
 
     // Anyone still standing when the rings run out: settle it.
     let guard = 0;
-    while (aliveTeams().length>1 && guard++ < 60){
+    while (aliveTeams().length>1 && guard++ < 200){
       const pool = aliveTeams();
       resolveFight(pool[0], pool[1], null, RINGS);
+      settleDowns(pool[0], RINGS); settleDowns(pool[1], RINGS);
+      // If a stalemate somehow persists, force the weaker squad out so the
+      // match can never end with more than one team standing.
+      if (aliveTeams().length > 1 && guard > 40){
+        const weak = aliveTeams().sort(function(a,b){ return teamPower(a)-teamPower(b); })[0];
+        weak.live.forEach(function(p){ if (p.state!=='dead'){ p.state='dead'; } });
+        wipeCheck(weak, RINGS);
+      }
     }
     const winner = aliveTeams()[0] || state[0];
     winner.place = 1;
@@ -1452,11 +1467,33 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     // Fill any places that never got assigned (safety).
     state.forEach(function(t){ if (t.place===null){ t.place = nextPlace; nextPlace--; } });
 
+    // Nobody stays knocked forever. When a fight ends, anyone still down is
+    // either dragged up by a surviving team-mate or bleeds out.
+    function settleDowns(s, ring){
+      s.coverHp = 0; s.coverFor = null;
+      s.live.forEach(function(p){
+        if (p.state !== 'down') return;
+        const mates = s.live.some(function(m){ return m.state==='alive'; });
+        if (mates && Math.random() < 0.55 + squadFx(s,'revive')*0.30){
+          p.state='alive'; p.hp=45; p.shield=0;
+          events.push({t:'revive', ring:ring, team:s.i, player:p.name,
+                       hp:45, shield:0, shieldMax:p.shieldMax});
+        } else {
+          p.state='dead';
+          events.push({t:'bleed', ring:ring, team:s.i, player:p.name});
+        }
+      });
+      wipeCheck(s, ring);
+    }
+
     function resolveFight(A, B, C, ring){
       const sides = [A,B].concat(C?[C]:[]);
       events.push({t:'engage', ring:ring, teams:sides.map(function(s){ return s.i; })});
+      sides.forEach(function(s){ s.coverHp = 0; s.coverFor = null; });
       let rounds = 0;
       while (rounds++ < 14){
+        // Safety: a squad with nobody up and nobody down is finished.
+        sides.forEach(function(s){ wipeCheck(s, ring); });
         const standing = sides.filter(function(s){
           return s.alive && s.live.some(function(p){ return p.state==='alive'; });
         });
@@ -1478,6 +1515,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
           v += squadFx(me,'markDamage')*7;                     // Vantage mark
           v -= squadFx(foe,'damageResist')*4;                  // domes, shields
           v -= squadFx(foe,'antiPush')*4;                      // pushing into traps
+          if (foe.coverHp > 0) v -= 5.5;                        // shooting into a knockdown shield
           v += squadFx(me,'breakHold')*6;                      // drills, grenades
           v += squadFx(me,'shieldStrip')*6;                    // EMP
           if (fp.hp < 55) v += squadFx(me,'finishLow')*9;       // Seer/Revenant close it out
@@ -1505,6 +1543,34 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
         if (lvUp) events.push({t:'evo', ring:ring, team:winner.s.i, player:winner.p.name, level:lvUp,
                                tier:armorTier(winner.p), shieldMax:winner.p.shieldMax,
                                shield:winner.p.shield, hp:winner.p.hp});
+        // Any shot into the squad eats their knockdown shield first.
+        if (winner.o.coverHp > 0){
+          winner.o.coverHp -= 30 + Math.floor(Math.random()*35);
+          if (winner.o.coverHp <= 0){
+            winner.o.coverHp = 0;
+            const downed = winner.o.live.find(function(p){
+              return p.name === winner.o.coverFor && p.state === 'down'; });
+            events.push({t:'coverbreak', ring:ring, team:winner.o.i, player:winner.o.coverFor});
+            if (downed){
+              // Shield gone: either they get dragged up or they bleed out.
+              if (winner.o.live.some(function(p){ return p.state==='alive'; }) &&
+                  Math.random() < 0.34 + squadFx(winner.o,'revive')*0.30){
+                downed.state='alive'; downed.hp=45; downed.shield=0;
+                events.push({t:'revive', ring:ring, team:winner.o.i, player:downed.name,
+                             hp:45, shield:0, shieldMax:downed.shieldMax});
+              } else {
+                downed.state='dead';
+                winner.p.kills++; winner.s.kills++;
+                events.push({t:'kill', ring:ring, team:winner.s.i, player:winner.p.name,
+                             vteam:winner.o.i, victim:downed.name, gun:winner.p.gun, hs:false});
+                lootBox(winner.s, downed, ring, events);
+                lastWipeCredit = winner.s.i;
+                wipeCheck(winner.o, ring);
+              }
+            }
+            winner.o.coverFor = null;
+          }
+        }
         const gun = pickGun(winner.p), hs = Math.random()<0.22;
         // Whoever else is up on the winning side picks up the assist.
         const helpers = winner.s.live.filter(function(p){
@@ -1524,6 +1590,16 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
         const mates = winner.o.live.filter(function(p){ return p.state==='alive'; });
         const reviveOdds = Math.min(0.58, 0.28 + squadFx(winner.o,'revive')*0.30
                                           - squadFx(winner.s,'antiEscape')*0.35);
+        // Mid-fight there often isn't time to pick someone up. Instead the squad
+        // plays off their knockdown shield, using them as mobile cover.
+        // Shield strength scales with their Legend Level, as it does in S28.
+        if (mates.length && !winner.o.coverHp && Math.random() < 0.34){
+          winner.o.coverHp = 45 * (winner.q.evoLevel||1);
+          winner.o.coverFor = winner.q.name;
+          events.push({t:'cover', ring:ring, team:winner.o.i, player:winner.q.name,
+                       hp:winner.o.coverHp, level:winner.q.evoLevel||1});
+          continue;                       // they stay down behind the shield
+        }
         if (mates.length && Math.random() < reviveOdds){
           winner.q.state='alive'; winner.q.hp=45; winner.q.shield=0;
           // First two revives per squad are worth full EVO, then it tapers.
@@ -1551,6 +1627,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
         const esc = 0.16 + squadFx(winner.o,'escape')*0.5 + squadFx(winner.o,'teamEscape')*0.6
                         + squadFx(winner.o,'disengage')*0.5 - squadFx(winner.s,'antiEscape')*0.5;
         if (Math.random() < Math.max(0.04, esc)){
+          sides.forEach(function(s){ settleDowns(s, ring); });
           // Credit the best mover on the squad for pulling them out.
           const movers = winner.o.live.filter(function(p){ return p.state==='alive' && p.move>0; })
                                       .sort(function(a,b){ return b.move-a.move; });
@@ -2092,6 +2169,9 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       });
     }
     else if (e.t==='evo'){ const p = find(e.team, e.player); if (p){ p.shieldMax=e.shieldMax; p.shield=e.shield; p.hp=e.hp; if(e.level) p.evoLevel=e.level; } }
+    else if (e.t==='bleed'){ const p = find(e.team, e.player); if (p){ p.state='dead'; p.cover=false; } }
+    else if (e.t==='cover'){ const p = find(e.team, e.player); if (p) p.cover = true; }
+    else if (e.t==='coverbreak'){ const p = find(e.team, e.player); if (p) p.cover = false; }
     else if (e.t==='cache'){ const p = find(e.team, e.player); if (p){ p.evoLevel=e.level; p.shield=e.shield; p.shieldMax=e.shieldMax; p.hp=e.hp; } }
     else if (e.t==='overgone'){ const p = find(e.team, e.player); if (p){ p.over=0; p.shield=Math.min(e.shield,e.shieldMax); p.shieldMax=e.shieldMax; } }
     else if (e.t==='knock'){
@@ -2120,7 +2200,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
          : e.t==='drop' ? 'info' : e.t==='contest' ? 'elim'
          : e.t==='heal' ? 'dim' : e.t==='amp' ? 'info' : e.t==='mythic' ? 'care'
          : e.t==='loot' ? 'info' : e.t==='overgone' ? 'dim'
-         : e.t==='harvest' ? 'dim' : e.t==='cache' ? 'care' : e.t==='finisher' ? 'elim' : 'kill';
+         : e.t==='harvest' ? 'dim' : e.t==='cache' ? 'care' : e.t==='finisher' ? 'elim'
+         : e.t==='cover' ? 'info' : (e.t==='coverbreak'||e.t==='bleed') ? 'dim' : 'kill';
   }
   function nm(i){ return live.view[i] ? esc(live.view[i].name) : '?'; }
   function feedText(e){
@@ -2143,6 +2224,10 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
                                return /amp$/.test(x) ? '<span class="ampw">'+esc(x)+'</span>'
                                     : (/\u00d7/.test(x) ? '<span class="dim">'+esc(x)+'</span>'
                                     : '<span class="redw">'+esc(x)+'</span>'); }).join(', ');
+      case 'cover':   return '\ud83d\udee1\ufe0f ' + nm(e.team) + ' are playing off <b>' + esc(e.player) +
+                             '</b>\u2019s knockdown shield <span class="dim">(L' + e.level + ', ' + e.hp + ' hp)</span>';
+      case 'bleed':   return '<span class="dim"><b>' + esc(e.player) + '</b> bled out</span>';
+      case 'coverbreak': return '<span class="dim"><b>' + esc(e.player) + '</b>\u2019s knockdown shield broke</span>';
       case 'harvest': return '\ud83d\udfe1 <span class="dim">' + e.squads.length + ' squad' +
                              (e.squads.length===1?'':'s') + ' hit EVO harvesters (' + e.total +
                              ' total, +350 squad-wide each)</span>';
@@ -2389,7 +2474,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
   }
   function pbar(p){
     if (p.state==='dead') return '<span class="skull">\u2715</span>';
-    if (p.state==='down') return '<span class="dwn">DOWN</span>';
+    if (p.state==='down') return p.cover ? '<span class="dwn cov">SHIELD</span>'
+                                          : '<span class="dwn">DOWN</span>';
     return '';
   }
   // Two weapons, three for Ballistic. Care-package guns show red, the gold
