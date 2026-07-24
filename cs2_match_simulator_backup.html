@@ -205,6 +205,67 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
 .mvt{color:#7fe7ff;font-family:'IBM Plex Mono',monospace;font-size:11px}
 
 @media(max-width:640px){.startrow{grid-template-columns:1fr}.startbtn{font-size:19px;padding:15px 14px}}
+
+/* ============================ MOBILE ============================ */
+@media(max-width:700px){
+  /* match result: placement points are derivable, so drop that column */
+  .rhead,.rrow{grid-template-columns:30px 1fr 40px 52px;gap:7px;padding:7px 9px}
+  .rhead span:nth-child(4),.rrow .rp{display:none}
+  .elrow{grid-template-columns:26px 1fr auto;gap:7px}
+  .elrow .psteam{display:none}
+}
+@media(max-width:560px){
+  html,body{overflow-x:hidden}
+  .wrap{padding:14px 10px 40px}
+  .hdr{gap:9px;padding:8px 0 8px 12px}
+  .pill{font-size:9px;padding:4px 8px}
+  /* comfortable touch targets */
+  .btn{min-height:40px;padding:10px 13px}
+  .btns{gap:6px}
+  /* team cards: give the roster more room */
+  .tc{padding:9px 10px}
+  .tn{font-size:15px}
+  .pl{font-size:12px;padding:4px 0}
+  .lg{font-size:9px}
+  .gun{font-size:9px}
+  .feed{max-height:200px}
+  .fl{font-size:12px}
+  /* stat tables */
+  .psbox{max-height:280px}
+  .ldname{font-size:18px}
+  .ldval{font-size:20px}
+  /* legends reference */
+  .lgcard{padding:10px 11px}
+  .lgname{font-size:17px}
+  .lgab{font-size:11px}
+  .abk{min-width:48px}
+}
+@media(max-width:400px){
+  .wrap{padding:12px 8px 36px}
+  .h1{font-size:20px}
+  .h1.big{font-size:27px}
+  .rhead,.rrow{grid-template-columns:26px 1fr 34px 46px;gap:5px;padding:6px 7px}
+  .strow{grid-template-columns:24px 16px auto 1fr auto;gap:5px;padding:7px 8px;font-size:11.5px}
+  .strow .stgp{display:none}
+  .stname{font-size:14px}
+  .stpts{font-size:17px;min-width:28px}
+  .pshead,.psrow{grid-template-columns:24px 1fr 38px 50px;gap:5px;padding:5px 8px}
+  .startbtn{font-size:17px}
+}
+
+/* drop spots + playstyles */
+.poirow{display:flex;align-items:center;gap:6px;margin:-2px 0 6px;flex-wrap:wrap}
+.poi{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--sh);
+border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
+.poi.hot{color:var(--acc2);border-color:rgba(232,69,44,.5);background:rgba(232,69,44,.09)}
+.sty{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.08em;padding:1px 4px;opacity:.85}
+.sty-aggressive{color:var(--acc2);border:1px solid rgba(232,69,44,.4)}
+.sty-balanced{color:var(--mut);border:1px solid var(--line)}
+.sty-passive{color:var(--good);border:1px solid rgba(74,222,128,.35)}
+.hot{color:var(--acc2)}
+.poitag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--mut);font-weight:400;text-transform:none}
+@media(max-width:560px){.poitag{display:none}}
+.pick{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--gold);border:1px solid rgba(255,193,69,.4);padding:1px 4px}
 </style>
 </head><body><div class="wrap">
 
@@ -242,7 +303,8 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
   <div class="ringbar"><i id="mRingBar"></i></div>
   <div class="btns">
     <button class="btn pri" id="mPlay">⏸ PAUSE</button>
-    <button class="btn" id="mSkip">⏩ SKIP TO END</button>
+    <button class="btn" id="mSpeed">⏩ 2×</button>
+    <button class="btn" id="mSkip">⏭ SKIP TO END</button>
     <button class="btn" id="mSimAll">⏭ SIM REST OF TOURNAMENT</button>
   </div>
   <div class="banner" id="mBanner" style="display:none"></div>
@@ -292,7 +354,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
 
   const LEGEND_DATA = [{"n": "Bangalore", "c": "Assault", "t": "Smoke Launcher", "p": "Double Time", "u": "Rolling Thunder", "fx": {"escape": 0.1, "disengage": 0.12}}, {"n": "Fuse", "c": "Assault", "t": "Knuckle Cluster", "p": "Grenadier", "u": "The Motherlode", "fx": {"fight": 1.2, "breakHold": 0.14}}, {"n": "Ash", "c": "Assault", "t": "Arc Snare", "p": "Predator's Pursuit", "u": "Phase Breach", "fx": {"initiate": 0.1, "antiEscape": 0.16}}, {"n": "Mad Maggie", "c": "Assault", "t": "Riot Drill", "p": "Warlord's Ire", "u": "Wrecking Ball", "fx": {"breakHold": 0.18, "fight": 0.9}}, {"n": "Ballistic", "c": "Assault", "t": "Whistler", "p": "Sling", "u": "Tempest", "fx": {"fight": 0.8, "sling": 1}}, {"n": "Caustic", "c": "Controller", "t": "Nox Gas Trap", "p": "Nox Vision", "u": "Nox Gas Grenade", "fx": {"hold": 1.9, "antiPush": 0.16}}, {"n": "Wattson", "c": "Controller", "t": "Perimeter Security", "p": "Spark of Genius", "u": "Interception Pylon", "fx": {"hold": 1.4, "thirdPartyResist": 0.2}}, {"n": "Rampart", "c": "Controller", "t": "Amped Cover", "p": "Battle Modder", "u": "Emplaced Minigun “Sheila”", "fx": {"hold": 1.7, "fight": 0.8}}, {"n": "Catalyst", "c": "Controller", "t": "Piercing Spikes", "p": "Barricade", "u": "Dark Veil", "fx": {"hold": 1.5, "ringResist": 0.1, "antiPush": 0.12}}, {"n": "Bloodhound", "c": "Recon", "t": "Eye of the Allfather", "p": "Tracker", "u": "Beast of the Hunt", "fx": {"initiate": 0.16, "fight": 0.7}}, {"n": "Crypto", "c": "Recon", "t": "Surveillance Drone", "p": "Neurolink", "u": "Drone EMP", "fx": {"initiate": 0.14, "shieldStrip": 0.18}}, {"n": "Valkyrie", "c": "Recon", "t": "Missile Swarm", "p": "VTOL Jets", "u": "Skyward Dive", "fx": {"rotate": 0.2, "ringResist": 0.16, "escape": 0.1}}, {"n": "Seer", "c": "Recon", "t": "Focus of Attention", "p": "Heart Seeker", "u": "Exhibit", "fx": {"initiate": 0.12, "finishLow": 0.16}}, {"n": "Vantage", "c": "Recon", "t": "Echo Relocation", "p": "Spotter's Lens", "u": "Sniper's Mark", "fx": {"markDamage": 0.16, "initiate": 0.08}}, {"n": "Sparrow", "c": "Recon", "t": "Tracker Dart", "p": "Double Jump", "u": "Stinger Bolt", "fx": {"initiate": 0.12, "breakHold": 0.1, "rotate": 0.08}}, {"n": "Octane", "c": "Skirmisher", "t": "Stim", "p": "Swift Mend", "u": "Launch Pad", "fx": {"escape": 0.16, "selfHeal": 0.18, "rotate": 0.1}}, {"n": "Pathfinder", "c": "Skirmisher", "t": "Grappling Hook", "p": "Insider Knowledge", "u": "Zipline Gun", "fx": {"rotate": 0.18, "escape": 0.12}}, {"n": "Wraith", "c": "Skirmisher", "t": "Into the Void", "p": "Voices from the Void", "u": "Dimensional Rift", "fx": {"escape": 0.24, "teamEscape": 0.14}}, {"n": "Revenant", "c": "Skirmisher", "t": "Shadow Pounce", "p": "Assassin's Instinct", "u": "Forged Shadows", "fx": {"initiate": 0.14, "fight": 1.3, "finishLow": 0.12}}, {"n": "Horizon", "c": "Skirmisher", "t": "Gravity Lift", "p": "Spacewalk", "u": "Black Hole", "fx": {"fight": 1.0, "initiate": 0.1, "breakHold": 0.1}}, {"n": "Alter", "c": "Skirmisher", "t": "Void Passage", "p": "Gift from the Rift", "u": "Void Nexus", "fx": {"initiate": 0.12, "teamEscape": 0.16, "loot": 0.1}}, {"n": "Axle", "c": "Skirmisher", "t": "Nitro Gate", "p": "Drift", "u": "Kickstart", "fx": {"rotate": 0.22, "escape": 0.14, "initiate": 0.06}}, {"n": "Gibraltar", "c": "Support", "t": "Dome of Protection", "p": "Gun Shield", "u": "Defensive Bombardment", "fx": {"revive": 0.2, "damageResist": 0.14, "hold": 0.8}}, {"n": "Lifeline", "c": "Support", "t": "D.O.C Heal Drone", "p": "Combat Medic", "u": "D.O.C Halo", "fx": {"revive": 0.26, "heal": 0.22}}, {"n": "Mirage", "c": "Support", "t": "Psyche Out", "p": "Now You See Me", "u": "Life of the Party", "fx": {"revive": 0.16, "escape": 0.14}}, {"n": "Loba", "c": "Support", "t": "Burglar's Best Friend", "p": "Eye for Quality", "u": "Black Market Boutique", "fx": {"loot": 0.24, "escape": 0.1}}, {"n": "Newcastle", "c": "Support", "t": "Mobile Shield", "p": "Retrieve the Wounded", "u": "Castle Wall", "fx": {"revive": 0.24, "hold": 1.0, "damageResist": 0.1}}, {"n": "Conduit", "c": "Support", "t": "Radiant Transfer", "p": "Savior's Speed", "u": "Energy Barricade", "fx": {"teamShield": 0.2, "hold": 0.7}}];
   const CLASS_PERKS = {"Assault": {"perk": "Extra ammo per stack, extra ordnance slots, faster weapon swap, and a reload/move speed boost on breaking a shield. Opens the hidden compartment in Weapon Supply Bins.", "fx": {"fight": 0.6, "breakHold": 0.05}}, "Controller": {"perk": "Ring Consoles reveal the next Ring. +25 shield overcharge while inside the Ring. Can remotely retrieve placed traps.", "fx": {"hold": 0.7, "shieldOvercharge": 25}}, "Recon": {"perk": "Survey Beacon scans are faster, don't reveal your position, and expose enemies three times per scan. Threat vision while aiming down sights.", "fx": {"initiate": 0.08, "thirdPartyResist": 0.08}}, "Skirmisher": {"perk": "Spot the contents of incoming Care Packages. Faster movement while using consumables, and allies move faster toward you.", "fx": {"loot": 0.14, "escape": 0.06, "rotate": 0.06}}, "Support": {"perk": "Craft ally banners at Replicators, faster revives and healing, Mobile Respawn Beacons in ally death boxes, and extra loot from Extended Supply Bins.", "fx": {"revive": 0.08, "respawn": 0.1, "heal": 0.1}}};
-  const NAMED_TEAMS = [{"n": "BeeHyve", "t": "BEE", "r": ["Hyvred", "TiniiBee", "TokieShepherdVT"]}, {"n": "Eiromancers", "t": "EIR", "r": ["Skiazelle", "RaviasEir", "kanarivt"]}, {"n": "Syzygy", "t": "SYZ", "r": null}, {"n": "Aimpunch", "t": "AIM", "r": ["Sketch", "AcroBlaze", "[Idiot] AngelCrutcher"]}, {"n": "Infernum E-Sports", "t": "IE", "r": null}, {"n": "Lemon Tree", "t": "LT", "r": null}, {"n": "Artisian", "t": "ART", "r": null}, {"n": "Opal", "t": "OPA", "r": null}, {"n": "Unforgettable", "t": "UNF", "r": null}, {"n": "Neverland", "t": "NEV", "r": ["Ice", "Sayucchi", "AnjuValse"]}, {"n": "Divide&Conquer", "t": "DIV", "r": null}, {"n": "Bluebird", "t": "BLU", "r": null}, {"n": "Kiedz", "t": "KIE", "r": null}, {"n": "The Gigarage", "t": "TG", "r": null}, {"n": "New Jade", "t": "NJ", "r": null}, {"n": "Cosmos", "t": "COS", "r": null}, {"n": "degree", "t": "DEG", "r": null}, {"n": "Setting Sun", "t": "SS", "r": null}, {"n": "0v3", "t": "0V3", "r": null}, {"n": "99Lives", "t": "99L", "r": null}, {"n": "The Nomads", "t": "TN", "r": ["ItzMaigo", "keikatamori", "inaxho"]}, {"n": "Masmark", "t": "MAS", "r": ["Xyrolizea", "TiF2", "xolalotl"]}, {"n": "Aetherline", "t": "AET", "r": null}, {"n": "entity", "t": "ENT", "r": null}, {"n": "Ukiyo", "t": "UKI", "r": null}, {"n": "Alcheministry", "t": "ALC", "r": null}, {"n": "Aeternum", "t": "AETE", "r": ["Suzuyunn", "Nikorasu", "OchakoKiyomi"]}, {"n": "DiamondOnes", "t": "DIA", "r": null}, {"n": "Cyanide", "t": "CYA", "r": null}, {"n": "Fruit Basket", "t": "FB", "r": null}, {"n": "Sacred Raven", "t": "SR", "r": null}, {"n": "Flood Flashers", "t": "FF", "r": null}, {"n": "PepegaX", "t": "PEP", "r": null}, {"n": "Aspire", "t": "ASP", "r": ["Hanarisu", "YoJareddo", "ProPHOcy_"]}, {"n": "xPlosiv", "t": "XPL", "r": null}, {"n": "Team Neverseen", "t": "TEA", "r": null}, {"n": "Moonlit Tempo", "t": "MT", "r": null}, {"n": "Technomancy", "t": "TEC", "r": null}, {"n": "Caelum Scala", "t": "CS", "r": null}, {"n": "5PERCENT", "t": "5PE", "r": null}, {"n": "Bloom E-Sports", "t": "BE", "r": null}, {"n": "Round Loss Bonus", "t": "RLB", "r": null}, {"n": "Raven Song", "t": "RS", "r": null}, {"n": "division20", "t": "DIVI", "r": null}, {"n": "Astral Bloom", "t": "AB", "r": ["Tachibana Hinano", "Nekota Tsuna", "Kaminari Qpi"]}];
+  const NAMED_TEAMS = [{"n": "BeeHyve", "t": "BEE", "r": ["Hyvred", "TiniiBee", "TokieShepherdVT"]}, {"n": "Eiromancers", "t": "EIR", "r": ["Skiazelle", "RaviasEir", "kanarivt"]}, {"n": "Syzygy", "t": "SYZ", "r": ["AyanOwOT", "dudriduo_", "anju_o"]}, {"n": "Aimpunch", "t": "AIM", "r": ["Sketch", "AcroBlaze", "[Idiot] AngelCrutcher"]}, {"n": "Infernum E-Sports", "t": "IE", "r": null}, {"n": "Lemon Tree", "t": "LT", "r": null}, {"n": "Artisian", "t": "ART", "r": null}, {"n": "Opal", "t": "OPA", "r": null}, {"n": "Unforgettable", "t": "UNF", "r": null}, {"n": "Neverland", "t": "NEV", "r": ["Ice", "Sayucchi", "AnjuValse"]}, {"n": "Divide&Conquer", "t": "DIV", "r": null}, {"n": "Bluebird", "t": "BLU", "r": null}, {"n": "Kiedz", "t": "KIE", "r": null}, {"n": "The Gigarage", "t": "TG", "r": null}, {"n": "New Jade", "t": "NJ", "r": null}, {"n": "Cosmos", "t": "COS", "r": null}, {"n": "degree", "t": "DEG", "r": null}, {"n": "Setting Sun", "t": "SS", "r": null}, {"n": "0v3", "t": "0V3", "r": null}, {"n": "99Lives", "t": "99L", "r": null}, {"n": "The Nomads", "t": "TN", "r": ["ItzMaigo", "keikatamori", "inaxho"]}, {"n": "Masmark", "t": "MAS", "r": ["Xyrolizea", "TiF2", "xolalotl"]}, {"n": "Aetherline", "t": "AET", "r": null}, {"n": "entity", "t": "ENT", "r": null}, {"n": "Ukiyo", "t": "UKI", "r": null}, {"n": "Alcheministry", "t": "ALC", "r": null}, {"n": "Aeternum", "t": "AETE", "r": ["Suzuyunn", "Nikorasu", "OchakoKiyomi"]}, {"n": "DiamondOnes", "t": "DIA", "r": null}, {"n": "Cyanide", "t": "CYA", "r": null}, {"n": "Fruit Basket", "t": "FB", "r": null}, {"n": "Sacred Raven", "t": "SR", "r": null}, {"n": "Flood Flashers", "t": "FF", "r": null}, {"n": "PepegaX", "t": "PEP", "r": null}, {"n": "Aspire", "t": "ASP", "r": ["Hanarisu", "YoJareddo", "ProPHOcy_"]}, {"n": "xPlosiv", "t": "XPL", "r": null}, {"n": "Team Neverseen", "t": "TEA", "r": null}, {"n": "Moonlit Tempo", "t": "MT", "r": null}, {"n": "Technomancy", "t": "TEC", "r": null}, {"n": "Caelum Scala", "t": "CS", "r": null}, {"n": "5PERCENT", "t": "5PE", "r": null}, {"n": "Bloom E-Sports", "t": "BE", "r": null}, {"n": "Round Loss Bonus", "t": "RLB", "r": null}, {"n": "Raven Song", "t": "RS", "r": null}, {"n": "division20", "t": "DIVI", "r": null}, {"n": "Astral Bloom", "t": "AB", "r": ["Tachibana Hinano", "Nekota Tsuna", "Kaminari Qpi"]}];
   /* ===================== REFERENCE DATA ===================== */
   const LEGENDS = {};
   const LEGEND_FX = {};
@@ -658,8 +720,10 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     const scored = list.map(function(g){ return gunBase(p,g) + metaGunMod(g); })
                        .sort(function(a,b){ return b-a; });
     const best = scored[0] || 5, second = scored[1] || 0;
+    // Loot tier from the drop: a hot drop kits you out, an edge drop doesn't.
+    const lootEdge = (p.loot === 3) ? 2.0 : (p.loot === 1 ? -2.0 : 0);
     return p.skill + metaLegendMod(p.legend)*2.2 +
-           best*0.35 + second*0.12 +
+           best*0.35 + second*0.12 + lootEdge +
            fxOf(p,'fight') + (p.red ? 4.5 : 0) + (p.igl ? 1.2 : 0);
   }
   // Which weapon they got the kill with — weighted toward their best.
@@ -680,9 +744,140 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     return t.live.some(function(p){ return p.state!=='dead' && LEGENDS[p.legend]==='Support'; });
   }
 
+  /* ===================== DROP SPOTS & PLAYSTYLES ===================== */
+  // t:3 = hot drop, contested and loot-rich. t:1 = edge, quiet and poor.
+  const MAP_POIS = {
+    'World\u2019s Edge': [
+      {n:'Fragment East',t:3,c:2},{n:'Fragment West',t:3,c:2},{n:'Skyhook',t:3,c:2},{n:'The Epicenter',t:2,c:2},{n:'Lava Fissure',t:2,c:2},{n:'Harvester',t:2,c:1},{n:'Countdown',t:2,c:1},{n:'Climatizer',t:2,c:1},{n:'Sorting Factory',t:2,c:1},{n:'Launch Site',t:2,c:1},{n:'Big Maude',t:1,c:1},{n:'Landslide',t:1,c:1},{n:'Stacks',t:1,c:1},{n:'Overlook',t:1,c:1},{n:'Thermal Station',t:1,c:1},{n:'Mirage a Trois',t:1,c:1}
+    ],
+    'Storm Point': [
+      {n:'Barometer',t:3,c:2},{n:'Downed Beast',t:3,c:2},{n:'Command Center',t:3,c:2},{n:'Cascade Falls',t:2,c:2},{n:'Checkpoint',t:2,c:2},{n:'Ceto Station',t:2,c:1},{n:'Gale Station',t:2,c:1},{n:'Echo HQ',t:2,c:1},{n:'The Wall',t:2,c:1},{n:'Storm Catcher',t:2,c:1},{n:'Cenote Cave',t:1,c:1},{n:'Fish Farm',t:1,c:1},{n:'The Mill',t:1,c:1},{n:'Lightning Rod',t:1,c:1},{n:'North Pad',t:1,c:1},{n:'Devastated Coast',t:1,c:1}
+    ],
+    'E-District': [
+      {n:'The Lotus',t:3,c:2},{n:'City Hall',t:3,c:2},{n:'Neon Square',t:3,c:2},{n:'Energy Bank',t:2,c:2},{n:'Street Market',t:2,c:2},{n:'Electro Dam',t:2,c:1},{n:'Coliseum',t:2,c:1},{n:'Sky Terrace',t:2,c:1},{n:'Angels Atrium',t:2,c:1},{n:'Galleria',t:2,c:1},{n:'Draft Point',t:1,c:1},{n:'Boardwalk',t:1,c:1},{n:'Riverside',t:1,c:1},{n:'Roller Rink',t:1,c:1},{n:'Resort',t:1,c:1},{n:'The Vault',t:1,c:1}
+    ],
+    'Broken Moon': [
+      {n:'Terraformer',t:3,c:2},{n:'Perpetual Core',t:3,c:2},{n:'The Foundry',t:3,c:2},{n:'Dry Gulch',t:2,c:2},{n:'Breaker Wharf',t:2,c:2},{n:'Production Yard',t:2,c:1},{n:'Eternal Gardens',t:2,c:1},{n:'Bionomics',t:2,c:1},{n:'Promenade',t:2,c:1},{n:'Stasis Array',t:2,c:1},{n:'Cliff Side',t:1,c:1},{n:'The Divide',t:1,c:1},{n:'Underpass',t:1,c:1},{n:'Alpha Base',t:1,c:1},{n:'Atmostation',t:1,c:1},{n:'Backwater',t:1,c:1}
+    ]
+  };
+  function poisFor(m){ return MAP_POIS[m] || MAP_POIS['World\u2019s Edge']; }
+
+  // How a team plays. Fixed per org, but nudged by the comp they actually field.
+  const PLAYSTYLES = {
+    aggressive: {label:'Hot drop',  tier:3, fight:0.55, edge:'kills'},
+    balanced:   {label:'Balanced',  tier:2, fight:0.08, edge:'\u2014'},
+    passive:    {label:'Edge drop', tier:1, fight:-0.55, edge:'placement'}
+  };
+  function teamPlaystyle(t){
+    const h = hashStr('style:' + t.name) % 100;
+    let base = (h < 32) ? 'aggressive' : (h < 70 ? 'balanced' : 'passive');
+    // An Assault-heavy roster leans forward; Controllers and Support hold back.
+    let lean = 0;
+    t.roster.forEach(function(p){
+      const c = LEGENDS[p.legend];
+      if (c==='Assault' || c==='Skirmisher') lean++;
+      if (c==='Controller' || c==='Support') lean--;
+    });
+    if (lean >= 2 && base==='balanced') base = 'aggressive';
+    if (lean <= -2 && base==='balanced') base = 'passive';
+    return base;
+  }
+
+  // Two ways to land. In a drafted event (tournament/major) teams pick a POI in
+  // world-ranking order and drop there unopposed, so everyone gets to loot —
+  // the way ALGS actually runs. In an open qualifier it's a live dropship, so
+  // squads collide and fight for spots.
+  function dropPhase(state, mapName, events, drafted){
+    const pois = poisFor(mapName).slice();
+    const room = {};
+    pois.forEach(function(p){ room[p.n] = p.c || 1; });
+
+    if (drafted){
+      // Best-standing team picks first.
+      const order = state.slice().sort(function(a,b){
+        return (teamRating(b.ref.name) - teamRating(a.ref.name)) || (Math.random()-0.5);
+      });
+      order.forEach(function(t, idx){
+        const style = PLAYSTYLES[t.style];
+        const open = pois.filter(function(p){ return room[p.n] > 0; });
+        if (!open.length) return;
+        // Take the best spot left for how they like to play.
+        const weights = open.map(function(p){
+          return Math.max(0.12, 1.7 - Math.abs(p.t - style.tier)*0.75);
+        });
+        let tot = weights.reduce(function(a,b){ return a+b; },0), r = Math.random()*tot, i = 0;
+        for (; i<open.length-1; i++){ r -= weights[i]; if (r<=0) break; }
+        const p = open[i];
+        room[p.n]--;
+        t.poi = p;
+        events.push({t:'drop', team:t.i, poi:p.n, tier:p.t, contested:false, pick:idx+1});
+        lootUp(t, p.t, true);   // unopposed landing, full loot
+      });
+      return;
+    }
+
+    // ---- open qualifier: live dropship, spots get contested ----
+    const claims = {};
+    state.forEach(function(t){
+      const style = PLAYSTYLES[t.style];
+      const weights = pois.map(function(p){
+        const gap = Math.abs(p.t - style.tier);
+        return Math.max(0.15, 1.6 - gap*0.72) * (1 + (claims[p.n]||0) * (t.style==='aggressive' ? 0.35 : -0.55));
+      });
+      let tot = weights.reduce(function(a,b){ return a+b; }, 0), r = Math.random()*tot, i = 0;
+      for (; i<pois.length-1; i++){ r -= weights[i]; if (r<=0) break; }
+      t.poi = pois[i];
+      claims[pois[i].n] = (claims[pois[i].n]||0) + 1;
+    });
+    Object.keys(claims).forEach(function(name){
+      const here = state.filter(function(t){ return t.poi.n === name; });
+      const tier = here[0].poi.t;
+      const cap = here[0].poi.c || 1;
+      if (here.length <= cap){
+        here.forEach(function(t){
+          events.push({t:'drop', team:t.i, poi:name, tier:tier, contested:false});
+          lootUp(t, tier, true);
+        });
+        return;
+      }
+      events.push({t:'contest', poi:name, tier:tier, teams:here.map(function(t){ return t.i; })});
+      const ranked = here.slice().sort(function(a,b){
+        return (teamPower(b) + Math.random()*14) - (teamPower(a) + Math.random()*14);
+      });
+      ranked.forEach(function(t, idx){
+        events.push({t:'drop', team:t.i, poi:name, tier:tier, contested:true});
+        if (idx < cap){ lootUp(t, tier, true); return; }
+        lootUp(t, Math.max(1, tier-1), false);
+        const victim = ranked[0];
+        const n = (idx === cap) ? 1 : 2;
+        for (let k=0;k<n;k++){
+          const alive = t.live.filter(function(p){ return p.state==='alive'; });
+          if (alive.length <= 1) break;
+          const dead = alive[Math.floor(Math.random()*alive.length)];
+          const killer = victim.live[Math.floor(Math.random()*3)];
+          dead.state = 'dead';
+          killer.kills++; victim.kills++;
+          killer.dmg += 120 + Math.floor(Math.random()*60);
+          events.push({t:'kill', ring:0, team:victim.i, player:killer.name,
+                       vteam:t.i, victim:dead.name, gun:killer.gun, hs:false, drop:true});
+        }
+      });
+    });
+  }
+  function lootUp(t, tier, won){
+    t.live.forEach(function(p){
+      if (p.state === 'dead') return;
+      const target = tier>=3 ? 100 : (tier===2 ? 75 : 50);
+      if (won && p.shieldMax < target){ p.shieldMax = target; p.shield = target; }
+      else if (p.shieldMax < 75 && tier>=2){ p.shieldMax = 75; p.shield = 75; }
+      p.loot = tier;
+    });
+  }
+
   // Simulate one 20-team match. Returns an event stream the screen replays,
   // plus final placements and per-player stats.
-  function simulateMatch(teams, mapName){
+  function simulateMatch(teams, mapName, opts){
+    const drafted = !!(opts && opts.draft);
     // Guard against a squad arriving without a full kit (e.g. rebuilt from a
     // stored roster). Repair rather than silently producing NaN power.
     teams.forEach(function(t){
@@ -722,6 +917,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     const events = [];
     const RINGS = 7;
     let nextPlace = 20;
+    state.forEach(function(t){ t.style = teamPlaystyle(t.ref); });
 
     const aliveTeams = function(){ return state.filter(function(t){ return t.alive; }); };
     const pick = function(a){ return a[Math.floor(Math.random()*a.length)]; };
@@ -733,6 +929,10 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
         events.push({t:'wipe', ring:ring, team:t.i, place:t.place, kills:t.kills});
       }
     };
+
+    // Landing happens before the first ring.
+    dropPhase(state, mapName, events, drafted);
+    state.forEach(function(t){ wipeCheck(t, 0); });
 
     for (let ring=1; ring<=RINGS; ring++){
       const alive = aliveTeams();
@@ -800,19 +1000,46 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
         }
       });
 
-      // Long-range pokes that don't down anyone still put damage on the board.
-      aliveTeams().forEach(function(t){
-        t.live.forEach(function(p){
-          if (p.state!=='alive' || Math.random()>0.28) return;
-          const poke = 30 + Math.floor(Math.random()*95);
-          p.dmg += poke;
-          p.evoDmg += poke;
-          if (p.shieldMax < 100 && p.evoDmg >= (p.shieldMax===50 ? 120 : 260)){
-            p.shieldMax += 25; p.shield = p.shieldMax;
-            events.push({t:'evo', ring:ring, team:t.i, player:p.name,
-                         shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
-          }
+      // Long-range poking is most of the damage in a real match, and it's how
+      // evo shields level up. Two exchanges a ring, most squads involved.
+      for (let pass=0; pass<2; pass++){
+        aliveTeams().forEach(function(t){
+          t.live.forEach(function(p){
+            if (p.state!=='alive' || Math.random()>0.58) return;
+            const poke = 45 + Math.floor(Math.random()*135);
+            p.dmg += poke;
+            p.evoDmg += poke;
+            if (p.shieldMax < 100 && p.evoDmg >= (p.shieldMax===50 ? 200 : 700)){
+              p.shieldMax += 25; p.shield = Math.min(p.shieldMax, p.shield + 25);
+              events.push({t:'evo', ring:ring, team:t.i, player:p.name,
+                           shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
+            }
+            // Poke goes both ways, so it chips the poker too.
+            const back = Math.floor(poke*0.35);
+            p.shield = Math.max(0, p.shield - back);
+            if (p.shield===0) p.hp = Math.max(12, p.hp - Math.floor(back*0.4));
+          });
         });
+      }
+
+      // Ground loot and supply bins: squads top up between exchanges. What they
+      // are carrying depends on where they landed.
+      aliveTeams().forEach(function(t){
+        const stock = 0.62 + (squadFx(t,'heal') + squadFx(t,'selfHeal') + squadFx(t,'teamShield'))*0.5;
+        const healed = [];
+        t.live.forEach(function(p){
+          if (p.state!=='alive') return;
+          const supply = stock + (p.loot===3 ? 0.18 : (p.loot===1 ? -0.16 : 0));
+          let did = null;
+          if (p.shield < p.shieldMax && Math.random() < supply){
+            p.shield = p.shieldMax; did = (p.shieldMax>=75) ? 'battery' : 'cells';
+          }
+          if (p.hp < 100 && Math.random() < supply){
+            p.hp = 100; did = did ? 'kit' : ((p.hp < 55) ? 'med kit' : 'syringe');
+          }
+          if (did) healed.push({name:p.name, hp:p.hp, shield:p.shield, shieldMax:p.shieldMax, item:did});
+        });
+        if (healed.length) events.push({t:'heal', ring:ring, team:t.i, players:healed});
       });
 
       // How many engagements this ring: quiet early, frantic late.
@@ -823,7 +1050,11 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
       for (let f=0; f<fights; f++){
         const pool = aliveTeams();
         if (pool.length<=1) break;
-        const A = pick(pool);
+        // Aggressive squads start more of the fights; edge teams avoid them.
+        const aw = pool.map(function(t){ return Math.max(0.25, 1 + PLAYSTYLES[t.style].fight); });
+        let at = aw.reduce(function(a,b){ return a+b; },0), ar = Math.random()*at, ai = 0;
+        for (; ai<pool.length-1; ai++){ ar -= aw[ai]; if (ar<=0) break; }
+        const A = pool[ai];
         const others = pool.filter(function(t){ return t!==A; });
         if (!others.length) break;
         const B = pick(others);
@@ -916,7 +1147,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
         if (winner.p.shield===0) winner.p.hp = Math.max(6, winner.p.hp - Math.floor(taken*0.55));
         // Evo progress runs off damage dealt, same as the real thing.
         winner.p.evoDmg += dealt;
-        if (winner.p.shieldMax < 100 && winner.p.evoDmg >= (winner.p.shieldMax===50 ? 120 : 260)){
+        if (winner.p.shieldMax < 100 && winner.p.evoDmg >= (winner.p.shieldMax===50 ? 200 : 700)){
           winner.p.shieldMax += 25;
           winner.p.shield = winner.p.shieldMax;
           events.push({t:'evo', ring:ring, team:winner.s.i, player:winner.p.name,
@@ -961,6 +1192,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
 
     const results = state.map(function(t){
       return {name:t.name, tag:t.tag, i:t.i, place:t.place, kills:t.kills,
+              style:t.style, poi:t.poi ? t.poi.n : null, drafted:drafted,
               pts: t.kills + placementPoints(t.place),
               players: t.live.map(function(p){
                 return {name:p.name, kills:p.kills, dmg:Math.round(p.dmg),
@@ -1044,7 +1276,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     const lobby = majorLobby();
     const mapName = (m.stage==='group') ? m.queue[m.qi].map
                                         : MAPS[((m.stage==='survival'?m.svMatch:m.poMatch)) % MAPS.length];
-    const res = simulateMatch(lobby, mapName);
+    const res = simulateMatch(lobby, mapName, {draft:true});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = lobby[r.i];
@@ -1312,7 +1544,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     if (tour.matchNo >= tour.total){ showStandings(true); return; }
     tour.matchNo++;
     const mapName = MAPS[(tour.matchNo-1) % MAPS.length];
-    const res = simulateMatch(tour.teams, mapName);
+    const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = tour.teams[r.i];
@@ -1330,6 +1562,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     // Fresh view state the events will mutate as they replay.
     const view = res.state.map(function(t){
       return {i:t.i, name:t.name, tag:t.tag, emblem:t.emblem, kills:0, place:null, alive:true,
+              poi:null, style:t.style,
               live:t.ref.roster.map(function(p){
                 return {name:p.name, legend:p.legend, gun:p.gun,
                         guns:(p.guns||[p.gun]).slice(), sling:p.sling||null,
@@ -1346,11 +1579,20 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     renderMatch();
     startPlayback();
   }
+  var playSpeed = 2;   // remembered between matches
+  const SPEEDS = [1, 2, 4, 8];
+  function tickMs(){ return Math.round(560 / playSpeed); }
   function startPlayback(){
     stopPlayback();
     live.playing = true;
     document.getElementById('mPlay').textContent = '\u23f8 PAUSE';
-    live.timer = setInterval(stepEvent, 420);
+    live.timer = setInterval(stepEvent, tickMs());
+  }
+  function cycleSpeed(){
+    playSpeed = SPEEDS[(SPEEDS.indexOf(playSpeed) + 1) % SPEEDS.length];
+    const b = document.getElementById('mSpeed');
+    if (b) b.textContent = '\u23e9 ' + playSpeed + '\u00d7';
+    if (live && live.playing) startPlayback();   // restart at the new rate
   }
   function stopPlayback(){
     if (live && live.timer){ clearInterval(live.timer); live.timer = null; }
@@ -1365,11 +1607,19 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
       return t.live.find(function(p){ return p.name===nm; });
     };
     if (e.t==='ring'){ live.ring = e.ring; }
+    else if (e.t==='drop'){ if (v[e.team]){ v[e.team].poi = e.poi; v[e.team].contested = e.contested; } }
+    else if (e.t==='contest'){ /* flavour only */ }
     else if (e.t==='ringdmg'){ const p = find(e.team, e.player); if (p){ p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; } }
     else if (e.t==='care'){ const p = find(e.team, e.player); if (p){ p.gun=e.gun; p.red=true; if(e.guns) p.guns=e.guns.slice(); } }
     else if (e.t==='craft'){
       const p = find(e.team, e.player);
       if (p && e.kind!=='banner'){ if(e.hp!=null)p.hp=e.hp; if(e.shield!=null)p.shield=e.shield; if(e.shieldMax)p.shieldMax=e.shieldMax; }
+    }
+    else if (e.t==='heal'){
+      (e.players||[]).forEach(function(h){
+        const p = find(e.team, h.name);
+        if (p){ p.hp = h.hp; p.shield = h.shield; if (h.shieldMax) p.shieldMax = h.shieldMax; }
+      });
     }
     else if (e.t==='evo'){ const p = find(e.team, e.player); if (p){ p.shieldMax=e.shieldMax; p.shield=e.shield; p.hp=e.hp; } }
     else if (e.t==='knock'){
@@ -1394,7 +1644,9 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     return e.t==='ring' ? 'ring' : e.t==='wipe' ? 'elim' : e.t==='win' ? 'win'
          : (e.t==='respawn'||e.t==='revive') ? 'info' : e.t==='ringdmg' ? 'dim'
          : e.t==='engage' ? 'dim' : (e.t==='evo'||e.t==='craft') ? 'info'
-         : e.t==='care' ? 'care' : e.t==='move' ? 'mv' : 'kill';
+         : e.t==='care' ? 'care' : e.t==='move' ? 'mv'
+         : e.t==='drop' ? 'info' : e.t==='contest' ? 'elim'
+         : e.t==='heal' ? 'dim' : 'kill';
   }
   function nm(i){ return live.view[i] ? esc(live.view[i].name) : '?'; }
   function feedText(e){
@@ -1410,6 +1662,12 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
                         ? '\ud83d\udd27 ' + nm(e.team) + ' crafted <b>' + esc(e.player) + '</b>\u2019s banner'
                         : '\ud83d\udd27 <b>' + esc(e.player) + '</b> crafted a ' +
                           (e.kind==='battery' ? 'shield battery' : 'med kit');
+      case 'heal':    return nm(e.team) + ' healed up \u2014 ' +
+                             e.players.map(function(h){ return '<b>'+esc(h.name)+'</b> '+esc(h.item); }).join(', ');
+      case 'drop':    return (e.pick ? '<span class="pick">#' + e.pick + '</span> ' : '\ud83e\ude82 ') +
+                             nm(e.team) + (e.pick ? ' drafted ' : ' dropped ') + '<b>' + esc(e.poi) + '</b>' +
+                             (e.contested ? ' <span class="hot">CONTESTED</span>' : '');
+      case 'contest': return '\u2694\ufe0f <b>' + e.teams.length + ' squads</b> contesting <b>' + esc(e.poi) + '</b>';
       case 'move':    return '\ud83c\udf00 <b>' + esc(e.player) + '</b> broke away \u2014 <span class="mvt">' +
                              esc(e.tech) + '</span>';
       case 'evo':     return '<b>' + esc(e.player) + '</b> evolved to a ' +
@@ -1480,7 +1738,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
       if (startStage==='group' && Math.floor(major.qi/6) !== startRound) break;
       const lobby = majorLobby();
       const mapName = MAPS[guard % MAPS.length];
-      const res = simulateMatch(lobby, mapName);
+      const res = simulateMatch(lobby, mapName, {draft:true});
       recordMatch(res);
       res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       live = {res:res, idx:0, view:[], feed:[], ring:0, playing:false, timer:null};
@@ -1601,7 +1859,8 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
                  (p.sling?' <span class="goldw">\u2b50</span>':'') + (p.red?' <span class="redw">\u2726</span>':'') + '</span>';
         }).join('');
         return '<div class="rrow'+cls+'"><span class="stpos">'+r.place+'</span>' +
-          '<span class="stname">'+esc(r.name)+'</span>' +
+          '<span class="stname">'+esc(r.name)+
+            (r.poi?' <span class="poitag">'+esc(r.poi)+'</span>':'')+'</span>' +
           '<span class="rk">'+r.kills+'</span>' +
           '<span class="rp">+'+placementPoints(r.place)+'</span>' +
           '<span class="stpts">'+r.pts+'</span>' +
@@ -1657,6 +1916,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
         : '<span class="gun">'+pbar(p)+'</span>') +
       '</div>';
   }
+  const STYLE_LABEL = {aggressive:'HOT DROP', balanced:'BALANCED', passive:'EDGE'};
   function teamCard(t, aliveView){
     if (!aliveView){
       return '<div class="tc out"><div class="th"><span class="plc">#'+t.place+'</span>' +
@@ -1669,6 +1929,8 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
       '<span class="tg">'+esc(t.tag)+'</span>' +
       '<span class="tn">'+esc(t.name)+'</span>' +
       '<span class="alv">'+up+'/3</span><span class="kc">'+t.kills+'K</span></div>' +
+      (t.poi ? '<div class="poirow"><span class="poi'+(t.contested?' hot':'')+'">'+esc(t.poi)+'</span>' +
+               '<span class="sty sty-'+t.style+'">'+STYLE_LABEL[t.style]+'</span></div>' : '') +
       t.live.map(playerRow).join('') + '</div>';
   }
   function renderMatch(){
@@ -1883,6 +2145,8 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     if (live.playing) stopPlayback(); else startPlayback();
   });
   document.getElementById('mSkip').addEventListener('click', skipMatch);
+  document.getElementById('mSpeed').addEventListener('click', cycleSpeed);
+  document.getElementById('mSpeed').textContent = '\u23e9 ' + playSpeed + '\u00d7';
   document.getElementById('mSimAll').addEventListener('click', function(){
     if (major && !major.done){ simRestOfStage(); return; }
     if (!tour) return;
@@ -1890,7 +2154,7 @@ border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2p
     while (live && live.idx < live.res.events.length) applyEvent(live.res.events[live.idx++]);
     while (tour.matchNo < tour.total){
       tour.matchNo++;
-      const res = simulateMatch(tour.teams, MAPS[(tour.matchNo-1)%MAPS.length]);
+      const res = simulateMatch(tour.teams, MAPS[(tour.matchNo-1)%MAPS.length], {draft: !tour.isQualifier});
       recordMatch(res);
       res.results.forEach(function(r){ const t=tour.teams[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       tour.log.push(res);
