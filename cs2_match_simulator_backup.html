@@ -886,6 +886,9 @@ background:var(--acc);padding:1px 4px}
   };
   // Where the ring ends up decides the match. Each closure pulls toward a final
   // point, so squads either already hold zone or have to rotate through people.
+  // Real per-tick ring damage by round (a tick lands every 1.5s). Rounds 1-3 are
+  // healable; from round 4 the ring simply kills you if you're caught out.
+  const RING_TICK = [0, 2, 4, 10, 15, 20, 25, 25];
   const RING_RADIUS = [1.00, 0.46, 0.35, 0.26, 0.19, 0.14, 0.09, 0.05];
   function dist(a, b){ const dx=a[0]-b[0], dy=a[1]-b[1]; return Math.sqrt(dx*dx+dy*dy); }
   function pickFinalZone(mapName){
@@ -1215,12 +1218,22 @@ background:var(--acc);padding:1px 4px}
           const ringOdds = Math.max(0.04, 0.16 + farmCost + outCost
                                         - squadFx(t,'ringResist')*0.5 - squadFx(t,'rotate')*0.15);
           if (p.state==='alive' && Math.random()<ringOdds){
-            // The ring burns through health directly \u2014 shields don't stop it,
-            // and it bites harder the later it gets.
-            const tick = 6 + ring*3;
-            p.hp = Math.max(1, p.hp - tick);
-            events.push({t:'ringdmg', ring:ring, team:t.i, player:p.name, hp:p.hp,
-                         shield:p.shield, shieldMax:p.shieldMax});
+            // Shields don't stop the ring \u2014 it burns health directly. How long
+            // you're caught out decides how many ticks land.
+            const per = RING_TICK[Math.min(ring, RING_TICK.length-1)];
+            const ticks = t.inZone ? (2 + Math.floor(Math.random()*3))
+                                   : (5 + Math.floor(Math.random()*6));
+            const dealt = per * ticks;
+            p.hp -= dealt;
+            if (p.hp <= 0){
+              // The ring can finish you outright from round 4 on.
+              p.hp = 0; p.state = 'dead';
+              events.push({t:'ringkill', ring:ring, team:t.i, player:p.name, dmg:dealt});
+              wipeCheck(t, ring);
+            } else {
+              events.push({t:'ringdmg', ring:ring, team:t.i, player:p.name, hp:p.hp,
+                           dmg:dealt, shield:p.shield, shieldMax:p.shieldMax});
+            }
           }
         });
       });
@@ -2197,6 +2210,7 @@ background:var(--acc);padding:1px 4px}
     else if (e.t==='outside'){ e.teams.forEach(function(i){ if (v[i]) v[i].inZone = false; }); }
     else if (e.t==='drop'){ if (v[e.team]){ v[e.team].poi = e.poi; v[e.team].contested = e.contested; } }
     else if (e.t==='contest'){ /* flavour only */ }
+    else if (e.t==='ringkill'){ const p = find(e.team, e.player); if (p){ p.state='dead'; p.hp=0; } }
     else if (e.t==='ringdmg'){ const p = find(e.team, e.player); if (p){ p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; } }
     else if (e.t==='care' || e.t==='mythic'){ const p = find(e.team, e.player); if (p){ p.gun=e.gun; p.red=true; if(e.guns) p.guns=e.guns.slice(); } }
     else if (e.t==='amp'){ const p = find(e.team, e.player); if (p){ p.amp=e.amp; p.ampName=e.name; if(e.shieldMax){p.shieldMax=e.shieldMax;p.shield=e.shield;} } }
@@ -2261,7 +2275,7 @@ background:var(--acc);padding:1px 4px}
          : e.t==='loot' ? 'info' : e.t==='overgone' ? 'dim'
          : e.t==='harvest' ? 'dim' : e.t==='cache' ? 'care' : e.t==='finisher' ? 'elim'
          : e.t==='cover' ? 'info' : (e.t==='coverbreak'||e.t==='bleed') ? 'dim'
-         : e.t==='outside' ? 'elim' : 'kill';
+         : e.t==='outside' ? 'elim' : e.t==='ringkill' ? 'elim' : 'kill';
   }
   function nm(i){ return live.view[i] ? esc(live.view[i].name) : '?'; }
   function feedText(e){
@@ -2271,7 +2285,10 @@ background:var(--acc);padding:1px 4px}
       case 'outside': return '\u26a0\ufe0f <b>' + e.teams.length + ' squad' + (e.teams.length===1?'':'s') +
                              '</b> caught outside the ring, rotating to <b>' + esc(e.zone) + '</b>';
       case 'engage':  return 'Contact: ' + e.teams.map(nm).join(' vs ');
-      case 'ringdmg': return '<b>' + esc(e.player) + '</b> taking ring damage';
+      case 'ringdmg': return '<span class="dim"><b>' + esc(e.player) + '</b> taking ring damage (\u2212' +
+                             e.dmg + ')</span>';
+      case 'ringkill':return '\u2622\ufe0f <b>' + esc(e.player) + '</b> died to the ring <span class="dim">(\u2212' +
+                             e.dmg + ')</span>';
       case 'knock':   return '<b>' + esc(e.player) + '</b> knocked <b>' + esc(e.victim) + '</b> <i>' +
                              esc(e.gun) + '</i>' + (e.hs ? ' <span class="hs">HS</span>' : '');
       case 'care':    return '\ud83d\udce6 ' + nm(e.team) + ' opened a care package \u2014 <b>' +
