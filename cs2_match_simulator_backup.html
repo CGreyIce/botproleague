@@ -266,6 +266,19 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
 .poitag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--mut);font-weight:400;text-transform:none}
 @media(max-width:560px){.poitag{display:none}}
 .pick{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--gold);border:1px solid rgba(255,193,69,.4);padding:1px 4px}
+
+/* match browser tabs */
+.mtabs{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.mtab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;padding:7px 11px;
+background:var(--panel);border:1px solid var(--line);color:var(--mut);cursor:pointer;
+clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+.mtab:hover:not(:disabled){border-color:var(--acc2);color:var(--txt)}
+.mtab.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.mtab.off,.mtab:disabled{opacity:.3;cursor:default}
+.mtabnote{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut);margin-left:6px}
+.mvhead{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;text-transform:uppercase;
+margin-bottom:12px;color:var(--acc2)}
+.mvhead span{color:var(--mut);font-size:14px}
 </style>
 </head><body><div class="wrap">
 
@@ -1243,7 +1256,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
       }
     });
     resetEventAgg();
-    major = {stage:'group', field:field, groups:groups, queue:queue, qi:0,
+    major = {stage:'group', log:[], field:field, groups:groups, queue:queue, qi:0,
              survivors:[], playoffTeams:[], poMatch:0, done:false};
     tour = null;
     nextMajorMatch();
@@ -1283,6 +1296,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
       t.pts += r.pts; t.kills += r.kills;
       t.gp = (t.gp||0) + 1;
     });
+    m.log.push({res:res, label:majorStageLabel(), map:mapName});
     m.lastLobby = lobby;
     openMajorMatch(res, mapName);
     save();
@@ -1512,7 +1526,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
     const filler = buildScratchTeams(20-perms.length, usedNames);
     const full = perms.concat(filler).slice(0,20);
     full.forEach(function(t){ t.pts=0; t.kills=0; });
-    resetEventAgg();
+    resetEventAgg(); viewMatch = null;
     tour = {teams:full, matchNo:0, total:6, log:[]};
     nextMatch();
   }
@@ -1536,6 +1550,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
     full.forEach(function(t){ t.pts = 0; t.kills = 0; t.permanent = false; });
     resetEventAgg();
     major = null;
+    viewMatch = null;
     tour = {teams:full, matchNo:0, total:6, log:[], isQualifier:true};
     nextMatch();
   }
@@ -1550,7 +1565,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
       const t = tour.teams[r.i];
       t.pts += r.pts; t.kills += r.kills;
     });
-    tour.log.push(res);
+    tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName});
     openMatch(res);
     save();
   }
@@ -1741,6 +1756,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
       const res = simulateMatch(lobby, mapName, {draft:true});
       recordMatch(res);
       res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
+      major.log.push({res:res, label:majorStageLabel(), map:mapName});
       live = {res:res, idx:0, view:[], feed:[], ring:0, playing:false, timer:null};
       const step = advanceMajor();
       if (step.banner) banner = step.banner;
@@ -1785,7 +1801,9 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
         '<span class="stname">'+esc(t.name)+(t.group?' <span class="gtag">'+t.group+'</span>':'')+mp+'</span>' +
         gp + '<span class="stk">'+t.kills+'K</span><span class="stpts">'+t.pts+'</span></div>';
     });
-    document.getElementById('sBody').innerHTML = html;
+    document.getElementById('sBody').innerHTML = matchTabsHtml() +
+      (viewMatch !== null ? matchViewHtml() : html);
+    wireMatchTabs('sBody', function(){ showMajorTable(finalDone, banner); });
     document.getElementById('sNote').innerHTML = m.done
       ? '\ud83c\udfc6 <b>'+esc(m.champion.name)+'</b> are Major champions.'
       : (banner ? '<b>'+esc(banner)+'</b><br>' : '') +
@@ -1826,15 +1844,12 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
     }
     document.getElementById('sRank').onclick = showRankings;
   }
-  // Final placement table for the match that just ended.
-  function renderMatchResult(){
-    const el = document.getElementById('mResult');
-    if (!el || !live) return;
-    const rows = live.res.results.slice().sort(function(a,b){ return a.place-b.place; });
-    // Every player in the lobby, with the team they were on.
+  // Full result panel for a match — used live and for anything in the log.
+  function matchResultHtml(res, heading){
+    const rows = res.results.slice().sort(function(a,b){ return a.place-b.place; });
     const ps = [];
-    live.res.results.forEach(function(r){
-      r.players.forEach(function(p){ ps.push({name:p.name, kills:p.kills, dmg:p.dmg, team:r.name, place:r.place}); });
+    res.results.forEach(function(r){
+      r.players.forEach(function(p){ ps.push({name:p.name, kills:p.kills, dmg:p.dmg, team:r.name}); });
     });
     const topK = ps.slice().sort(function(a,b){ return b.kills-a.kills || b.dmg-a.dmg; })[0];
     const topD = ps.slice().sort(function(a,b){ return b.dmg-a.dmg || b.kills-a.kills; })[0];
@@ -1845,11 +1860,9 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
         '<span class="ldteam">'+esc(p.team)+'</span>' +
         '<span class="ldval">'+val+'</span></div>';
     };
-    el.innerHTML =
-      '<div class="note">MATCH LEADERS</div>' +
+    return (heading ? '<div class="note">'+esc(heading)+'</div>' : '') +
       '<div class="ldrow">' + leader('MOST KILLS', topK, topK.kills+' K') +
                               leader('MOST DAMAGE', topD, topD.dmg.toLocaleString()) + '</div>' +
-      '<div class="note">MATCH RESULT</div>' +
       '<div class="rhead"><span>#</span><span>TEAM</span><span>KILLS</span><span>PLACE</span><span>PTS</span></div>' +
       rows.map(function(r){
         const cls = r.place<=3 ? ' st-top' : '';
@@ -1875,6 +1888,11 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
           '<span class="rk">'+p.kills+'</span>' +
           '<span class="psd">'+p.dmg.toLocaleString()+'</span></div>';
       }).join('') + '</div>';
+  }
+  function renderMatchResult(){
+    const el = document.getElementById('mResult');
+    if (!el || !live) return;
+    el.innerHTML = '<div class="note">MATCH LEADERS</div>' + matchResultHtml(live.res, 'MATCH RESULT');
     el.style.display = 'block';
   }
   function pbar(p){
@@ -1963,7 +1981,12 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
          (tour.isQualifier ? ' \u00b7 TOP 2 EARN ORG STATUS' : ''));
     document.getElementById('sTitle').textContent = finalDone ? 'FINAL STANDINGS' : 'STANDINGS';
     const cut = tour.isQualifier ? 2 : 3;
-    document.getElementById('sBody').innerHTML = rows.map(function(t,i){
+    if (viewMatch !== null){
+      document.getElementById('sBody').innerHTML = matchTabsHtml() + matchViewHtml();
+      wireMatchTabs('sBody', function(){ showStandings(finalDone); });
+      return;
+    }
+    document.getElementById('sBody').innerHTML = matchTabsHtml() + rows.map(function(t,i){
       const cls = i<cut ? ' st-top' : '';
       return '<div class="strow'+cls+'"><span class="stpos">'+(i+1)+'</span>' +
         '<img class="emb" src="'+t.emblem+'" alt="">' +
@@ -1971,6 +1994,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
         '<span class="stname">'+esc(t.name)+(t.permanent?' <span class="permtag">ORG</span>':'')+'</span>' +
         '<span class="stk">'+t.kills+'K</span><span class="stpts">'+t.pts+'</span></div>';
     }).join('');
+    wireMatchTabs('sBody', function(){ showStandings(finalDone); });
     const bar = document.getElementById('sBtns');
     if (finalDone){
       // A qualifier promotes two; a normal tournament promotes three.
@@ -2033,6 +2057,52 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
       '<div><div class="note">EVENT TOP DAMAGE</div>' +
         L.dmg.slice(0,5).map(function(p,i){ return row(p,i,p.dmg.toLocaleString()); }).join('') + '</div>' +
       '</div>';
+  }
+
+  // Browse any match already played in this event.
+  var viewMatch = null;   // null = the standings table itself
+  function eventLog(){
+    if (major && major.log) return major.log;
+    return (tour && tour.log) ? tour.log : [];
+  }
+  function eventTotal(){
+    if (major) return null;                       // major length varies by stage
+    return tour ? tour.total : null;
+  }
+  function matchTabsHtml(){
+    const log = eventLog();
+    if (!log.length) return '';
+    const total = eventTotal();
+    let html = '<div class="mtabs"><button class="mtab'+(viewMatch===null?' on':'')+'" data-m="all">STANDINGS</button>';
+    log.forEach(function(entry, i){
+      html += '<button class="mtab'+(viewMatch===i?' on':'')+'" data-m="'+i+'">' +
+              (major ? 'M'+(i+1) : 'M'+(i+1)) + '</button>';
+    });
+    if (total && log.length < total){
+      for (let i=log.length; i<total; i++) html += '<button class="mtab off" disabled>M'+(i+1)+'</button>';
+    }
+    html += '<span class="mtabnote">' + log.length + (total ? ' of ' + total : '') + ' played' +
+            (total && log.length<total ? ' \u00b7 ' + (total-log.length) + ' to go' : '') + '</span></div>';
+    return html;
+  }
+  function wireMatchTabs(container, redraw){
+    const root = document.getElementById(container);
+    if (!root) return;
+    Array.prototype.forEach.call(root.querySelectorAll('.mtab'), function(b){
+      if (b.disabled) return;
+      b.onclick = function(){
+        const v = b.getAttribute('data-m');
+        viewMatch = (v === 'all') ? null : parseInt(v, 10);
+        redraw();
+      };
+    });
+  }
+  function matchViewHtml(){
+    const log = eventLog();
+    const entry = log[viewMatch];
+    if (!entry) return '';
+    return '<div class="mvhead">' + esc(entry.label) + ' \u00b7 <span>' + esc(entry.map || '') + '</span></div>' +
+           matchResultHtml(entry.res, null);
   }
 
   /* ===================== RANKINGS ===================== */
@@ -2157,7 +2227,7 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
       const res = simulateMatch(tour.teams, MAPS[(tour.matchNo-1)%MAPS.length], {draft: !tour.isQualifier});
       recordMatch(res);
       res.results.forEach(function(r){ const t=tour.teams[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
-      tour.log.push(res);
+      tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:MAPS[(tour.matchNo-1)%MAPS.length]});
     }
     save();
     showStandings(true);
