@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apex Legends Match Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>:root{--bg:#0c0d10;--panel:#15171c;--panel2:#1b1e25;--line:#2a2f38;--txt:#e8eaed;--mut:#7f8794;
+--acc:#e8452c;--acc2:#ff7a3d;--good:#4ade80;--sh:#5aa9f0;--hp:#e8452c;--gold:#ffc145;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;
+background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.014) 0 2px,transparent 2px 9px),
+radial-gradient(1100px 520px at 78% -8%,rgba(232,69,44,.13),transparent 62%),
+radial-gradient(760px 420px at 8% 105%,rgba(90,169,240,.07),transparent 60%);
+background-attachment:fixed;}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 14px 48px}
+.hdr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-left:3px solid var(--acc);
+padding:10px 0 10px 14px;margin-bottom:16px}
+.h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;letter-spacing:.02em;
+text-transform:uppercase;line-height:1.05}
+.h1.big{font-size:44px}
+.kick{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--acc2)}
+.sub{font-size:12.5px;color:var(--mut);margin-top:8px;max-width:640px;line-height:1.6}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;border:1px solid var(--line);
+background:var(--panel);padding:5px 10px;color:var(--mut);
+clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+.pill b{color:var(--txt)}
+.ringbar{height:5px;background:var(--panel2);border:1px solid var(--line);margin-bottom:14px;overflow:hidden}
+.ringbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .4s}
+.feed{background:var(--panel);border:1px solid var(--line);padding:10px 12px;margin-bottom:16px;
+max-height:230px;overflow-y:auto;
+clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.fl{font-size:12.5px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;align-items:baseline}
+.fl:last-child{border:none}
+.ft{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut);min-width:26px}
+.fl b{color:var(--txt)} .fl i{font-style:normal;color:var(--acc2);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.fl.ring{color:var(--acc2)} .fl.elim{color:var(--gold)} .fl.info{color:var(--sh)}
+.fl.win{color:var(--gold);font-weight:600} .fl.dim{color:var(--mut);font-size:11.5px}
+.hs{background:var(--gold);color:#141414;font-size:8px;padding:1px 3px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tc{background:var(--panel);border:1px solid var(--line);padding:8px 9px;
+clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.tc.out{background:#101216;opacity:.5;padding:6px 9px}
+.th{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.emb{width:18px;height:18px;object-fit:contain;flex-shrink:0}
+.tg{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--acc2);border:1px solid var(--line);padding:1px 4px}
+.tn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;
+flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alv{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--good)}
+.kc{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut)}
+.plc{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--mut);min-width:26px}
+.pl{display:grid;grid-template-columns:1fr auto;gap:4px;align-items:center;padding:3px 0;font-size:11px}
+.pnm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.lg{font-family:'IBM Plex Mono',monospace;font-size:8px;padding:1px 4px;letter-spacing:.03em}
+.as{background:rgba(232,69,44,.18);color:#ff8b73} .sk{background:rgba(255,193,69,.16);color:#ffc145}
+.rc{background:rgba(90,169,240,.16);color:#7fc0ff} .sp{background:rgba(74,222,128,.14);color:#6ee79b}
+.ct{background:rgba(167,139,250,.16);color:#b9a6ff}
+.gun{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--mut);grid-column:1/-1;margin-top:-2px}
+.hb{grid-column:1/-1;height:4px;background:#0a0b0e;border:1px solid #23272f;position:relative;display:block;margin-top:3px}
+.hb i{position:absolute;left:0;top:0;height:100%;display:block;transition:width .3s}
+.hb .hp{background:var(--hp);opacity:.9} .hb .sh{background:var(--sh);top:-3px;height:2px;opacity:.85}
+.pl.down{opacity:.72} .dwn{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--gold)}
+.pl.dead{opacity:.35} .skull{color:var(--mut);font-size:10px}
+.note{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut);margin:18px 0 8px;letter-spacing:.08em}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:9px 14px;
+background:var(--panel);border:1px solid var(--line);color:var(--txt);cursor:pointer;
+clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+.btn:hover{border-color:var(--acc2)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.startrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.startbtn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;letter-spacing:.05em;
+text-transform:uppercase;padding:14px 12px;background:var(--acc);border:none;color:#fff;cursor:pointer;width:100%;
+white-space:nowrap;transition:filter .15s;
+clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.startbtn:hover{filter:brightness(1.15)}
+.startbtn.alt{background:#2c5f8a}
+.startbtn.maj{background:#8a2417}
+.card{background:var(--panel);border:1px solid var(--line);padding:16px;margin-bottom:16px;
+clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.cardh{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;text-transform:uppercase;
+letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.metarow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px}
+.mlab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--mut);min-width:126px}
+.metarow i{color:var(--mut);font-size:11px}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 6px;border:1px solid}
+.chip.up{color:var(--good);border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.08)}
+.chip.down{color:var(--acc);border-color:rgba(232,69,44,.45);background:rgba(232,69,44,.08)}
+.strow{display:grid;grid-template-columns:30px 20px auto 1fr auto auto;gap:9px;align-items:center;
+background:var(--panel);border:1px solid var(--line);padding:8px 11px;margin-bottom:4px;font-size:13px}
+.strow.st-top{border-color:var(--acc);background:linear-gradient(90deg,rgba(232,69,44,.10),var(--panel) 55%)}
+#rTeams .strow,#rPlayers .strow{grid-template-columns:30px 1fr auto auto}
+.stpos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;color:var(--mut);text-align:center}
+.strow.st-top .stpos{color:var(--acc2)}
+.sttag{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--acc2)}
+.stname{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;
+overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.natx{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut);text-transform:none}
+.permtag{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--gold);border:1px solid var(--gold);padding:1px 4px}
+.stk{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut)}
+.stpts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;color:var(--good);min-width:34px;text-align:right}
+.empty{color:var(--mut);font-size:12px;padding:14px;text-align:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.snote{font-size:13px;color:var(--gold);margin:12px 0}
+@media(max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.h1{font-size:23px}.h1.big{font-size:31px}
+.strow{grid-template-columns:26px 18px auto 1fr auto;gap:6px;font-size:12px}
+.strow .stk{display:none}}
+
+/* evo shield segments */
+.shw{grid-column:1/-1;display:flex;gap:2px;margin-top:3px}
+.sg{flex:1;height:4px;background:#0a0b0e;border:1px solid #23272f;display:block;position:relative}
+.sg b{position:absolute;left:0;top:0;height:100%;display:block;transition:width .3s}
+.sg.wht b{background:#dfe4ea} .sg.blu b{background:#5aa9f0} .sg.pur b{background:#b06ef0}
+.sg.wht{border-color:#3a4048} .sg.blu{border-color:#2b4a63} .sg.pur{border-color:#4a2d63}
+/* match result table */
+.rhead,.rrow{display:grid;grid-template-columns:34px 1fr 52px 52px 56px;gap:8px;align-items:center;
+padding:7px 11px;font-size:12.5px}
+.rhead{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--mut)}
+.rhead span:not(:nth-child(2)){text-align:right} .rhead span:first-child{text-align:center}
+.rrow{background:var(--panel);border:1px solid var(--line);margin-bottom:3px}
+.rrow.st-top{border-color:var(--acc);background:linear-gradient(90deg,rgba(232,69,44,.10),var(--panel) 55%)}
+.rk,.rp{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);text-align:right}
+/* major */
+.banner{background:rgba(232,69,44,.12);border:1px solid var(--acc);padding:10px 14px;margin-bottom:14px;
+font-size:13px;color:var(--acc2)}
+.gtag{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--mut);border:1px solid var(--line);padding:1px 4px}
+.mptag{font-family:'IBM Plex Mono',monospace;font-size:8px;color:#141414;background:var(--gold);padding:1px 5px;font-weight:700}
+.strow.st-out{opacity:.45}
+.strow.st-mp{border-color:var(--gold);background:linear-gradient(90deg,rgba(255,193,69,.12),var(--panel) 55%)}
+.rmnote{margin-top:10px;font-size:12px;color:var(--mut);line-height:1.8}
+
+/* match leaders + player stats */
+.ldrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.ldr{background:var(--panel);border:1px solid var(--acc);padding:10px 13px;
+clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.ldlab{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--acc2)}
+.ldname{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;margin-top:3px}
+.ldteam{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
+.ldval{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--good);margin-top:2px}
+.mprow{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;margin-top:5px;padding-top:5px;
+border-top:1px solid rgba(255,255,255,.05)}
+.mps{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--mut)}
+.mps b{color:var(--txt);font-weight:600}
+.pshead,.psrow{display:grid;grid-template-columns:34px 1fr 1fr 46px 62px;gap:8px;align-items:center;
+padding:6px 11px;font-size:12px}
+.psrow{background:var(--panel);border:1px solid var(--line);margin-bottom:3px}
+.psbox{max-height:340px;overflow-y:auto}
+.psteam{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--mut);overflow:hidden;
+text-overflow:ellipsis;white-space:nowrap}
+.psd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--acc2);text-align:right}
+.elwrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.elrow{display:grid;grid-template-columns:28px 1fr 1fr auto;gap:8px;align-items:center;
+background:var(--panel);border:1px solid var(--line);padding:6px 10px;margin-bottom:3px;font-size:12px}
+@media(max-width:700px){.ldrow,.elwrap{grid-template-columns:1fr}
+.pshead,.psrow{grid-template-columns:28px 1fr 44px 56px}.psteam{display:none}}
+
+/* standings cut lines + matches played */
+.strow{grid-template-columns:30px 20px auto 1fr 44px auto auto}
+.stgp{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--mut);text-align:right}
+.cutline{display:flex;align-items:center;gap:10px;margin:8px 0 5px;
+font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em}
+.cutline:before,.cutline:after{content:"";flex:1;height:1px}
+.cutline.cut-a{color:var(--good)} .cutline.cut-a:before,.cutline.cut-a:after{background:rgba(74,222,128,.35)}
+.cutline.cut-b{color:var(--acc)} .cutline.cut-b:before,.cutline.cut-b:after{background:rgba(232,69,44,.35)}
+.warn{color:var(--gold);font-size:11.5px}
+@media(max-width:560px){.strow{grid-template-columns:26px 18px auto 1fr 38px auto}.strow .stk{display:none}}
+
+/* care package weapons */
+.redw{color:var(--gold)!important;font-weight:600}
+.fl.care{color:var(--gold)}
+.gun.redw{text-shadow:0 0 8px rgba(255,193,69,.35)}
+.chip.care{color:var(--gold);border-color:rgba(255,193,69,.5);background:rgba(255,193,69,.10)}
+.mnote{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut);font-style:italic}
+
+.goldw{color:#ffd94a!important;font-weight:600;text-shadow:0 0 8px rgba(255,217,74,.35)}
+.gsep{color:#3a414c}
+.gun{line-height:1.5}
+
+/* legends reference */
+#legendScreen{max-width:1180px}
+.lgclass{margin-bottom:22px}
+.lgch{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.lgch .lg{font-size:11px;padding:3px 9px;letter-spacing:.12em}
+.lgcount{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
+.lgperk{font-size:12px;color:var(--mut);line-height:1.6;margin-bottom:10px;
+border-left:2px solid var(--line);padding-left:10px}
+.lgperk b{color:var(--acc2)}
+.lggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lgcard{background:var(--panel);border:1px solid var(--line);padding:11px 13px;
+clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.lgname{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;text-transform:uppercase;margin-bottom:7px}
+.lgab{font-size:11.5px;margin-bottom:3px;display:flex;gap:7px;align-items:baseline}
+.abk{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:var(--mut);min-width:56px}
+.lgfx{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap}
+.fxchip{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--good);
+border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.07);padding:2px 5px}
+@media(max-width:900px){.lggrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.lggrid{grid-template-columns:1fr}}
+
+/* movement specialists */
+.mv2{color:#7fe7ff;text-shadow:0 0 7px rgba(127,231,255,.7);font-size:10px}
+.mv1{color:#5aa9f0;opacity:.85;font-size:9px}
+.fl.mv{color:#7fe7ff}
+.mvt{color:#7fe7ff;font-family:'IBM Plex Mono',monospace;font-size:11px}
+
+@media(max-width:640px){.startrow{grid-template-columns:1fr}.startbtn{font-size:19px;padding:15px 14px}}
+</style>
+</head><body><div class="wrap">
+
+<div id="setupScreen">
+  <div class="hdr"><div>
+    <div class="kick">BATTLE ROYALE · 20 SQUADS · 6 MATCHES</div>
+    <div class="h1 big">Apex Legends<br>Match Simulator</div>
+    <div class="sub">Twenty trios drop in and fight until one squad is left. One point per elimination
+      plus placement points. Six matches decide the tournament — the top three earn permanent org status.</div>
+  </div></div>
+  <div class="card">
+    <div class="cardh">⚙️ CURRENT META <span class="pill" id="metaSeason">SEASON 1</span></div>
+    <div id="metaBox"></div>
+    <div class="btns" style="margin-top:12px;margin-bottom:0">
+      <button class="btn pri" id="metaBtn">🔄 ROLL NEW PATCH</button>
+      <button class="btn" id="rankBtn">🌐 WORLD RANKING</button>
+      <button class="btn" id="legendBtn">🎭 LEGENDS &amp; CLASS PERKS</button>
+      <button class="btn" id="resetBtn">🗑 RESET WORLD</button>
+    </div>
+  </div>
+  <div class="startrow">
+    <button class="startbtn" id="startBtn">Start Tournament</button>
+    <button class="startbtn alt" id="qualBtn">Open Qualifier</button>
+    <button class="startbtn maj" id="majorBtn">Start Major</button>
+  </div>
+</div>
+
+<div id="matchScreen" style="display:none">
+  <div class="hdr">
+    <div><div class="kick" id="mKick">TOURNAMENT</div><div class="h1" id="mMap">—</div></div>
+    <span class="pill" id="mRing">RING <b>1</b></span>
+    <span class="pill" id="mSquads">SQUADS <b>20</b>/20</span>
+    <span class="pill" id="mAlive">ALIVE <b>60</b>/60</span>
+  </div>
+  <div class="ringbar"><i id="mRingBar"></i></div>
+  <div class="btns">
+    <button class="btn pri" id="mPlay">⏸ PAUSE</button>
+    <button class="btn" id="mSkip">⏩ SKIP TO END</button>
+    <button class="btn" id="mSimAll">⏭ SIM REST OF TOURNAMENT</button>
+  </div>
+  <div class="banner" id="mBanner" style="display:none"></div>
+  <div class="btns" id="mBtns"></div>
+  <div class="feed" id="mFeed"></div>
+  <div class="note" id="mAliveHead">ALIVE</div>
+  <div class="grid" id="mGrid"></div>
+  <div class="note" id="mDeadHead" style="display:none">ELIMINATED</div>
+  <div class="grid" id="mDead"></div>
+  <div id="mResult" style="display:none"></div>
+</div>
+
+<div id="standScreen" style="display:none">
+  <div class="hdr"><div><div class="kick" id="sKick">STANDINGS</div>
+    <div class="h1" id="sTitle">Standings</div></div></div>
+  <div class="snote" id="sNote"></div>
+  <div class="btns" id="sBtns"></div>
+  <div id="sBody"></div>
+</div>
+
+<div id="legendScreen" style="display:none">
+  <div class="hdr"><div><div class="kick">28 LEGENDS · 5 CLASSES</div>
+    <div class="h1">Legends &amp; Abilities</div>
+    <div class="sub">Every legend's tactical, passive and ultimate, plus the perk shared by their class.
+      Abilities feed directly into the simulation — initiation, holding ground, escaping, reviving and looting.</div></div></div>
+  <div class="btns"><button class="btn" id="lgBack">← BACK</button></div>
+  <div id="lgBody"></div>
+</div>
+
+<div id="rankScreen" style="display:none">
+  <div class="hdr"><div><div class="kick">ALL EVENTS · MINIMUM 3 MATCHES</div>
+    <div class="h1">World Ranking</div></div></div>
+  <div class="btns"><button class="btn" id="rBack">← BACK</button></div>
+  <div class="two">
+    <div><div class="note">TEAMS</div><div id="rTeams"></div></div>
+    <div><div class="note">PLAYERS</div><div id="rPlayers"></div></div>
+  </div>
+</div>
+
+</div>
+<script>
+(function(){
+"use strict";
+  const PLAYERS = [{"n": "Pearlim", "c": "Singapore"}, {"n": "Navikuun", "c": "Singapore"}, {"n": "potatodepresso", "c": "Malaysia"}, {"n": "zenn1sm", "c": "Singapore"}, {"n": "milkenut", "c": "Singapore"}, {"n": "Solaonix", "c": "Singapore"}, {"n": "TortillaRoll", "c": "Singapore"}, {"n": "Kisaragi Ren", "c": "Japan"}, {"n": "dumbo", "c": "Singapore"}, {"n": "AngelxAim", "c": "Singapore"}, {"n": "y1jingg", "c": "Singapore"}, {"n": "Sheep", "c": "Phillipines"}, {"n": "BluBEAR", "c": "Malaysia"}, {"n": "minMaXXer", "c": "Phillipines"}, {"n": "m0wmeow", "c": "Singapore"}, {"n": "Marsinss", "c": "Singapore"}, {"n": "drip", "c": "Singapore"}, {"n": "CrimsynFlames", "c": "Singapore"}, {"n": "Suzuyunn", "c": "Singapore"}, {"n": "Applezxc", "c": "Singapore"}, {"n": "EfreetsZ", "c": "Singapore"}, {"n": "Anndreika", "c": "Ukraine"}, {"n": "NipNip", "c": "Singapore"}, {"n": "awtoh", "c": "Singapore"}, {"n": "BaBaYaGa", "c": "Malaysia"}, {"n": "Chiai Fujikawa", "c": "Malaysia"}, {"n": "Sketch", "c": "Singapore"}, {"n": "balililmao", "c": "Singapore"}, {"n": "[Idiot] AngelCrutcher", "c": "Singapore"}, {"n": "mond33__", "c": "Singapore"}, {"n": "tanykeat", "c": "Singapore"}, {"n": "hikopiko_", "c": "Singapore"}, {"n": "d.chong", "c": "Singapore"}, {"n": "EviKuroneko", "c": "Singapore"}, {"n": "NekoSoji", "c": "Malaysia"}, {"n": "SanCtuary", "c": "Singapore"}, {"n": "Skyllabtw", "c": "Singapore"}, {"n": "KTenshi", "c": "Singapore"}, {"n": "Yixl", "c": "Malaysia"}, {"n": "rebellioniite", "c": "Singapore"}, {"n": "TuxedoCat", "c": "Singapore"}, {"n": "caarrietan", "c": "Singapore"}, {"n": "Moira", "c": "Singapore"}, {"n": "Hanarisu", "c": "Singapore"}, {"n": "Stylus", "c": "Singapore"}, {"n": "Tachibana Hinano", "c": "Japan"}, {"n": "Remia Aotsuki", "c": "Japan"}, {"n": "Shiranami Ramune", "c": "Japan"}, {"n": "Tsumugi Kokage", "c": "Japan"}, {"n": "Eris Suzukami", "c": "Japan"}, {"n": "plainyingying", "c": "Singapore"}, {"n": "VeniceC", "c": "Malaysia"}, {"n": "fleurcoz", "c": "Singapore"}, {"n": "lumpydayo", "c": "Singapore"}, {"n": "winda", "c": "Singapore"}, {"n": "Nutzeru", "c": "Singapore"}, {"n": "beyouna", "c": "Singapore"}, {"n": "AppleOrangePear", "c": "Singapore"}, {"n": "Volatus", "c": "Singapore"}, {"n": "l1feless", "c": "Indonesia"}, {"n": "lenette", "c": "Singapore"}, {"n": "kyyltn", "c": "Singapore"}, {"n": "Nyuii", "c": "Singapore"}, {"n": "4_naru", "c": "Singapore"}, {"n": "Baer", "c": "Singapore"}, {"n": "sneakyyyyy", "c": "Singapore"}, {"n": "azzuto", "c": "Singapore"}, {"n": "inaxho", "c": "United Kingdom"}, {"n": "kokushi_vampir", "c": "Singapore"}, {"n": "DelphoxLuna", "c": "Malaysia"}, {"n": "Ziweiv", "c": "Singapore"}, {"n": "Soozy", "c": "Malaysia"}, {"n": "haniikyu", "c": "USA"}, {"n": "Decrease", "c": "USA"}, {"n": "miorine", "c": "Singapore"}, {"n": "AltheaVT", "c": "Taiwan"}, {"n": "Zoweya", "c": "Singapore"}, {"n": "Anony", "c": "Thailand"}, {"n": "VanixEvans", "c": "Singapore"}, {"n": "airawwr", "c": "Singapore"}, {"n": "lilraxxx", "c": "Singapore"}, {"n": "notccillia", "c": "Singapore"}, {"n": "xolalotl", "c": "Singapore"}, {"n": "midorissi", "c": "Singapore"}, {"n": "emiiiyu", "c": "Australia"}, {"n": "chreyll", "c": "Singapore"}, {"n": "laavv._", "c": "Singapore"}, {"n": "LITA", "c": "Germany"}, {"n": "InfiniteBreaker", "c": "Singapore"}, {"n": "Solec", "c": "Singapore"}, {"n": "y.uuno", "c": "Singapore"}, {"n": "Eroxis", "c": "Malaysia"}, {"n": "Laburi", "c": "Singapore"}, {"n": "Spoods", "c": "Singapore"}, {"n": "kitties258", "c": "Singapore"}, {"n": "Mike", "c": "Singapore"}, {"n": "Ryker_Sterling", "c": "Singapore"}, {"n": "yerm", "c": "Malaysia"}, {"n": "xJavyz", "c": "Malaysia"}, {"n": "Xrela", "c": "Singapore"}, {"n": "Komori Met", "c": "Japan"}, {"n": "cassiopeiarawr", "c": "Australia"}, {"n": "Emily_melody", "c": "Taiwan"}, {"n": "Shinomiya Runa", "c": "Japan"}, {"n": "ShizuyaUmiko", "c": "Malaysia"}, {"n": "Hakase", "c": "Singapore"}, {"n": "Phxebe", "c": "Singapore"}, {"n": "yuuschan", "c": "Singapore"}, {"n": "cshhp", "c": "Singapore"}, {"n": "Mango", "c": "Singapore"}, {"n": "Historia", "c": "Singapore"}, {"n": "soapdax", "c": "United Kingdom"}, {"n": "siddnely", "c": "Singapore"}, {"n": "chiyoriinn", "c": "Singapore"}, {"n": "Dirfun", "c": "Singapore"}, {"n": "Elfy Mint", "c": "Singapore"}, {"n": "Illus", "c": "USA"}, {"n": "Kairi", "c": "USA"}, {"n": "declaration__", "c": "Singapore"}, {"n": "zuann_", "c": "Singapore"}, {"n": "MoonRaika", "c": "Malaysia"}, {"n": "luminichi", "c": "Singapore"}, {"n": "Meowcolmz", "c": "Singapore"}, {"n": "kkayyteeee", "c": "Singapore"}, {"n": "JWQI", "c": "Singapore"}, {"n": "Xyrolizea", "c": "Singapore"}, {"n": "urnisa_", "c": "Malaysia"}, {"n": "XueHuaVT", "c": "USA"}, {"n": "estellyy.", "c": "Singapore"}, {"n": "kn", "c": "Malaysia"}, {"n": "SashimiGoesBloop", "c": "Singapore"}, {"n": "Celtsm", "c": "Singapore"}, {"n": "Kyan", "c": "Malaysia"}, {"n": "GoddessAkane", "c": "France"}, {"n": "FeatBri", "c": "USA"}, {"n": "simply_perezoso", "c": "Singapore"}, {"n": "Ice", "c": "Singapore"}, {"n": "Resent", "c": "Singapore"}, {"n": "adrina.ii", "c": "Singapore"}, {"n": "Sayucchi", "c": "Netherlands"}, {"n": "VPLH", "c": "Singapore"}, {"n": "jenapoppins", "c": "Singapore"}, {"n": "Jeribean", "c": "Singapore"}, {"n": "Astro_Ruckus", "c": "Singapore"}, {"n": "crazywhoopies", "c": "Singapore"}, {"n": "joyyy_cheng", "c": "Singapore"}, {"n": "Seireiix", "c": "Singapore"}, {"n": "Scorpium", "c": "Malaysia"}, {"n": "lumi.nyaa", "c": "Singapore"}, {"n": "kuro_mi", "c": "Singapore"}, {"n": "Reffelexx", "c": "Malaysia"}, {"n": "ehsten", "c": "Singapore"}, {"n": "Nifela", "c": "USA"}, {"n": "AcroBlaze", "c": "Singapore"}, {"n": "yuuki_PS", "c": "Singapore"}, {"n": "koen", "c": "Malaysia"}, {"n": "CRex", "c": "Singapore"}, {"n": "ebi", "c": "Malaysia"}, {"n": "des506", "c": "Singapore"}, {"n": "treblest", "c": "Singapore"}, {"n": "caturteer", "c": "Singapore"}, {"n": "murasakibara_tsuki1", "c": "Taiwan"}, {"n": "daifuku.wu", "c": "Singapore"}, {"n": "le_pyrrhic", "c": "Singapore"}, {"n": "TiF2", "c": "Singapore"}, {"n": "capplecrow", "c": "Singapore"}, {"n": "skysbeautylai", "c": "Singapore"}, {"n": "matcha", "c": "Australia"}, {"n": "Wellson111", "c": "Singapore"}, {"n": "Asterisks", "c": "Singapore"}, {"n": "Uzuhii", "c": "Phillipines"}, {"n": "jaelyo", "c": "Singapore"}, {"n": "Leveti", "c": "Singapore"}, {"n": "zhiweiingg", "c": "Singapore"}, {"n": "rc_ia", "c": "Singapore"}, {"n": "Niito", "c": "Singapore"}, {"n": "jhjj80", "c": "Singapore"}, {"n": "HeyImKaiWen", "c": "Singapore"}, {"n": "pashionfruit18", "c": "Singapore"}, {"n": "S.GT", "c": "Singapore"}, {"n": "SkuxxNinja44", "c": "New Zealand"}, {"n": "OchakoKiyomi", "c": "Singapore"}, {"n": "carv", "c": "Malaysia"}, {"n": "teckiyo", "c": "Singapore"}, {"n": "nicsman", "c": "Malaysia"}, {"n": "gigichiii_", "c": "Australia"}, {"n": "mmirawr_", "c": "Malaysia"}, {"n": "YoJareddo", "c": "USA"}, {"n": "yunaeyomedia", "c": "USA"}, {"n": "bluenerd8", "c": "Singapore"}, {"n": "Rethnap", "c": "Singapore"}, {"n": "luciddoob", "c": "Singapore"}, {"n": "Redandb1ue", "c": "Singapore"}, {"n": "Nikorasu", "c": "Malaysia"}, {"n": "mominichi", "c": "Singapore"}, {"n": "nattyuwus", "c": "Singapore"}, {"n": "Kai", "c": "Singapore"}, {"n": "MugCowPayLucky", "c": "Singapore"}, {"n": "kael", "c": "Malaysia"}, {"n": "Acryii_", "c": "Singapore"}, {"n": "_kellyxleox_", "c": "Malaysia"}, {"n": "Sakami", "c": "Singapore"}, {"n": "Joshiwahhh", "c": "Singapore"}, {"n": "WO4TK", "c": "Singapore"}, {"n": "dudriduo_", "c": "Singapore"}, {"n": "tapiyokaaa", "c": "Singapore"}, {"n": "StrigidaeVT", "c": "Singapore"}, {"n": "TokieShepherdVT", "c": "USA"}, {"n": "Cursiffe", "c": "Australia"}, {"n": "88EXP", "c": "Australia"}, {"n": "TearsofDeath", "c": "Singapore"}, {"n": "okjustsmd", "c": "Singapore"}, {"n": "EXaCT", "c": "Singapore"}, {"n": "Luneforrune", "c": "Singapore"}, {"n": "Laurel", "c": "Phillipines"}, {"n": "AyanOwOT", "c": "Malaysia"}, {"n": "Dianya", "c": "USA"}, {"n": "thehidz", "c": "Singapore"}, {"n": "bodexx", "c": "Singapore"}, {"n": "Karasu", "c": "Malaysia"}, {"n": "TRPaki", "c": "Singapore"}, {"n": "Nightveil Lycoris", "c": "Malaysia"}, {"n": "ProPHOcy_", "c": "USA"}, {"n": "Kaga Nazuna", "c": "Japan"}, {"n": "Sendo Yuuhi", "c": "Japan"}, {"n": "Ichinose Uruha", "c": "Japan"}, {"n": "Aizawa Ema", "c": "Japan"}, {"n": "yinnzx", "c": "Singapore"}, {"n": "Hyvred", "c": "Singapore"}, {"n": "TiniiBee", "c": "Australia"}, {"n": "Juno Umezono", "c": "Japan"}, {"n": "Aleaka", "c": "United Kingdom"}, {"n": "FumishiroYummy", "c": "Japan"}, {"n": "Hanabusa Lisa", "c": "Japan"}, {"n": "YinghuVT", "c": "Singapore"}, {"n": "Yumeno Akari", "c": "Japan"}, {"n": "LeilaMayadah", "c": "Canada"}, {"n": "KrinoJ", "c": "Singapore"}, {"n": "Kaminari Qpi", "c": "Japan"}, {"n": "twentyrosie", "c": "Singapore"}, {"n": "Narin Mikure", "c": "Korea"}, {"n": "Choya Hanabi", "c": "Japan"}, {"n": "Jasticar", "c": "Singapore"}, {"n": "akuluvr", "c": "Singapore"}, {"n": "Kamito", "c": "Japan"}, {"n": "Hamzyy", "c": "Singapore"}, {"n": "Nataleste", "c": "Singapore"}, {"n": "djsalty_", "c": "Singapore"}, {"n": "kimmixd", "c": "Malaysia"}, {"n": "itswendy_", "c": "Singapore"}, {"n": "Niamocha", "c": "Canada"}, {"n": "Tigeraxd", "c": "Australia"}, {"n": "L2Strike", "c": "Singapore"}, {"n": "Just_Ansel", "c": "Malaysia"}, {"n": "RumiRumi", "c": "Singapore"}, {"n": "Aweberry", "c": "Singapore"}, {"n": "Loonatic", "c": "Malaysia"}, {"n": "Nerfox", "c": "Poland"}, {"n": "RaviasEir", "c": "Singapore"}, {"n": "Skiazelle", "c": "Singapore"}, {"n": "Asumi Sena", "c": "Japan"}, {"n": "Kogara Toto", "c": "Japan"}, {"n": "kaikaijins", "c": "Singapore"}, {"n": "voxslefthorn", "c": "USA"}, {"n": "JigglyPingu", "c": "Singapore"}, {"n": "boopydoopy", "c": "Singapore"}, {"n": "SachiMizora", "c": "Australia"}, {"n": "keikatamori", "c": "Australia"}, {"n": "Nekota Tsuna", "c": "Korea"}, {"n": "Syrrith", "c": "Singapore"}, {"n": "Ginjo Saine", "c": "Japan"}, {"n": "sURF", "c": "Singapore"}, {"n": "rittan0x0", "c": "Malaysia"}, {"n": "kimonra", "c": "Singapore"}, {"n": "Kurumi Noah", "c": "Japan"}, {"n": "ruamamiya", "c": "Singapore"}, {"n": "swoopsy", "c": "Singapore"}, {"n": "wushii", "c": "Malaysia"}, {"n": "rach.elx_", "c": "Singapore"}, {"n": "Kyu", "c": "Singapore"}, {"n": "Vyphogrid", "c": "Phillipines"}, {"n": "briant", "c": "Singapore"}, {"n": "Yaekia", "c": "Australia"}, {"n": "CryingNutz", "c": "Malaysia"}, {"n": "ErineRurie", "c": "Malaysia"}, {"n": "pastellows", "c": "USA"}, {"n": "kanarivt", "c": "Singapore"}, {"n": "HakoP", "c": "Taiwan"}, {"n": "emmabutnormal", "c": "USA"}, {"n": "MizukiiMoon", "c": "Italy"}, {"n": "KurmitSuicidal", "c": "Singapore"}, {"n": "Kaito_Oshino", "c": "Australia"}, {"n": "Xyrren", "c": "Singapore"}, {"n": "XueQiii", "c": "Singapore"}, {"n": "tiger.lark", "c": "Singapore"}, {"n": "UtsuhoNull", "c": "Singapore"}, {"n": "JStarWolf", "c": "Singapore"}, {"n": "MKakili", "c": "Australia"}, {"n": "VSSMB", "c": "Singapore"}, {"n": "Michimouto", "c": "Singapore"}, {"n": "JustYoong", "c": "Singapore"}, {"n": "Jira Jisaki", "c": "USA"}, {"n": "Yakumo Beni", "c": "Japan"}, {"n": "leachubby", "c": "Singapore"}, {"n": "anju_o", "c": "Phillipines"}, {"n": "Airizu", "c": "Austria"}, {"n": "PSYSTRA", "c": "United Kingdom"}, {"n": "SoapiiSereia", "c": "New Zealand"}, {"n": "cwstalVT", "c": "USA"}, {"n": "bloodbane", "c": "Australia"}, {"n": "moricorovt", "c": "USA"}, {"n": "Pattsuu", "c": "Canada"}, {"n": "Arya Kuroha", "c": "USA"}, {"n": "ItzMaigo", "c": "Singapore"}, {"n": "stitchkyui", "c": "USA"}, {"n": "Shuvimo", "c": "Japan"}, {"n": "nyxcatto", "c": "Singapore"}, {"n": "kenzieyii", "c": "Singapore"}, {"n": "PenguChi", "c": "Phillipines"}, {"n": "HiguVT", "c": "Australia"}, {"n": "rattecs", "c": "Finland"}, {"n": "afayctionate", "c": "Singapore"}, {"n": "Amayui Moka", "c": "Japan"}, {"n": "Yarimell", "c": "Malaysia"}, {"n": "Jenakai", "c": "Singapore"}, {"n": "zhizyii", "c": "Singapore"}, {"n": "Kaga Sumire", "c": "Japan"}, {"n": "Tatsumaki Chise", "c": "Japan"}, {"n": "Riko Solari", "c": "Belgium"}, {"n": "Spinafex", "c": "Australia"}, {"n": "Dazeido", "c": "Indonesia"}, {"n": "Ryujin", "c": "Malaysia"}, {"n": "StrandedPond", "c": "Malaysia"}, {"n": "Karoni", "c": "Poland"}, {"n": "vixi", "c": "Australia"}, {"n": "dla.wo", "c": "Singapore"}, {"n": "Kojadayo", "c": "Iceland"}, {"n": "shirou_kitakami", "c": "USA"}, {"n": "Bajiru_EN", "c": "USA"}, {"n": "xmeijixx", "c": "Singapore"}, {"n": "ssseiso", "c": "Australia"}, {"n": "Yano Kuromu", "c": "Japan"}, {"n": "NOTORIOUS47", "c": "Malaysia"}, {"n": "voidnw", "c": "USA"}, {"n": "itswinter__", "c": "USA"}, {"n": "_froggiee", "c": "Australia"}, {"n": "kyomikoo", "c": "Singapore"}, {"n": "AkanersVT", "c": "Singapore"}, {"n": "KiokoCheiko", "c": "Phillipines"}, {"n": "Xevaria", "c": "Malaysia"}, {"n": "cherri_vt", "c": "Australia"}, {"n": "MilliannaVT", "c": "Netherlands"}, {"n": "Zarlard", "c": "Sweden"}, {"n": "yukihimeowo", "c": "USA"}, {"n": "AuraSinVT", "c": "USA"}, {"n": "KydaSana", "c": "Singapore"}, {"n": "scorn", "c": "Singapore"}, {"n": "MiyaLeile", "c": "Netherlands"}, {"n": "Hanyachi", "c": "Germany"}, {"n": "qebo", "c": "Malaysia"}, {"n": "Codiant", "c": "Kazakhstan"}, {"n": "candybar_isblue", "c": "Singapore"}, {"n": "ostc.x", "c": "Singapore"}, {"n": "arcimoon", "c": "Canada"}, {"n": "yumezukiyomi", "c": "Singapore"}, {"n": "miruaamaochi", "c": "Japan"}, {"n": "iceenblue", "c": "USA"}, {"n": "xaeela", "c": "Singapore"}, {"n": "aoi_chibi", "c": "Australia"}, {"n": "sayupurin", "c": "Hong Kong"}, {"n": "CodedEcho", "c": "Singapore"}, {"n": "sengjung123", "c": "Singapore"}, {"n": "haze_vt", "c": "Canada"}, {"n": "AnjuValse", "c": "USA"}, {"n": "SeaEmV", "c": "Phillipines"}, {"n": "Miki Nakai", "c": "Japan"}, {"n": "y0xie", "c": "USA"}, {"n": "AkiraTsukiyono", "c": "Japan"}, {"n": "RIHSURI", "c": "USA"}, {"n": "sakistars", "c": "Singapore"}];
+  const PLAYER_INDEX = {};
+  PLAYERS.forEach(function(p){ PLAYER_INDEX[p.n] = p; });
+
+  const LEGEND_DATA = [{"n": "Bangalore", "c": "Assault", "t": "Smoke Launcher", "p": "Double Time", "u": "Rolling Thunder", "fx": {"escape": 0.1, "disengage": 0.12}}, {"n": "Fuse", "c": "Assault", "t": "Knuckle Cluster", "p": "Grenadier", "u": "The Motherlode", "fx": {"fight": 1.2, "breakHold": 0.14}}, {"n": "Ash", "c": "Assault", "t": "Arc Snare", "p": "Predator's Pursuit", "u": "Phase Breach", "fx": {"initiate": 0.1, "antiEscape": 0.16}}, {"n": "Mad Maggie", "c": "Assault", "t": "Riot Drill", "p": "Warlord's Ire", "u": "Wrecking Ball", "fx": {"breakHold": 0.18, "fight": 0.9}}, {"n": "Ballistic", "c": "Assault", "t": "Whistler", "p": "Sling", "u": "Tempest", "fx": {"fight": 0.8, "sling": 1}}, {"n": "Caustic", "c": "Controller", "t": "Nox Gas Trap", "p": "Nox Vision", "u": "Nox Gas Grenade", "fx": {"hold": 1.9, "antiPush": 0.16}}, {"n": "Wattson", "c": "Controller", "t": "Perimeter Security", "p": "Spark of Genius", "u": "Interception Pylon", "fx": {"hold": 1.4, "thirdPartyResist": 0.2}}, {"n": "Rampart", "c": "Controller", "t": "Amped Cover", "p": "Battle Modder", "u": "Emplaced Minigun “Sheila”", "fx": {"hold": 1.7, "fight": 0.8}}, {"n": "Catalyst", "c": "Controller", "t": "Piercing Spikes", "p": "Barricade", "u": "Dark Veil", "fx": {"hold": 1.5, "ringResist": 0.1, "antiPush": 0.12}}, {"n": "Bloodhound", "c": "Recon", "t": "Eye of the Allfather", "p": "Tracker", "u": "Beast of the Hunt", "fx": {"initiate": 0.16, "fight": 0.7}}, {"n": "Crypto", "c": "Recon", "t": "Surveillance Drone", "p": "Neurolink", "u": "Drone EMP", "fx": {"initiate": 0.14, "shieldStrip": 0.18}}, {"n": "Valkyrie", "c": "Recon", "t": "Missile Swarm", "p": "VTOL Jets", "u": "Skyward Dive", "fx": {"rotate": 0.2, "ringResist": 0.16, "escape": 0.1}}, {"n": "Seer", "c": "Recon", "t": "Focus of Attention", "p": "Heart Seeker", "u": "Exhibit", "fx": {"initiate": 0.12, "finishLow": 0.16}}, {"n": "Vantage", "c": "Recon", "t": "Echo Relocation", "p": "Spotter's Lens", "u": "Sniper's Mark", "fx": {"markDamage": 0.16, "initiate": 0.08}}, {"n": "Sparrow", "c": "Recon", "t": "Tracker Dart", "p": "Double Jump", "u": "Stinger Bolt", "fx": {"initiate": 0.12, "breakHold": 0.1, "rotate": 0.08}}, {"n": "Octane", "c": "Skirmisher", "t": "Stim", "p": "Swift Mend", "u": "Launch Pad", "fx": {"escape": 0.16, "selfHeal": 0.18, "rotate": 0.1}}, {"n": "Pathfinder", "c": "Skirmisher", "t": "Grappling Hook", "p": "Insider Knowledge", "u": "Zipline Gun", "fx": {"rotate": 0.18, "escape": 0.12}}, {"n": "Wraith", "c": "Skirmisher", "t": "Into the Void", "p": "Voices from the Void", "u": "Dimensional Rift", "fx": {"escape": 0.24, "teamEscape": 0.14}}, {"n": "Revenant", "c": "Skirmisher", "t": "Shadow Pounce", "p": "Assassin's Instinct", "u": "Forged Shadows", "fx": {"initiate": 0.14, "fight": 1.3, "finishLow": 0.12}}, {"n": "Horizon", "c": "Skirmisher", "t": "Gravity Lift", "p": "Spacewalk", "u": "Black Hole", "fx": {"fight": 1.0, "initiate": 0.1, "breakHold": 0.1}}, {"n": "Alter", "c": "Skirmisher", "t": "Void Passage", "p": "Gift from the Rift", "u": "Void Nexus", "fx": {"initiate": 0.12, "teamEscape": 0.16, "loot": 0.1}}, {"n": "Axle", "c": "Skirmisher", "t": "Nitro Gate", "p": "Drift", "u": "Kickstart", "fx": {"rotate": 0.22, "escape": 0.14, "initiate": 0.06}}, {"n": "Gibraltar", "c": "Support", "t": "Dome of Protection", "p": "Gun Shield", "u": "Defensive Bombardment", "fx": {"revive": 0.2, "damageResist": 0.14, "hold": 0.8}}, {"n": "Lifeline", "c": "Support", "t": "D.O.C Heal Drone", "p": "Combat Medic", "u": "D.O.C Halo", "fx": {"revive": 0.26, "heal": 0.22}}, {"n": "Mirage", "c": "Support", "t": "Psyche Out", "p": "Now You See Me", "u": "Life of the Party", "fx": {"revive": 0.16, "escape": 0.14}}, {"n": "Loba", "c": "Support", "t": "Burglar's Best Friend", "p": "Eye for Quality", "u": "Black Market Boutique", "fx": {"loot": 0.24, "escape": 0.1}}, {"n": "Newcastle", "c": "Support", "t": "Mobile Shield", "p": "Retrieve the Wounded", "u": "Castle Wall", "fx": {"revive": 0.24, "hold": 1.0, "damageResist": 0.1}}, {"n": "Conduit", "c": "Support", "t": "Radiant Transfer", "p": "Savior's Speed", "u": "Energy Barricade", "fx": {"teamShield": 0.2, "hold": 0.7}}];
+  const CLASS_PERKS = {"Assault": {"perk": "Extra ammo per stack, extra ordnance slots, faster weapon swap, and a reload/move speed boost on breaking a shield. Opens the hidden compartment in Weapon Supply Bins.", "fx": {"fight": 0.6, "breakHold": 0.05}}, "Controller": {"perk": "Ring Consoles reveal the next Ring. +25 shield overcharge while inside the Ring. Can remotely retrieve placed traps.", "fx": {"hold": 0.7, "shieldOvercharge": 25}}, "Recon": {"perk": "Survey Beacon scans are faster, don't reveal your position, and expose enemies three times per scan. Threat vision while aiming down sights.", "fx": {"initiate": 0.08, "thirdPartyResist": 0.08}}, "Skirmisher": {"perk": "Spot the contents of incoming Care Packages. Faster movement while using consumables, and allies move faster toward you.", "fx": {"loot": 0.14, "escape": 0.06, "rotate": 0.06}}, "Support": {"perk": "Craft ally banners at Replicators, faster revives and healing, Mobile Respawn Beacons in ally death boxes, and extra loot from Extended Supply Bins.", "fx": {"revive": 0.08, "respawn": 0.1, "heal": 0.1}}};
+  const NAMED_TEAMS = [{"n": "BeeHyve", "t": "BEE", "r": ["Hyvred", "TiniiBee", "TokieShepherdVT"]}, {"n": "Eiromancers", "t": "EIR", "r": ["Skiazelle", "RaviasEir", "kanarivt"]}, {"n": "Syzygy", "t": "SYZ", "r": null}, {"n": "Aimpunch", "t": "AIM", "r": ["Sketch", "AcroBlaze", "[Idiot] AngelCrutcher"]}, {"n": "Infernum E-Sports", "t": "IE", "r": null}, {"n": "Lemon Tree", "t": "LT", "r": null}, {"n": "Artisian", "t": "ART", "r": null}, {"n": "Opal", "t": "OPA", "r": null}, {"n": "Unforgettable", "t": "UNF", "r": null}, {"n": "Neverland", "t": "NEV", "r": ["Ice", "Sayucchi", "AnjuValse"]}, {"n": "Divide&Conquer", "t": "DIV", "r": null}, {"n": "Bluebird", "t": "BLU", "r": null}, {"n": "Kiedz", "t": "KIE", "r": null}, {"n": "The Gigarage", "t": "TG", "r": null}, {"n": "New Jade", "t": "NJ", "r": null}, {"n": "Cosmos", "t": "COS", "r": null}, {"n": "degree", "t": "DEG", "r": null}, {"n": "Setting Sun", "t": "SS", "r": null}, {"n": "0v3", "t": "0V3", "r": null}, {"n": "99Lives", "t": "99L", "r": null}, {"n": "The Nomads", "t": "TN", "r": ["ItzMaigo", "keikatamori", "inaxho"]}, {"n": "Masmark", "t": "MAS", "r": ["Xyrolizea", "TiF2", "xolalotl"]}, {"n": "Aetherline", "t": "AET", "r": null}, {"n": "entity", "t": "ENT", "r": null}, {"n": "Ukiyo", "t": "UKI", "r": null}, {"n": "Alcheministry", "t": "ALC", "r": null}, {"n": "Aeternum", "t": "AETE", "r": ["Suzuyunn", "Nikorasu", "OchakoKiyomi"]}, {"n": "DiamondOnes", "t": "DIA", "r": null}, {"n": "Cyanide", "t": "CYA", "r": null}, {"n": "Fruit Basket", "t": "FB", "r": null}, {"n": "Sacred Raven", "t": "SR", "r": null}, {"n": "Flood Flashers", "t": "FF", "r": null}, {"n": "PepegaX", "t": "PEP", "r": null}, {"n": "Aspire", "t": "ASP", "r": ["Hanarisu", "YoJareddo", "ProPHOcy_"]}, {"n": "xPlosiv", "t": "XPL", "r": null}, {"n": "Team Neverseen", "t": "TEA", "r": null}, {"n": "Moonlit Tempo", "t": "MT", "r": null}, {"n": "Technomancy", "t": "TEC", "r": null}, {"n": "Caelum Scala", "t": "CS", "r": null}, {"n": "5PERCENT", "t": "5PE", "r": null}, {"n": "Bloom E-Sports", "t": "BE", "r": null}, {"n": "Round Loss Bonus", "t": "RLB", "r": null}, {"n": "Raven Song", "t": "RS", "r": null}, {"n": "division20", "t": "DIVI", "r": null}, {"n": "Astral Bloom", "t": "AB", "r": ["Tachibana Hinano", "Nekota Tsuna", "Kaminari Qpi"]}];
+  /* ===================== REFERENCE DATA ===================== */
+  const LEGENDS = {};
+  const LEGEND_FX = {};
+  LEGEND_DATA.forEach(function(L){ LEGENDS[L.n] = L.c; LEGEND_FX[L.n] = L.fx; });
+  function legendInfo(n){ return LEGEND_DATA.find(function(L){ return L.n===n; }) || null; }
+  const LEGEND_NAMES = Object.keys(LEGENDS);
+  const CLASS_CODE = {'Assault':'as','Skirmisher':'sk','Recon':'rc','Support':'sp','Controller':'ct'};
+
+  // cls: what the gun is for. base: raw strength before the meta moves it.
+  const WEAPONS = {
+    'R-301':{cls:'AR',base:7}, 'Flatline':{cls:'AR',base:7}, 'HAVOC':{cls:'AR',base:6},
+    'Hemlok':{cls:'AR',base:6}, 'Nemesis':{cls:'AR',base:7},
+    'R-99':{cls:'SMG',base:7}, 'Volt':{cls:'SMG',base:6}, 'Alternator':{cls:'SMG',base:6},
+    'Prowler':{cls:'SMG',base:6}, 'CAR':{cls:'SMG',base:7},
+    'Wingman':{cls:'Pistol',base:6}, 'RE-45':{cls:'Pistol',base:4}, 'P2020':{cls:'Pistol',base:3},
+    'Peacekeeper':{cls:'Shotgun',base:7}, 'Mastiff':{cls:'Shotgun',base:6}, 'EVA-8':{cls:'Shotgun',base:5},
+    'Mozambique':{cls:'Shotgun',base:3},
+    'Longbow':{cls:'Sniper',base:5}, 'Charge Rifle':{cls:'Sniper',base:5}, 'Sentinel':{cls:'Sniper',base:5},
+    'Triple Take':{cls:'Sniper',base:5},
+    'Rampage':{cls:'LMG',base:6}, 'Devotion':{cls:'LMG',base:7}, 'L-STAR':{cls:'LMG',base:5},
+    'Spitfire':{cls:'LMG',base:6},
+    '30-30':{cls:'Marksman',base:5}, 'Bocek':{cls:'Marksman',base:5}
+  };
+  const WEAPON_NAMES = Object.keys(WEAPONS);
+  // Red weapons. Kraber is always in the package; two others rotate in each
+  // patch and are pulled out of floor loot while they're there, same as live.
+  const CARE_WEAPONS = {
+    'Kraber':{cls:'Sniper',base:11}, 'Devotion':{cls:'LMG',base:10},
+    'Prowler':{cls:'SMG',base:10}, 'Triple Take':{cls:'Sniper',base:9},
+    'Bocek':{cls:'Marksman',base:9}, 'Hemlok':{cls:'AR',base:9}, 'Volt':{cls:'SMG',base:10}
+  };
+  const CARE_ROTATION = ['Devotion','Prowler','Triple Take','Bocek','Hemlok','Volt'];
+  function careList(){ return ['Kraber'].concat(meta.care || ['Devotion','Prowler']); }
+  function isCareWeapon(g){ return careList().indexOf(g) !== -1; }
+  const MAPS = ['World\u2019s Edge','Storm Point','E-District','Broken Moon'];
+
+  const PLACEMENT_PTS = [0,12,9,7,5,4,3,3,2,2,2,1,1,1,1,1,0,0,0,0,0];  // index = finishing place
+  function placementPoints(place){ return PLACEMENT_PTS[place] || 0; }
+
+  /* ===================== DETERMINISTIC PLAYER ATTRIBUTES ===================== */
+  function hashStr(s){
+    let h = 2166136261;
+    for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h>>>0;
+  }
+  function rngFrom(seedStr){
+    let s = hashStr(seedStr) || 1;
+    return function(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  // Skill is name-derived and permanent: most players cluster mid, a few are elite.
+  const SKILL_TABLE = (function(){
+    const w = [[70,4],[73,7],[76,11],[79,14],[82,16],[85,15],[88,12],[91,10],[94,7],[97,4]];
+    const t = []; w.forEach(function(e){ for (let i=0;i<e[1];i++) t.push(e[0]); });
+    return t;
+  })();
+  function skillOf(name){
+    const base = SKILL_TABLE[hashStr('skill:'+name) % SKILL_TABLE.length];
+    return Math.max(60, Math.min(99, base + (hashStr('sk2:'+name) % 3) - 1));
+  }
+  /* ---- Movement ---- */
+  // A handful of players have genuinely broken movement. Tier 1 have solid
+  // fundamentals; tier 2 are the ones who chain frame-perfect tech.
+  const MOVE_TECHS = {
+    1: ['Slide jumping','Wall bounce','Air strafe','Mantle boost','Edge slide'],
+    2: ['Superglide','Tap strafe','Lurch strafe (Ras)','Lurch strafe (Yuki)',
+        'Wall bounce','Mantle jump','Zipline tech','Bunny hop']
+  };
+  const MOVE_FX = {
+    0: {},
+    1: {escape:0.15, rotate:0.11, fight:3.0},
+    2: {escape:0.32, rotate:0.20, fight:7.0, damageResist:0.15}
+  };
+  function movementTier(name){
+    const h = hashStr('move:'+name) % 1000;
+    if (h < 20) return 2;    // ~2% of the pool
+    if (h < 85) return 1;    // ~6.5%
+    return 0;
+  }
+  function movementKit(name){
+    const tier = movementTier(name);
+    if (!tier) return [];
+    const pool = MOVE_TECHS[tier];
+    const rnd = rngFrom('mvkit:'+name);
+    const n = tier===2 ? 4 : 2;
+    const out = [];
+    const copy = pool.slice();
+    for (let i=0;i<n && copy.length;i++) out.push(copy.splice(Math.floor(rnd()*copy.length),1)[0]);
+    return out;
+  }
+  function favLegendOf(name){ return LEGEND_NAMES[hashStr('legend:'+name) % LEGEND_NAMES.length]; }
+  function favGunOf(name){ return WEAPON_NAMES[hashStr('gun:'+name) % WEAPON_NAMES.length]; }
+  function nationOf(name){ const p = PLAYER_INDEX[name]; return p ? p.c : ''; }
+
+  /* ===================== META ===================== */
+  // Buffs and nerfs shift which picks are strong. Players keep their main forever
+  // but re-pick their two backups to chase whatever is currently good.
+  let meta = {season:1, legendUp:[], legendDown:[], gunUp:[], gunDown:[], care:['Devotion','Prowler']};
+  function metaLegendMod(l){
+    if (meta.legendUp.indexOf(l)!==-1) return 1.6;
+    if (meta.legendDown.indexOf(l)!==-1) return -1.6;
+    return 0;
+  }
+  function metaGunMod(g){
+    if (meta.gunUp.indexOf(g)!==-1) return 1.4;
+    if (meta.gunDown.indexOf(g)!==-1) return -1.4;
+    return 0;
+  }
+  function pickSome(arr, n, rnd){
+    const a = arr.slice(), out = [];
+    for (let i=0;i<n && a.length;i++) out.push(a.splice(Math.floor((rnd?rnd():Math.random())*a.length),1)[0]);
+    return out;
+  }
+  function rollMeta(){
+    meta.season += 1;
+    meta.legendUp   = pickSome(LEGEND_NAMES, 4);
+    meta.legendDown = pickSome(LEGEND_NAMES.filter(function(l){ return meta.legendUp.indexOf(l)===-1; }), 4);
+    meta.gunUp      = pickSome(WEAPON_NAMES, 4);
+    meta.gunDown    = pickSome(WEAPON_NAMES.filter(function(g){ return meta.gunUp.indexOf(g)===-1; }), 4);
+    meta.care       = pickSome(CARE_ROTATION, 2);   // Kraber plus two rotating
+    // Everyone re-evaluates their backups against the new patch.
+    Object.keys(ROSTER_CACHE).forEach(function(k){ delete ROSTER_CACHE[k]; });
+    save();
+  }
+  // Backups follow the meta: prefer buffed legends, avoid nerfed ones.
+  const ROSTER_CACHE = {};
+  function backupLegendsOf(name){
+    const key = name+'|'+meta.season;
+    if (ROSTER_CACHE[key]) return ROSTER_CACHE[key];
+    const fav = favLegendOf(name);
+    const rnd = rngFrom('backup:'+name+':'+meta.season);
+    const pool = LEGEND_NAMES.filter(function(l){ return l!==fav && meta.legendDown.indexOf(l)===-1; });
+    const buffed = pool.filter(function(l){ return meta.legendUp.indexOf(l)!==-1; });
+    const rest = pool.filter(function(l){ return meta.legendUp.indexOf(l)===-1; });
+    const out = [];
+    if (buffed.length) out.push(buffed[Math.floor(rnd()*buffed.length)]);
+    while (out.length < 2 && rest.length){
+      const c = rest.splice(Math.floor(rnd()*rest.length),1)[0];
+      if (out.indexOf(c)===-1) out.push(c);
+    }
+    ROSTER_CACHE[key] = out;
+    return out;
+  }
+  // The legend actually played: main if it's not being punished, else the best backup.
+  function activeLegend(name){
+    const fav = favLegendOf(name);
+    if (meta.legendDown.indexOf(fav)===-1) return fav;
+    const b = backupLegendsOf(name);
+    return b[0] || fav;
+  }
+  // A full loadout: two weapons, picked to cover different ranges. Ballistic
+  // adds a third in his sling, which his ultimate upgrades to gold.
+  function activeGuns(name){
+    const rnd = rngFrom('loadout:'+name+':'+meta.season);
+    const primary = activeGun(name);
+    const pcls = (WEAPONS[primary]||{}).cls;
+    const floor = WEAPON_NAMES.filter(function(g){
+      return g!==primary && !isCareWeapon(g) && meta.gunDown.indexOf(g)===-1;
+    });
+    // Prefer something in a different class so the pairing makes sense.
+    const other = floor.filter(function(g){ return WEAPONS[g].cls !== pcls; });
+    const pool = other.length ? other : floor;
+    const secondary = pool.length ? pool[Math.floor(rnd()*pool.length)] : primary;
+    return [primary, secondary];
+  }
+  // Loadout follows the meta too — a nerfed favourite gets shelved.
+  function activeGun(name){
+    const fav = favGunOf(name);
+    // If their main is in the care package this patch, it isn't on the floor.
+    if (isCareWeapon(fav)){
+      const rnd0 = rngFrom('carealt:'+name+':'+meta.season);
+      const floor = WEAPON_NAMES.filter(function(g){ return !isCareWeapon(g) && meta.gunDown.indexOf(g)===-1; });
+      if (floor.length) return floor[Math.floor(rnd0()*floor.length)];
+    }
+    if (meta.gunDown.indexOf(fav)===-1) return fav;
+    const rnd = rngFrom('gunswap:'+name+':'+meta.season);
+    const up = meta.gunUp.slice();
+    if (up.length) return up[Math.floor(rnd()*up.length)];
+    return fav;
+  }
+
+  /* ===================== TEAM BUILDING ===================== */
+  const TEAM_WORDS_A = ['Vermilion','Sable','Nine','Aurora','Harbour','Static','Kings','Riptide','Bonfire',
+    'Cobalt','Iron','Wayfarer','Nightfall','Solstice','Grid','Ember','Vantage','Halcyon','Drift','Last',
+    'Crimson','Onyx','Pale','Vector','Zenith','Ashen','Gilded','Hollow','Ivory','Jade','Kestrel','Lunar',
+    'Mercury','Nomad','Obsidian','Phantom','Quarry','Rogue','Sanction','Tempest','Umbra','Verdant','Wither',
+    'Xenon','Yonder','Zephyr','Anvil','Basalt','Cinder','Dusk'];
+  const TEAM_WORDS_B = ['Collective','Syndicate','Division','Company','Order','Union','Pact','Front','Guard',
+    'Legion','Reign','Rift','Void','Vanguard','Circuit','Dynasty','Echo','Faction','Gambit','Horizon',
+    'Initiative','Junction','Kinetic','Lineage','Momentum','Nexus','Outfit','Protocol','Quorum','Reserve'];
+  const TEAM_SOLOS = ['Backdraft','Coldfront','Deadlift','Endgame','Freefall','Gravewell','Highwire',
+    'Ironclad','Jetstream','Knockout','Landslide','Moonshot','Nightshade','Overclock','Powderkeg',
+    'Quicksand','Redline','Shockwave','Threshold','Undertow','Vertigo','Warpath','Yardline','Zerohour'];
+  function makeTeamName(rnd){
+    const r = rnd();
+    if (r < 0.42) return TEAM_WORDS_A[Math.floor(rnd()*TEAM_WORDS_A.length)] + ' ' +
+                          TEAM_WORDS_B[Math.floor(rnd()*TEAM_WORDS_B.length)];
+    if (r < 0.72) return TEAM_SOLOS[Math.floor(rnd()*TEAM_SOLOS.length)];
+    return TEAM_WORDS_A[Math.floor(rnd()*TEAM_WORDS_A.length)] + ' ' +
+           TEAM_SOLOS[Math.floor(rnd()*TEAM_SOLOS.length)];
+  }
+  function makeTag(name, taken){
+    const words = name.replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean);
+    const opts = words.length>=2
+      ? [words.map(function(w){return w[0];}).join(''), words[0].slice(0,3), words[0].slice(0,2)+words[1][0]]
+      : [words[0].slice(0,3), words[0].slice(0,4), words[0].replace(/[aeiou]/gi,'').slice(0,3)];
+    for (let i=0;i<opts.length;i++){
+      const t = String(opts[i]||'').toUpperCase();
+      if (t.length>=2 && !taken[t]){ taken[t]=true; return t; }
+    }
+    let base = String(opts[0]||'TM').toUpperCase();
+    for (let i=2;i<40;i++){ const t = base.slice(0,3)+i; if (!taken[t]){ taken[t]=true; return t; } }
+    return base;
+  }
+  // Procedural emblem, deterministic from the team name.
+  const EMB_PAL = [['#e8452c','#3a1512'],['#ff9f43','#3d2a10'],['#4ade80','#123c2a'],['#5aa9f0','#152b3f'],
+                   ['#b9a6ff','#2a1f45'],['#ffc145','#3a3010'],['#4bc9c0','#123634'],['#ff7fa8','#3d1a26']];
+  function emblemFor(name, tag){
+    const rnd = rngFrom('emb:'+name);
+    const pal = EMB_PAL[Math.floor(rnd()*EMB_PAL.length)];
+    const kind = Math.floor(rnd()*4);
+    const shape = [
+      '<polygon points="32,3 60,17 60,47 32,61 4,47 4,17"/>',
+      '<path d="M32 4 L58 14 V36 C58 50 46 58 32 61 C18 58 6 50 6 36 V14 Z"/>',
+      '<rect x="7" y="7" width="50" height="50" rx="10"/>',
+      '<polygon points="32,3 61,32 32,61 3,32"/>'
+    ][kind];
+    const mono = (tag||name).slice(0,3).toUpperCase();
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">' +
+      '<g fill="'+pal[1]+'" stroke="'+pal[0]+'" stroke-width="3">'+shape+'</g>' +
+      '<text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" ' +
+      'font-weight="bold" font-size="'+(mono.length>=3?18:23)+'" fill="'+pal[0]+'">'+mono+'</text></svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  // The real team list. A team with a locked roster always fields those three;
+  // the rest pick up whoever is available.
+  function namedTeamPool(){
+    const usedTeams = {};
+    world.permanent.forEach(function(o){ usedTeams[o.name] = true; });
+    return NAMED_TEAMS.filter(function(t){ return !usedTeams[t.n]; });
+  }
+  function makePlayerObj(name){
+    const guns = activeGuns(name);
+    return {name:name, skill:skillOf(name), legend:activeLegend(name),
+            gun:guns[0], guns:guns, nation:nationOf(name), igl:false,
+            move:movementTier(name), techs:movementKit(name)};
+  }
+  function buildTeam(names, teamName, tag){
+    // No two players on a squad run the same legend. First pick wins their main;
+    // anyone clashing drops to a backup, preferring something the patch likes.
+    const taken = {};
+    const roster = names.map(function(n){
+      const p = makePlayerObj(n);
+      if (taken[p.legend]){
+        const alts = backupLegendsOf(n)
+          .concat(LEGEND_NAMES.filter(function(l){ return meta.legendUp.indexOf(l)!==-1; }))
+          .concat(LEGEND_NAMES.filter(function(l){ return meta.legendDown.indexOf(l)===-1; }))
+          .concat(LEGEND_NAMES);
+        const alt = alts.find(function(l){ return !taken[l]; });
+        if (alt){ p.legend = alt; p.offMain = true; }
+      }
+      taken[p.legend] = true;
+      if (p.legend==='Ballistic'){
+        // Sling: a third weapon his ultimate makes gold.
+        const rnd = rngFrom('sling:'+n+':'+meta.season);
+        const opts = WEAPON_NAMES.filter(function(g){
+          return p.guns.indexOf(g)===-1 && !isCareWeapon(g);
+        });
+        if (opts.length){
+          p.sling = opts[Math.floor(rnd()*opts.length)];
+          p.guns = p.guns.concat([p.sling]);
+        }
+      }
+      return p;
+    });
+    // The most experienced hand calls it.
+    let iglIdx = 0;
+    roster.forEach(function(p,i){ if (hashStr('igl:'+p.name) > hashStr('igl:'+roster[iglIdx].name)) iglIdx = i; });
+    roster[iglIdx].igl = true;
+    return {name:teamName, tag:tag, emblem:emblemFor(teamName, tag), roster:roster,
+            permanent:false, pts:0, kills:0};
+  }
+  // Pair players of similar rank together, so scratch squads are coherent.
+  function buildScratchTeams(count, exclude){
+    const used = exclude || {};
+    // Free agents ranked by standing; an unproven player is judged on raw skill
+    // so newcomers can displace veterans who stopped producing.
+    const faScore = function(n){
+      const s = world.playerStats[n];
+      const base = (s && s.matches>=3) ? playerRating(n) : skillOf(n)*1.15;
+      return base + Math.random()*14;
+    };
+    const pool = NAMED_TEAMS.slice();
+    // Locked-roster teams come first — they're real squads, not thrown together.
+    pool.sort(function(a,b){ return (b.r?1:0)-(a.r?1:0) || Math.random()-0.5; });
+    const teams = [], tagsTaken = {};
+    const nameTaken = {};
+    world.permanent.forEach(function(o){ nameTaken[o.name] = true; });
+    for (let i=0;i<pool.length && teams.length<count;i++){
+      const T = pool[i];
+      if (nameTaken[T.n]) continue;
+      let names;
+      if (T.r){
+        // A locked squad must field its own three, so skip if any are taken.
+        if (T.r.some(function(n){ return used[n]; })) continue;
+        names = T.r.slice();
+      } else {
+        const free = PLAYERS.map(function(p){ return p.n; })
+          .filter(function(n){ return !used[n]; })
+          .sort(function(a,b){ return faScore(b)-faScore(a); });
+        if (free.length<3) break;
+        names = free.slice(0,3);
+      }
+      names.forEach(function(n){ used[n] = true; });
+      nameTaken[T.n] = true;
+      teams.push(buildTeam(names, T.n, T.t));
+    }
+    // Fall back to generated names only if the real list runs dry.
+    while (teams.length < count){
+      const free = PLAYERS.map(function(p){ return p.n; })
+        .filter(function(n){ return !used[n]; })
+        .sort(function(a,b){ return faScore(b)-faScore(a); });
+      if (free.length<3) break;
+      const slice = free.slice(0,3);
+      slice.forEach(function(n){ used[n] = true; });
+      let nm = makeTeamName(Math.random), guard = 0;
+      while (nameTaken[nm] && guard++ < 200) nm = makeTeamName(Math.random);
+      nameTaken[nm] = true;
+      teams.push(buildTeam(slice, nm, makeTag(nm, tagsTaken)));
+    }
+    return teams;
+  }
+
+  /* ---- Ability effects ---- */
+  // A player's contribution for one effect: their legend's kit plus the perk
+  // every legend of that class gets.
+  function fxOf(p, key){
+    const l = LEGEND_FX[p.legend] || {};
+    const c = (CLASS_PERKS[LEGENDS[p.legend]] || {}).fx || {};
+    const m = MOVE_FX[p.move || 0] || {};
+    return (l[key] || 0) + (c[key] || 0) + (m[key] || 0);
+  }
+  // Squad total for an effect, counting only players still up.
+  function squadFx(t, key){
+    return t.live.reduce(function(s,p){
+      return s + (p.state==='alive' ? fxOf(p, key) : 0);
+    }, 0);
+  }
+  function anyFx(t, key){
+    return t.live.some(function(p){ return p.state!=='dead' && fxOf(p,key) > 0; });
+  }
+
+  /* ===================== MATCH ENGINE ===================== */
+  // A player's effective fighting strength: raw skill, plus how well their legend
+  // and gun line up with the current patch, plus a little for the IGL.
+  function gunBase(p, g){
+    if (p.red && g===p.gun) return (CARE_WEAPONS[g]||{base:8}).base;
+    const b = (WEAPONS[g] || CARE_WEAPONS[g] || {base:5}).base;
+    return (g===p.sling) ? b + 2.2 : b;   // gold sling is fully kitted
+  }
+  function power(p){
+    const list = (p.guns && p.guns.length) ? p.guns : [p.gun];
+    const scored = list.map(function(g){ return gunBase(p,g) + metaGunMod(g); })
+                       .sort(function(a,b){ return b-a; });
+    const best = scored[0] || 5, second = scored[1] || 0;
+    return p.skill + metaLegendMod(p.legend)*2.2 +
+           best*0.35 + second*0.12 +
+           fxOf(p,'fight') + (p.red ? 4.5 : 0) + (p.igl ? 1.2 : 0);
+  }
+  // Which weapon they got the kill with — weighted toward their best.
+  function pickGun(p){
+    const list = (p.guns && p.guns.length) ? p.guns : [p.gun];
+    if (p.red && Math.random()<0.55) return p.gun;
+    const w = list.map(function(g){ return Math.pow(gunBase(p,g), 2); });
+    let tot = w.reduce(function(a,b){ return a+b; }, 0), r = Math.random()*tot;
+    for (let i=0;i<list.length;i++){ r -= w[i]; if (r<=0) return list[i]; }
+    return list[0];
+  }
+  function teamPower(t){
+    const live = t.live.filter(function(p){ return p.state==='alive'; });
+    if (!live.length) return 0;
+    return live.reduce(function(s,p){ return s + power(p); }, 0) / 3;  // short squads are weaker
+  }
+  function hasSupport(t){
+    return t.live.some(function(p){ return p.state!=='dead' && LEGENDS[p.legend]==='Support'; });
+  }
+
+  // Simulate one 20-team match. Returns an event stream the screen replays,
+  // plus final placements and per-player stats.
+  function simulateMatch(teams, mapName){
+    // Guard against a squad arriving without a full kit (e.g. rebuilt from a
+    // stored roster). Repair rather than silently producing NaN power.
+    teams.forEach(function(t){
+      t.roster = t.roster.map(function(p){
+        if (p && p.legend && p.skill != null && p.guns && p.guns.length) return p;
+        const fixed = makePlayerObj(p && p.name ? p.name : 'unknown');
+        fixed.igl = !!(p && p.igl);
+        return fixed;
+      });
+      // Re-resolve duplicate legends after any repair.
+      const seen = {};
+      t.roster.forEach(function(p){
+        if (seen[p.legend]){
+          const alt = LEGEND_NAMES.find(function(l){ return !seen[l]; });
+          if (alt) p.legend = alt;
+        }
+        seen[p.legend] = true;
+      });
+    });
+    const state = teams.map(function(t, i){
+      return {
+        i:i, ref:t, name:t.name, tag:t.tag, emblem:t.emblem,
+        live: t.roster.map(function(p){
+          // Evo shields start white/blue and level up as the player deals damage.
+          let start = Math.random()<0.45 ? 50 : 75;
+          const oc = ((CLASS_PERKS[LEGENDS[p.legend]]||{}).fx||{}).shieldOvercharge || 0;
+          start = Math.min(100, start + (oc ? 25 : 0));
+          return {name:p.name, legend:p.legend, gun:p.gun, guns:(p.guns||[p.gun]).slice(),
+                  sling:p.sling||null, skill:p.skill, igl:p.igl,
+                  move:p.move||0, techs:p.techs||[],
+                  state:'alive', hp:100, shield:start, shieldMax:start, evoDmg:0,
+                  kills:0, dmg:0, red:false, banner:false};
+        }),
+        kills:0, place:null, alive:true
+      };
+    });
+    const events = [];
+    const RINGS = 7;
+    let nextPlace = 20;
+
+    const aliveTeams = function(){ return state.filter(function(t){ return t.alive; }); };
+    const pick = function(a){ return a[Math.floor(Math.random()*a.length)]; };
+
+    const wipeCheck = function(t, ring){
+      if (!t.alive) return;
+      if (t.live.every(function(p){ return p.state==='dead'; })){
+        t.alive = false; t.place = nextPlace; nextPlace--;
+        events.push({t:'wipe', ring:ring, team:t.i, place:t.place, kills:t.kills});
+      }
+    };
+
+    for (let ring=1; ring<=RINGS; ring++){
+      const alive = aliveTeams();
+      events.push({t:'ring', ring:ring, alive:alive.length});
+      if (alive.length<=1) break;
+
+      // Ring damage on anyone caught out — light, but it finishes off weak squads.
+      alive.forEach(function(t){
+        t.live.forEach(function(p){
+          const ringOdds = Math.max(0.04, 0.16 - squadFx(t,'ringResist')*0.5 - squadFx(t,'rotate')*0.15);
+          if (p.state==='alive' && Math.random()<ringOdds){
+            p.shield = Math.max(0, p.shield-25);
+            if (p.shield===0) p.hp = Math.max(1, p.hp-18);
+            events.push({t:'ringdmg', ring:ring, team:t.i, player:p.name, hp:p.hp,
+                         shield:p.shield, shieldMax:p.shieldMax});
+          }
+        });
+      });
+
+      // Care packages land from ring 2. A squad claims each one and somebody
+      // walks away with a red weapon.
+      if (ring>=2){
+        const drops = (ring<=4) ? 2 : 1;
+        for (let d=0; d<drops; d++){
+          const pool = aliveTeams().filter(function(t){
+            return t.live.some(function(p){ return p.state==='alive' && !p.red; });
+          });
+          if (!pool.length) break;
+          // Skirmishers and Loba see what's in the package, so they contest it more.
+          const weights = pool.map(function(x){ return 1 + squadFx(x,'loot')*3; });
+          let tot = weights.reduce(function(a,b){ return a+b; },0), rr = Math.random()*tot, ti = 0;
+          for (; ti<pool.length-1; ti++){ rr -= weights[ti]; if (rr<=0) break; }
+          const t = pool[ti];
+          const cands = t.live.filter(function(p){ return p.state==='alive' && !p.red; });
+          const p = pick(cands);
+          const care = careList();
+          const got = care[Math.floor(Math.random()*care.length)];
+          // Drops into their weakest slot; the gold sling is never given up.
+          const swappable = p.guns.filter(function(g){ return g!==p.sling; });
+          const drop = swappable.sort(function(a,b){ return gunBase(p,a)-gunBase(p,b); })[0];
+          p.guns = p.guns.map(function(g){ return g===drop ? got : g; });
+          p.gun = got; p.red = true;
+          events.push({t:'care', ring:ring, team:t.i, player:p.name, gun:got, guns:p.guns.slice()});
+        }
+      }
+
+      // Replicator: craft banners for fallen team-mates, or heals if hurt.
+      aliveTeams().forEach(function(t){
+        const up = t.live.filter(function(p){ return p.state==='alive'; });
+        if (!up.length) return;
+        const fallen = t.live.filter(function(p){ return p.state==='dead' && !p.banner; });
+        if (fallen.length && Math.random() < 0.42 + squadFx(t,'heal')*0.35 + squadFx(t,'revive')*0.12){
+          const f = pick(fallen);
+          f.banner = true;
+          events.push({t:'craft', ring:ring, team:t.i, kind:'banner', player:f.name});
+        } else {
+          const hurt = up.filter(function(p){ return p.hp<85 || p.shield<p.shieldMax; });
+          if (hurt.length && Math.random() < 0.42 + squadFx(t,'heal')*0.6 + squadFx(t,'selfHeal')*0.5 + squadFx(t,'teamShield')*0.5){
+            const h = pick(hurt);
+            const kind = (h.shield < h.shieldMax) ? 'battery' : 'medkit';
+            if (kind==='battery') h.shield = h.shieldMax; else h.hp = 100;
+            events.push({t:'craft', ring:ring, team:t.i, kind:kind, player:h.name,
+                         hp:h.hp, shield:h.shield, shieldMax:h.shieldMax});
+          }
+        }
+      });
+
+      // Long-range pokes that don't down anyone still put damage on the board.
+      aliveTeams().forEach(function(t){
+        t.live.forEach(function(p){
+          if (p.state!=='alive' || Math.random()>0.28) return;
+          const poke = 30 + Math.floor(Math.random()*95);
+          p.dmg += poke;
+          p.evoDmg += poke;
+          if (p.shieldMax < 100 && p.evoDmg >= (p.shieldMax===50 ? 120 : 260)){
+            p.shieldMax += 25; p.shield = p.shieldMax;
+            events.push({t:'evo', ring:ring, team:t.i, player:p.name,
+                         shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
+          }
+        });
+      });
+
+      // How many engagements this ring: quiet early, frantic late.
+      const n = aliveTeams().length;
+      let fights = (ring<=2) ? Math.max(1, Math.round(n*0.18))
+                 : (ring<=4) ? Math.max(2, Math.round(n*0.32))
+                             : Math.max(2, Math.round(n*0.55));
+      for (let f=0; f<fights; f++){
+        const pool = aliveTeams();
+        if (pool.length<=1) break;
+        const A = pick(pool);
+        const others = pool.filter(function(t){ return t!==A; });
+        if (!others.length) break;
+        const B = pick(others);
+        // Late rings get third parties.
+        const rest = others.filter(function(t){ return t!==B; });
+        const tpResist = (squadFx(A,'thirdPartyResist') + squadFx(B,'thirdPartyResist')) * 0.5;
+        const C = (ring>=4 && rest.length && Math.random() < Math.max(0.06, 0.25 - tpResist)) ? pick(rest) : null;
+        resolveFight(A, B, C, ring);
+        if (aliveTeams().length<=1) break;
+      }
+
+      // Respawns between rings — much likelier with a Support legend alive.
+      aliveTeams().forEach(function(t){
+        const dead = t.live.filter(function(p){ return p.state==='dead'; });
+        if (!dead.length) return;
+        const withBanner = dead.filter(function(p){ return p.banner; });
+        const chance = withBanner.length ? 0.80
+          : Math.min(0.66, 0.26 + squadFx(t,'respawn')*0.9 + squadFx(t,'revive')*0.10);
+        if (Math.random() < chance){
+          const back = pick(withBanner.length ? withBanner : dead);
+          back.state='alive'; back.hp=60;
+            back.shieldMax = 50; back.shield = 25;   // respawn with a fresh white shield
+          back.red = false;                       // red weapon is lost on death
+          back.guns = activeGuns(back.name);
+          if (back.sling){ back.guns = back.guns.concat([back.sling]); }
+          back.gun = back.guns[0];
+          const viaBanner = back.banner; back.banner = false;
+          events.push({t:'respawn', ring:ring, team:t.i, player:back.name, hp:60,
+                       shield:25, shieldMax:50, gun:back.gun, guns:back.guns.slice(), banner:viaBanner});
+        }
+      });
+      if (aliveTeams().length<=1) break;
+    }
+
+    // Anyone still standing when the rings run out: settle it.
+    let guard = 0;
+    while (aliveTeams().length>1 && guard++ < 60){
+      const pool = aliveTeams();
+      resolveFight(pool[0], pool[1], null, RINGS);
+    }
+    const winner = aliveTeams()[0] || state[0];
+    winner.place = 1;
+    events.push({t:'win', team:winner.i, kills:winner.kills});
+
+    // Fill any places that never got assigned (safety).
+    state.forEach(function(t){ if (t.place===null){ t.place = nextPlace; nextPlace--; } });
+
+    function resolveFight(A, B, C, ring){
+      const sides = [A,B].concat(C?[C]:[]);
+      events.push({t:'engage', ring:ring, teams:sides.map(function(s){ return s.i; })});
+      let rounds = 0;
+      while (rounds++ < 14){
+        const standing = sides.filter(function(s){
+          return s.alive && s.live.some(function(p){ return p.state==='alive'; });
+        });
+        if (standing.length<=1) break;
+        // Two squads trade; who wins the duel is weighted by squad strength.
+        const s1 = pick(standing);
+        const s2 = pick(standing.filter(function(x){ return x!==s1; }));
+        const p1 = pick(s1.live.filter(function(p){ return p.state==='alive'; }));
+        const p2 = pick(s2.live.filter(function(p){ return p.state==='alive'; }));
+        // Late rings favour whoever is set up; early rings favour whoever sees first.
+        const holdW = (ring>=5) ? 1.35 : 0.55;
+        const edge = function(me, foe, mp, fp){
+          let v = power(mp) + teamPower(me)*0.35;
+          v += squadFx(me,'initiate')*9;                       // scans, drones, snares
+          // Frame-perfect tech doesn't land every time, even for pros.
+          if (mp.move===2 && Math.random()<0.68) v += 11.0;
+          else if (mp.move===1 && Math.random()<0.8) v += 4.5;
+          v += squadFx(me,'hold')*holdW;                       // gas, fences, walls
+          v += squadFx(me,'markDamage')*7;                     // Vantage mark
+          v -= squadFx(foe,'damageResist')*4;                  // domes, shields
+          v -= squadFx(foe,'antiPush')*4;                      // pushing into traps
+          v += squadFx(me,'breakHold')*6;                      // drills, grenades
+          v += squadFx(me,'shieldStrip')*6;                    // EMP
+          if (fp.hp < 55) v += squadFx(me,'finishLow')*9;       // Seer/Revenant close it out
+          return Math.max(1, v);
+        };
+        const w1 = edge(s1, s2, p1, p2), w2 = edge(s2, s1, p2, p1);
+        const winner = (Math.random() < w1/(w1+w2)) ? {s:s1,p:p1,o:s2,q:p2} : {s:s2,p:p2,o:s1,q:p1};
+        // Winner takes damage in the trade.
+        // Downing someone means chewing through their shield and health, so the
+        // shooter is credited with what it actually took to put them down.
+        const dealt = winner.q.shield + winner.q.hp + Math.floor(Math.random()*45);
+        winner.p.dmg += dealt;
+        // The victim gets return fire in before they go down.
+        const taken = 25 + Math.floor(Math.random()*60);
+        winner.q.dmg += taken;
+        winner.p.shield = Math.max(0, winner.p.shield - taken);
+        if (winner.p.shield===0) winner.p.hp = Math.max(6, winner.p.hp - Math.floor(taken*0.55));
+        // Evo progress runs off damage dealt, same as the real thing.
+        winner.p.evoDmg += dealt;
+        if (winner.p.shieldMax < 100 && winner.p.evoDmg >= (winner.p.shieldMax===50 ? 120 : 260)){
+          winner.p.shieldMax += 25;
+          winner.p.shield = winner.p.shieldMax;
+          events.push({t:'evo', ring:ring, team:winner.s.i, player:winner.p.name,
+                       shieldMax:winner.p.shieldMax, shield:winner.p.shield, hp:winner.p.hp});
+        }
+        const gun = pickGun(winner.p), hs = Math.random()<0.22;
+        winner.q.state = 'down'; winner.q.hp = 0; winner.q.shield = 0;
+        events.push({t:'knock', ring:ring, team:winner.s.i, player:winner.p.name,
+                     vteam:winner.o.i, victim:winner.q.name, gun:gun, hs:hs,
+                     hp:winner.p.hp, shield:winner.p.shield});
+        // A knocked player is only saved if a teammate is up and it goes their way.
+        const mates = winner.o.live.filter(function(p){ return p.state==='alive'; });
+        const reviveOdds = Math.min(0.58, 0.28 + squadFx(winner.o,'revive')*0.30
+                                          - squadFx(winner.s,'antiEscape')*0.35);
+        if (mates.length && Math.random() < reviveOdds){
+          winner.q.state='alive'; winner.q.hp=45; winner.q.shield=0;
+          events.push({t:'revive', ring:ring, team:winner.o.i, player:winner.q.name,
+                       hp:45, shield:0, shieldMax:winner.q.shieldMax});
+        } else {
+          winner.q.state='dead';
+          winner.p.kills++; winner.s.kills++;
+          events.push({t:'kill', ring:ring, team:winner.s.i, player:winner.p.name,
+                       vteam:winner.o.i, victim:winner.q.name, gun:gun, hs:hs});
+          wipeCheck(winner.o, ring);
+        }
+        const esc = 0.16 + squadFx(winner.o,'escape')*0.5 + squadFx(winner.o,'teamEscape')*0.6
+                        + squadFx(winner.o,'disengage')*0.5 - squadFx(winner.s,'antiEscape')*0.5;
+        if (Math.random() < Math.max(0.04, esc)){
+          // Credit the best mover on the squad for pulling them out.
+          const movers = winner.o.live.filter(function(p){ return p.state==='alive' && p.move>0; })
+                                      .sort(function(a,b){ return b.move-a.move; });
+          if (movers.length && Math.random()<0.55){
+            const mv = movers[0];
+            const tech = mv.techs && mv.techs.length
+              ? mv.techs[Math.floor(Math.random()*mv.techs.length)] : 'movement';
+            events.push({t:'move', ring:ring, team:winner.o.i, player:mv.name, tech:tech});
+          }
+          break;   // squads disengage
+        }
+      }
+    }
+
+    const results = state.map(function(t){
+      return {name:t.name, tag:t.tag, i:t.i, place:t.place, kills:t.kills,
+              pts: t.kills + placementPoints(t.place),
+              players: t.live.map(function(p){
+                return {name:p.name, kills:p.kills, dmg:Math.round(p.dmg),
+                        gun:p.gun, guns:p.guns, sling:p.sling, red:p.red,
+                        move:p.move||0, techs:p.techs||[]}; })};
+    });
+    return {map:mapName, events:events, results:results, state:state};
+  }
+
+  /* ===================== MAJOR ===================== */
+  // 4 groups of 10. Every pair of groups meets for 6 matches (36 total), all
+  // points into one table. Top 14 go straight through, bottom 6 are out, the
+  // middle 20 fight a 10-match survival for the last 6 playoff seats.
+  // Playoffs are uncapped: 50 points puts you on match point, and you have to
+  // win a match while on it.
+  let major = null;
+  const GROUP_LABELS = ['A','B','C','D'];
+  const PAIRINGS = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
+
+  function majorField(){
+    // Permanent orgs first by standing, then the best scratch squads to fill 40.
+    const perms = world.permanent.slice()
+      .sort(function(a,b){ return teamRating(b.name)-teamRating(a.name); })
+      .slice(0,40)
+      .map(function(p){ return buildTeam(p.roster.map(function(r){ return r.name; }), p.name, p.tag); });
+    perms.forEach(function(t){ t.permanent = true; });
+    const used = {};
+    perms.forEach(function(t){ t.roster.forEach(function(p){ used[p.name]=true; }); });
+    const field = perms.concat(buildScratchTeams(40-perms.length, used)).slice(0,40);
+    recordMajorStrikes(field);
+    return field;
+  }
+  function startMajor(){
+    const field = majorField();
+    if (field.length < 40){ alert('Not enough players to fill 40 teams.'); return; }
+    field.forEach(function(t,i){ t.pts=0; t.kills=0; t.gp=0; t.mid=i; });
+    // Snake seed so groups are balanced.
+    const groups = [[],[],[],[]];
+    field.forEach(function(t,i){
+      const row = Math.floor(i/4), col = i%4;
+      groups[(row%2===0) ? col : 3-col].push(t);
+      t.group = GROUP_LABELS[(row%2===0) ? col : 3-col];
+    });
+    const queue = [];
+    PAIRINGS.forEach(function(pr, pi){
+      for (let m=0;m<6;m++){
+        queue.push({g:pr, map:MAPS[(pi*6+m) % MAPS.length], label:'Group '+GROUP_LABELS[pr[0]]+' vs '+GROUP_LABELS[pr[1]]});
+      }
+    });
+    resetEventAgg();
+    major = {stage:'group', field:field, groups:groups, queue:queue, qi:0,
+             survivors:[], playoffTeams:[], poMatch:0, done:false};
+    tour = null;
+    nextMajorMatch();
+  }
+  function majorLobby(){
+    const m = major;
+    if (m.stage==='group'){
+      const q = m.queue[m.qi];
+      return m.groups[q.g[0]].concat(m.groups[q.g[1]]);
+    }
+    if (m.stage==='survival') return m.survivalTeams;
+    return m.playoffTeams;
+  }
+  function pairName(pi){
+    const pr = PAIRINGS[pi];
+    return 'GROUP ' + GROUP_LABELS[pr[0]] + ' vs GROUP ' + GROUP_LABELS[pr[1]];
+  }
+  function majorStageLabel(){
+    const m = major;
+    if (m.stage==='group'){
+      const pi = Math.floor(m.qi/6), mi = (m.qi%6)+1;
+      return 'GROUP STAGE · ROUND ' + (pi+1) + ' OF 6 · ' + pairName(pi) + ' · MATCH ' + mi + ' OF 6';
+    }
+    if (m.stage==='survival') return 'SURVIVAL STAGE · MATCH ' + (m.svMatch+1) + ' OF 10';
+    return 'PLAYOFFS · MATCH ' + (m.poMatch+1) + ' · FIRST TO 50 THEN WIN';
+  }
+  function nextMajorMatch(){
+    const m = major;
+    if (!m) return;
+    const lobby = majorLobby();
+    const mapName = (m.stage==='group') ? m.queue[m.qi].map
+                                        : MAPS[((m.stage==='survival'?m.svMatch:m.poMatch)) % MAPS.length];
+    const res = simulateMatch(lobby, mapName);
+    recordMatch(res);
+    res.results.forEach(function(r){
+      const t = lobby[r.i];
+      t.pts += r.pts; t.kills += r.kills;
+      t.gp = (t.gp||0) + 1;
+    });
+    m.lastLobby = lobby;
+    openMajorMatch(res, mapName);
+    save();
+  }
+  function openMajorMatch(res, mapName){
+    // Reuse the live match screen; the header just reads differently.
+    tour = {teams:major.lastLobby, matchNo:0, total:0, log:[], isMajor:true};
+    openMatch(res);
+    document.getElementById('mKick').textContent = majorStageLabel();
+  }
+  // Called when a major match's playback finishes.
+  function advanceMajor(){
+    const m = major;
+    if (m.stage==='group'){
+      m.qi++;
+      if (m.qi < 36){
+        // Each pairing is its own round; stop for a table between them.
+        if (m.qi % 6 === 0){
+          const done = Math.floor(m.qi/6);
+          return {more:true, roundDone:true,
+                  banner:'Round ' + done + ' complete — ' + pairName(done-1) +
+                         '. Next up: ' + pairName(done) + '.'};
+        }
+        return {more:true};
+      }
+      // Group stage over: split the 40.
+      const table = m.field.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+      m.playoffTeams = table.slice(0,14);
+      m.survivalTeams = table.slice(14,34);
+      m.eliminated = table.slice(34);
+      m.survivalTeams.forEach(function(t){ t.pts=0; t.kills=0; t.gp=0; });   // survival starts level
+      m.stage='survival'; m.svMatch=0;
+      return {more:true, banner:'Group stage complete — top 14 through, bottom 6 out, 20 into survival.'};
+    }
+    if (m.stage==='survival'){
+      m.svMatch++;
+      if (m.svMatch < 10) return {more:true};
+      const table = m.survivalTeams.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+      m.playoffTeams = m.playoffTeams.concat(table.slice(0,6));
+      m.playoffTeams.forEach(function(t){ t.pts=0; t.kills=0; t.gp=0; });    // playoffs start level
+      m.stage='playoffs'; m.poMatch=0;
+      return {more:true, banner:'Survival complete — 6 more advance. Playoffs: 20 teams, first to 50 then win.'};
+    }
+    // Playoffs: did anyone on match point just win?
+    const res = live.res;
+    const winner = res.results.find(function(r){ return r.place===1; });
+    const wTeam = m.playoffTeams[winner.i];
+    const onMatchPoint = wTeam.pts - winner.pts >= 50;   // they were already on 50 before this win
+    m.poMatch++;
+    if (onMatchPoint || wTeam.pts >= 50 && m.champion){ /* fallthrough */ }
+    if (onMatchPoint){
+      m.champion = wTeam; m.done = true;
+      return {more:false, banner:wTeam.name + ' win the Major.'};
+    }
+    return {more:true};
+  }
+
+  /* ===================== ROSTERMANIA ===================== */
+  // An org loses its status on two strikes. A strike is finishing outside the
+  // top 15 of a tournament, or failing to qualify for a Major. Most of the time
+  // a struck-out org disbands entirely; occasionally they just cut a player,
+  // which buys them a clean slate.
+  function strikesOf(name){
+    world.orgStrikes = world.orgStrikes || {};
+    return world.orgStrikes[name] = world.orgStrikes[name] || {bad:0, missed:0};
+  }
+  function isPermanent(name){
+    return world.permanent.some(function(o){ return o.name===name; });
+  }
+  // Called with the final tournament table.
+  function recordTournamentStrikes(rows){
+    rows.forEach(function(t, i){
+      if (!isPermanent(t.name)) return;
+      if (i+1 >= 16) strikesOf(t.name).bad++;   // finished 16th-20th
+    });
+  }
+  // Called when a Major field is picked; anyone left out takes a strike.
+  function recordMajorStrikes(qualified){
+    const inField = {};
+    qualified.forEach(function(t){ inField[t.name] = true; });
+    world.permanent.forEach(function(o){
+      if (!inField[o.name]) strikesOf(o.name).missed++;
+    });
+  }
+  function runRostermania(){
+    const notes = [];
+    world.orgStrikes = world.orgStrikes || {};
+    world.permanent = world.permanent.filter(function(org){
+      const s = strikesOf(org.name);
+      if (s.bad < 2 && s.missed < 2) return true;          // still safe
+      const reason = (s.bad>=2) ? (s.bad+' bottom-five finishes') : (s.missed+' missed Majors');
+      if (Math.random() < 0.72){
+        notes.push({type:'disband', team:org.name, reason:reason});
+        delete world.orgStrikes[org.name];
+        return false;                                       // players released
+      }
+      // Cut the weakest link, sign the best free agent, wipe the slate.
+      const onTeams = {};
+      world.permanent.forEach(function(o){ o.roster.forEach(function(r){ onTeams[r.name]=true; }); });
+      const worst = org.roster.slice().sort(function(a,b){
+        return playerRating(a.name)-playerRating(b.name); })[0];
+      const fa = PLAYERS.map(function(p){ return p.n; })
+        .filter(function(n){ return !onTeams[n]; })
+        .sort(function(a,b){ return playerRating(b)-playerRating(a); })[0];
+      if (worst && fa){
+        org.roster = org.roster.map(function(r){ return r.name===worst.name ? {name:fa} : r; });
+        notes.push({type:'swap', team:org.name, out:worst.name, in:fa, reason:reason});
+        world.orgStrikes[org.name] = {bad:0, missed:0};
+      } else {
+        notes.push({type:'disband', team:org.name, reason:reason});
+        delete world.orgStrikes[org.name];
+        return false;
+      }
+      return true;
+    });
+    save();
+    return notes;
+  }
+
+  /* ===================== PERSISTENCE ===================== */
+  const KEY = 'apexsim_v1';
+  let world = {meta:null, teamStats:{}, playerStats:{}, permanent:[], events:0};
+  function save(){
+    try{
+      world.meta = meta;
+      localStorage.setItem(KEY, JSON.stringify(world));
+    }catch(e){}
+  }
+  function load(){
+    try{
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      const w = JSON.parse(raw);
+      world = Object.assign(world, w);
+      if (w.meta) meta = w.meta;
+    }catch(e){}
+  }
+  // Team standing: points banked across every event they've played.
+  function teamRating(name){
+    const s = world.teamStats[name];
+    if (!s || !s.matches) return 0;
+    // A Major is the whole season's prize; a tournament win is a good weekend.
+    return (s.pts / s.matches) * 10 + s.wins * 6 + (s.titles||0) * 35 + (s.majors||0) * 260;
+  }
+  // Player standing: per-match production, plus something for winning things.
+  function playerRating(name){
+    const s = world.playerStats[name];
+    if (!s || !s.matches) return 0;
+    const per = (s.kills*1.6 + s.dmg/220 + s.placePts*0.9) / s.matches;
+    return per * 10 + (s.titles||0) * 20 + (s.majors||0) * 150;
+  }
+  // Running per-event totals so we can name the event's best performers.
+  let eventAgg = null;
+  function resetEventAgg(){ eventAgg = {}; }
+  function aggEvent(res){
+    if (!eventAgg) return;
+    res.results.forEach(function(r){
+      r.players.forEach(function(p){
+        const a = eventAgg[p.name] = eventAgg[p.name] || {kills:0, dmg:0, matches:0, team:r.name};
+        a.kills += p.kills; a.dmg += p.dmg; a.matches++; a.team = r.name;
+      });
+    });
+  }
+  function eventLeaders(){
+    if (!eventAgg) return null;
+    const arr = Object.keys(eventAgg).map(function(n){
+      const a = eventAgg[n];
+      return {name:n, kills:a.kills, dmg:a.dmg, matches:a.matches, team:a.team,
+              kpm:a.kills/Math.max(1,a.matches), dpm:a.dmg/Math.max(1,a.matches)};
+    });
+    if (!arr.length) return null;
+    return {
+      kills: arr.slice().sort(function(a,b){ return b.kills-a.kills || b.dmg-a.dmg; }),
+      dmg:   arr.slice().sort(function(a,b){ return b.dmg-a.dmg || b.kills-a.kills; })
+    };
+  }
+  function recordMatch(res){
+    aggEvent(res);
+    res.results.forEach(function(r){
+      const ts = world.teamStats[r.name] = world.teamStats[r.name] ||
+        {matches:0, pts:0, kills:0, wins:0, titles:0, best:20};
+      ts.matches++; ts.pts += r.pts; ts.kills += r.kills;
+      if (r.place===1) ts.wins++;
+      ts.best = Math.min(ts.best, r.place);
+      r.players.forEach(function(p){
+        const ps = world.playerStats[p.name] = world.playerStats[p.name] ||
+          {matches:0, kills:0, dmg:0, placePts:0, titles:0, wins:0};
+        ps.matches++; ps.kills += p.kills; ps.dmg += p.dmg;
+        ps.placePts += placementPoints(r.place);
+        if (r.place===1) ps.wins++;
+      });
+    });
+    world.events++;
+  }
+
+  /* ===================== SCREENS ===================== */
+  const SCREENS = ['setupScreen','matchScreen','standScreen','rankScreen','legendScreen'];
+  function showScreen(id){
+    SCREENS.forEach(function(s){
+      const el = document.getElementById(s);
+      if (el) el.style.display = (s===id) ? 'block' : 'none';
+    });
+    window.scrollTo(0,0);
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  /* ===================== TOURNAMENT STATE ===================== */
+  let tour = null;   // {teams, matchNo, total, results[], standings}
+  let playback = null;
+
+  function startTournament(){
+    // Permanent orgs get their seats first, seeded by standing. They're stored
+    // as names only, so they have to be rebuilt into real squads — legends,
+    // loadouts and skill — before they can play.
+    const perms = world.permanent.slice()
+      .sort(function(a,b){ return teamRating(b.name)-teamRating(a.name); })
+      .slice(0,20)
+      .map(function(o){
+        const t = buildTeam(o.roster.map(function(r){ return r.name; }), o.name, o.tag);
+        t.permanent = true;
+        if (o.emblem) t.emblem = o.emblem;
+        return t;
+      });
+    const usedNames = {};
+    perms.forEach(function(t){ t.roster.forEach(function(p){ usedNames[p.name]=true; }); });
+    const filler = buildScratchTeams(20-perms.length, usedNames);
+    const full = perms.concat(filler).slice(0,20);
+    full.forEach(function(t){ t.pts=0; t.kills=0; });
+    resetEventAgg();
+    tour = {teams:full, matchNo:0, total:6, log:[]};
+    nextMatch();
+  }
+  // Open qualifier: permanent orgs sit this one out entirely, so unsigned
+  // players get a clear run at earning org status.
+  function startQualifier(){
+    const used = {};
+    world.permanent.forEach(function(o){
+      o.roster.forEach(function(r){ used[r.name] = true; });
+    });
+    const free = PLAYERS.filter(function(p){ return !used[p.n]; }).length;
+    if (free < 60){
+      alert('Not enough unsigned players for a qualifier — ' + free + ' free agents, 60 needed.');
+      return;
+    }
+    const full = buildScratchTeams(20, used);
+    if (full.length < 20){
+      alert('Could not fill the field — only ' + full.length + ' teams available.');
+      return;
+    }
+    full.forEach(function(t){ t.pts = 0; t.kills = 0; t.permanent = false; });
+    resetEventAgg();
+    major = null;
+    tour = {teams:full, matchNo:0, total:6, log:[], isQualifier:true};
+    nextMatch();
+  }
+  function nextMatch(){
+    if (!tour) return;
+    if (tour.matchNo >= tour.total){ showStandings(true); return; }
+    tour.matchNo++;
+    const mapName = MAPS[(tour.matchNo-1) % MAPS.length];
+    const res = simulateMatch(tour.teams, mapName);
+    recordMatch(res);
+    res.results.forEach(function(r){
+      const t = tour.teams[r.i];
+      t.pts += r.pts; t.kills += r.kills;
+    });
+    tour.log.push(res);
+    openMatch(res);
+    save();
+  }
+
+  /* ===================== LIVE MATCH SCREEN ===================== */
+  let live = null;   // {res, idx, timer, view}
+  function openMatch(res){
+    showScreen('matchScreen');
+    // Fresh view state the events will mutate as they replay.
+    const view = res.state.map(function(t){
+      return {i:t.i, name:t.name, tag:t.tag, emblem:t.emblem, kills:0, place:null, alive:true,
+              live:t.ref.roster.map(function(p){
+                return {name:p.name, legend:p.legend, gun:p.gun,
+                        guns:(p.guns||[p.gun]).slice(), sling:p.sling||null,
+                        move:p.move||0, techs:p.techs||[],
+                        state:'alive', hp:100, shield:75, shieldMax:75, red:false};
+              })};
+    });
+    live = {res:res, idx:0, timer:null, view:view, feed:[], ring:0, playing:true};
+    const rEl = document.getElementById('mResult'); if (rEl){ rEl.innerHTML=''; rEl.style.display='none'; }
+    document.getElementById('mMap').textContent = res.map;
+    document.getElementById('mKick').textContent =
+      (tour.isQualifier ? 'OPEN QUALIFIER \u00b7 TOP 2 EARN ORG STATUS \u00b7 MATCH '
+                        : 'TOURNAMENT \u00b7 MATCH ') + tour.matchNo + ' OF ' + tour.total;
+    renderMatch();
+    startPlayback();
+  }
+  function startPlayback(){
+    stopPlayback();
+    live.playing = true;
+    document.getElementById('mPlay').textContent = '\u23f8 PAUSE';
+    live.timer = setInterval(stepEvent, 420);
+  }
+  function stopPlayback(){
+    if (live && live.timer){ clearInterval(live.timer); live.timer = null; }
+    if (live) live.playing = false;
+    const b = document.getElementById('mPlay');
+    if (b) b.textContent = '\u25b6 PLAY';
+  }
+  function applyEvent(e){
+    const v = live.view;
+    const find = function(ti, nm){
+      const t = v[ti]; if (!t) return null;
+      return t.live.find(function(p){ return p.name===nm; });
+    };
+    if (e.t==='ring'){ live.ring = e.ring; }
+    else if (e.t==='ringdmg'){ const p = find(e.team, e.player); if (p){ p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; } }
+    else if (e.t==='care'){ const p = find(e.team, e.player); if (p){ p.gun=e.gun; p.red=true; if(e.guns) p.guns=e.guns.slice(); } }
+    else if (e.t==='craft'){
+      const p = find(e.team, e.player);
+      if (p && e.kind!=='banner'){ if(e.hp!=null)p.hp=e.hp; if(e.shield!=null)p.shield=e.shield; if(e.shieldMax)p.shieldMax=e.shieldMax; }
+    }
+    else if (e.t==='evo'){ const p = find(e.team, e.player); if (p){ p.shieldMax=e.shieldMax; p.shield=e.shield; p.hp=e.hp; } }
+    else if (e.t==='knock'){
+      const s = find(e.team, e.player), q = find(e.vteam, e.victim);
+      if (s){ s.hp=e.hp; s.shield=e.shield; if(e.shieldMax) s.shieldMax=e.shieldMax; }
+      if (q){ q.state='down'; q.hp=0; q.shield=0; }
+    }
+    else if (e.t==='revive'){ const p = find(e.team, e.player); if (p){ p.state='alive'; p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; } }
+    else if (e.t==='respawn'){ const p = find(e.team, e.player); if (p){ p.state='alive'; p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; if(e.gun){p.gun=e.gun;} if(e.guns) p.guns=e.guns.slice(); p.red=false; } }
+    else if (e.t==='kill'){
+      const q = find(e.vteam, e.victim); if (q) q.state='dead';
+      if (v[e.team]) v[e.team].kills++;
+    }
+    else if (e.t==='wipe'){ if (v[e.team]){ v[e.team].alive=false; v[e.team].place=e.place; } }
+    else if (e.t==='win'){ if (v[e.team]){ v[e.team].place=1; } }
+    // Everything shows in the feed.
+    const txt = feedText(e);
+    if (txt) live.feed.push({cls:feedClass(e), ring:e.ring||live.ring, html:txt});
+    if (live.feed.length>140) live.feed.shift();
+  }
+  function feedClass(e){
+    return e.t==='ring' ? 'ring' : e.t==='wipe' ? 'elim' : e.t==='win' ? 'win'
+         : (e.t==='respawn'||e.t==='revive') ? 'info' : e.t==='ringdmg' ? 'dim'
+         : e.t==='engage' ? 'dim' : (e.t==='evo'||e.t==='craft') ? 'info'
+         : e.t==='care' ? 'care' : e.t==='move' ? 'mv' : 'kill';
+  }
+  function nm(i){ return live.view[i] ? esc(live.view[i].name) : '?'; }
+  function feedText(e){
+    switch(e.t){
+      case 'ring':    return 'Ring ' + e.ring + ' closing \u2014 <b>' + e.alive + ' squads</b> remain';
+      case 'engage':  return 'Contact: ' + e.teams.map(nm).join(' vs ');
+      case 'ringdmg': return '<b>' + esc(e.player) + '</b> taking ring damage';
+      case 'knock':   return '<b>' + esc(e.player) + '</b> knocked <b>' + esc(e.victim) + '</b> <i>' +
+                             esc(e.gun) + '</i>' + (e.hs ? ' <span class="hs">HS</span>' : '');
+      case 'care':    return '\ud83d\udce6 ' + nm(e.team) + ' opened a care package \u2014 <b>' +
+                             esc(e.player) + '</b> picked up the <span class="redw">' + esc(e.gun) + '</span>';
+      case 'craft':   return e.kind==='banner'
+                        ? '\ud83d\udd27 ' + nm(e.team) + ' crafted <b>' + esc(e.player) + '</b>\u2019s banner'
+                        : '\ud83d\udd27 <b>' + esc(e.player) + '</b> crafted a ' +
+                          (e.kind==='battery' ? 'shield battery' : 'med kit');
+      case 'move':    return '\ud83c\udf00 <b>' + esc(e.player) + '</b> broke away \u2014 <span class="mvt">' +
+                             esc(e.tech) + '</span>';
+      case 'evo':     return '<b>' + esc(e.player) + '</b> evolved to a ' +
+                             (e.shieldMax===100?'purple':'blue') + ' shield';
+      case 'revive':  return '<b>' + esc(e.player) + '</b> was revived';
+      case 'respawn': return nm(e.team) + ' respawned <b>' + esc(e.player) + '</b> at a beacon' +
+                             (e.banner ? ' (banner crafted)' : '');
+      case 'kill':    return '<b>' + esc(e.player) + '</b> eliminated <b>' + esc(e.victim) + '</b> <i>' +
+                             esc(e.gun) + '</i>' + (e.hs ? ' <span class="hs">HS</span>' : '');
+      case 'wipe':    return nm(e.team) + ' eliminated \u2014 placed <b>#' + e.place + '</b> (' + e.kills + ' kills)';
+      case 'win':     return '\ud83c\udfc6 ' + nm(e.team) + ' win the match with ' + e.kills + ' kills';
+    }
+    return '';
+  }
+  function stepEvent(){
+    if (!live) return;
+    if (live.idx >= live.res.events.length){ stopPlayback(); finishMatch(); return; }
+    applyEvent(live.res.events[live.idx++]);
+    renderMatch();
+  }
+  function skipMatch(){
+    if (!live) return;
+    stopPlayback();
+    while (live.idx < live.res.events.length) applyEvent(live.res.events[live.idx++]);
+    renderMatch(); finishMatch();
+  }
+  function finishMatch(){
+    renderMatchResult();
+    const bar = document.getElementById('mBtns');
+    if (!bar) return;
+    if (major && !major.done){
+      const step = advanceMajor();
+      if (step.banner) document.getElementById('mBanner').textContent = step.banner;
+      document.getElementById('mBanner').style.display = step.banner ? 'block' : 'none';
+      if (step.roundDone){
+        // A round of the group stage just finished — show where everyone stands.
+        showMajorTable(false, step.banner);
+        return;
+      }
+      if (!step.more){
+        bar.innerHTML = '<button class="btn pri" id="mNext">\ud83c\udfc6 MAJOR STANDINGS \u2192</button>';
+        document.getElementById('mNext').onclick = function(){ showMajorTable(true); };
+        return;
+      }
+      bar.innerHTML = '<button class="btn pri" id="mNext">NEXT MATCH \u2192</button>' +
+        '<button class="btn" id="mStand">\ud83d\udcca STANDINGS</button>' +
+        '<button class="btn" id="mSimStage">\u23ed ' +
+        (major.stage==='group' ? 'SIM REST OF ROUND' : 'SIM REST OF STAGE') + '</button>';
+      document.getElementById('mNext').onclick = function(){ nextMajorMatch(); };
+      document.getElementById('mStand').onclick = function(){ showMajorTable(false); };
+      document.getElementById('mSimStage').onclick = simRestOfStage;
+      return;
+    }
+    bar.innerHTML = '<button class="btn pri" id="mNext">' +
+      (tour.matchNo >= tour.total ? 'FINAL STANDINGS \u2192' : 'NEXT MATCH \u2192') + '</button>' +
+      '<button class="btn" id="mStand">\ud83d\udcca STANDINGS</button>';
+    const n = document.getElementById('mNext'); if (n) n.onclick = function(){ nextMatch(); };
+    const s = document.getElementById('mStand'); if (s) s.onclick = function(){ showStandings(false); };
+  }
+  // Run the remaining matches of the current major stage without playback.
+  function simRestOfStage(){
+    stopPlayback();
+    const startStage = major.stage;
+    const startRound = (startStage==='group') ? Math.floor(major.qi/6) : -1;
+    let guard = 0, banner = '';
+    while (major && !major.done && major.stage===startStage && guard++ < 200){
+      // In the group stage, stop when the current round is done.
+      if (startStage==='group' && Math.floor(major.qi/6) !== startRound) break;
+      const lobby = majorLobby();
+      const mapName = MAPS[guard % MAPS.length];
+      const res = simulateMatch(lobby, mapName);
+      recordMatch(res);
+      res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
+      live = {res:res, idx:0, view:[], feed:[], ring:0, playing:false, timer:null};
+      const step = advanceMajor();
+      if (step.banner) banner = step.banner;
+      if (!step.more) break;
+      if (step.roundDone) break;
+    }
+    save();
+    showMajorTable(!!(major && major.done), banner);
+  }
+  // The single running table for whichever stage the major is in.
+  function showMajorTable(finalDone, banner){
+    showScreen('standScreen');
+    const m = major;
+    const pool = (m.stage==='group') ? m.field : (m.stage==='survival' ? m.survivalTeams : m.playoffTeams);
+    const rows = pool.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+    document.getElementById('sKick').textContent = majorStageLabel();
+    document.getElementById('sTitle').textContent = m.done ? 'MAJOR CHAMPION' :
+      (m.stage==='group' ? 'GROUP STAGE STANDINGS' : m.stage==='survival' ? 'SURVIVAL STANDINGS' : 'PLAYOFF STANDINGS');
+    // Cut lines are only meaningful once everyone has played the same number of
+    // matches, so label them and show matches played alongside.
+    const totalGp = (m.stage==='group') ? 18 : (m.stage==='survival' ? 10 : null);
+    const divider = function(txt, cls){
+      return '<div class="cutline '+cls+'"><span>'+txt+'</span></div>';
+    };
+    let html = '';
+    rows.forEach(function(t,i){
+      if (m.stage==='group'){
+        if (i===14) html += divider('\u25b2 TOP 14 \u2014 STRAIGHT TO PLAYOFFS','cut-a');
+        if (i===34) html += divider('\u25bc BOTTOM 6 \u2014 ELIMINATED','cut-b');
+      } else if (m.stage==='survival' && i===6){
+        html += divider('\u25b2 TOP 6 \u2014 THROUGH TO PLAYOFFS','cut-a');
+      }
+      let cls = '';
+      if (m.stage==='group')      cls = i<14 ? ' st-top' : (i>=34 ? ' st-out' : '');
+      else if (m.stage==='survival') cls = i<6 ? ' st-top' : '';
+      else cls = (t.pts>=50) ? ' st-mp' : (i<3 ? ' st-top' : '');
+      const mp = (m.stage==='playoffs' && t.pts>=50) ? ' <span class="mptag">MATCH POINT</span>' : '';
+      const gp = totalGp ? '<span class="stgp">'+(t.gp||0)+'/'+totalGp+'</span>' : '<span class="stgp">'+(t.gp||0)+'</span>';
+      return html += '<div class="strow'+cls+'"><span class="stpos">'+(i+1)+'</span>' +
+        '<img class="emb" src="'+t.emblem+'" alt="">' +
+        '<span class="sttag">'+esc(t.tag)+'</span>' +
+        '<span class="stname">'+esc(t.name)+(t.group?' <span class="gtag">'+t.group+'</span>':'')+mp+'</span>' +
+        gp + '<span class="stk">'+t.kills+'K</span><span class="stpts">'+t.pts+'</span></div>';
+    });
+    document.getElementById('sBody').innerHTML = html;
+    document.getElementById('sNote').innerHTML = m.done
+      ? '\ud83c\udfc6 <b>'+esc(m.champion.name)+'</b> are Major champions.'
+      : (banner ? '<b>'+esc(banner)+'</b><br>' : '') +
+        (m.stage==='group' ? ('Combined across all 36 group matches \u00b7 top 14 advance \u00b7 middle 20 to survival \u00b7 bottom 6 eliminated' +
+            (m.qi<36 ? '<br><span class="warn">Provisional \u2014 teams have played different numbers of matches so far (' +
+              Math.min.apply(null, m.field.map(function(x){return x.gp||0;})) + '\u2013' +
+              Math.max.apply(null, m.field.map(function(x){return x.gp||0;})) + ' of 18).</span>' : ''))
+        : m.stage==='survival' ? 'Top 6 join the 14 already through'
+        : 'Reach 50 points to go on match point, then win a match to take it all');
+    const bar = document.getElementById('sBtns');
+    if (m.done){
+      const notes = runRostermania();
+      const ts = world.teamStats[m.champion.name];
+      if (ts) ts.majors = (ts.majors||0)+1;
+      m.champion.roster.forEach(function(p){
+        const ps = world.playerStats[p.name];
+        if (ps) ps.majors = (ps.majors||0)+1;
+      });
+      save();
+      bar.innerHTML = '<button class="btn pri" id="sNew">NEW EVENT</button>' +
+        '<button class="btn" id="sRank">\ud83c\udf10 WORLD RANKING</button>';
+      document.getElementById('sNew').onclick = function(){ major=null; showScreen('setupScreen'); };
+      if (notes.length){
+        document.getElementById('sNote').innerHTML += '<div class="rmnote">' + notes.map(function(n){
+          return n.type==='disband'
+            ? '\ud83d\udca5 <b>'+esc(n.team)+'</b> disbanded ('+n.avg.toFixed(1)+' pts/match)'
+            : '\ud83d\udd01 <b>'+esc(n.team)+'</b> dropped '+esc(n.out)+' for '+esc(n.in);
+        }).join('<br>') + '</div>';
+      }
+    } else {
+      const nextLbl = (m.stage==='group' && m.qi%6===0 && m.qi<36)
+        ? 'START ROUND ' + (Math.floor(m.qi/6)+1) + ' \u2192' : 'NEXT MATCH \u2192';
+      bar.innerHTML = '<button class="btn pri" id="sBack">\u2190 BACK TO MATCH</button>' +
+        '<button class="btn pri" id="sNextM">' + nextLbl + '</button>' +
+        '<button class="btn" id="sRank">\ud83c\udf10 WORLD RANKING</button>';
+      document.getElementById('sBack').onclick = function(){ showScreen('matchScreen'); };
+      document.getElementById('sNextM').onclick = function(){ nextMajorMatch(); };
+    }
+    document.getElementById('sRank').onclick = showRankings;
+  }
+  // Final placement table for the match that just ended.
+  function renderMatchResult(){
+    const el = document.getElementById('mResult');
+    if (!el || !live) return;
+    const rows = live.res.results.slice().sort(function(a,b){ return a.place-b.place; });
+    // Every player in the lobby, with the team they were on.
+    const ps = [];
+    live.res.results.forEach(function(r){
+      r.players.forEach(function(p){ ps.push({name:p.name, kills:p.kills, dmg:p.dmg, team:r.name, place:r.place}); });
+    });
+    const topK = ps.slice().sort(function(a,b){ return b.kills-a.kills || b.dmg-a.dmg; })[0];
+    const topD = ps.slice().sort(function(a,b){ return b.dmg-a.dmg || b.kills-a.kills; })[0];
+    const byDmg = ps.slice().sort(function(a,b){ return b.dmg-a.dmg || b.kills-a.kills; });
+    const leader = function(lbl, p, val){
+      return '<div class="ldr"><span class="ldlab">'+lbl+'</span>' +
+        '<span class="ldname">'+esc(p.name)+'</span>' +
+        '<span class="ldteam">'+esc(p.team)+'</span>' +
+        '<span class="ldval">'+val+'</span></div>';
+    };
+    el.innerHTML =
+      '<div class="note">MATCH LEADERS</div>' +
+      '<div class="ldrow">' + leader('MOST KILLS', topK, topK.kills+' K') +
+                              leader('MOST DAMAGE', topD, topD.dmg.toLocaleString()) + '</div>' +
+      '<div class="note">MATCH RESULT</div>' +
+      '<div class="rhead"><span>#</span><span>TEAM</span><span>KILLS</span><span>PLACE</span><span>PTS</span></div>' +
+      rows.map(function(r){
+        const cls = r.place<=3 ? ' st-top' : '';
+        const pl = r.players.slice().sort(function(a,b){ return b.dmg-a.dmg; }).map(function(p){
+          return '<span class="mps"><b>'+esc(p.name)+'</b> '+p.kills+'K \u00b7 '+p.dmg +
+                 (p.move===2?' <span class="mv2">\u26a1</span>':(p.move===1?' <span class="mv1">\u26a1</span>':'')) +
+                 (p.sling?' <span class="goldw">\u2b50</span>':'') + (p.red?' <span class="redw">\u2726</span>':'') + '</span>';
+        }).join('');
+        return '<div class="rrow'+cls+'"><span class="stpos">'+r.place+'</span>' +
+          '<span class="stname">'+esc(r.name)+'</span>' +
+          '<span class="rk">'+r.kills+'</span>' +
+          '<span class="rp">+'+placementPoints(r.place)+'</span>' +
+          '<span class="stpts">'+r.pts+'</span>' +
+          '<span class="mprow">'+pl+'</span></div>';
+      }).join('') +
+      '<div class="note">PLAYER STATS \u2014 ALL 60</div>' +
+      '<div class="rhead pshead"><span>#</span><span>PLAYER</span><span>TEAM</span><span>KILLS</span><span>DMG</span></div>' +
+      '<div class="psbox">' + byDmg.map(function(p,i){
+        return '<div class="psrow"><span class="stpos">'+(i+1)+'</span>' +
+          '<span class="stname">'+esc(p.name)+'</span>' +
+          '<span class="psteam">'+esc(p.team)+'</span>' +
+          '<span class="rk">'+p.kills+'</span>' +
+          '<span class="psd">'+p.dmg.toLocaleString()+'</span></div>';
+      }).join('') + '</div>';
+    el.style.display = 'block';
+  }
+  function pbar(p){
+    if (p.state==='dead') return '<span class="skull">\u2715</span>';
+    if (p.state==='down') return '<span class="dwn">DOWN</span>';
+    return '';
+  }
+  // Two weapons, three for Ballistic. Care-package guns show red, the gold
+  // sling shows gold.
+  function loadoutHtml(p){
+    const list = (p.guns && p.guns.length) ? p.guns : [p.gun];
+    return list.map(function(g){
+      if (p.red && g===p.gun) return '<span class="redw">\u2726 '+esc(g)+'</span>';
+      if (p.sling && g===p.sling) return '<span class="goldw">\u2b50 '+esc(g)+'</span>';
+      return esc(g);
+    }).join(' <span class="gsep">/</span> ');
+  }
+  // Evo shield: 25hp per segment. Two white, three blue, four purple.
+  function shieldBar(cur, max){
+    const segs = Math.max(2, Math.round(max/25));
+    const tier = max>=100 ? 'pur' : (max>=75 ? 'blu' : 'wht');
+    let h = '<span class="shw">';
+    for (let i=0;i<segs;i++){
+      const fill = Math.max(0, Math.min(25, cur - i*25)) / 25 * 100;
+      h += '<i class="sg '+tier+'"><b style="width:'+fill+'%"></b></i>';
+    }
+    return h + '</span>';
+  }
+  function playerRow(p){
+    const cls = CLASS_CODE[LEGENDS[p.legend]] || 'as';
+    const st = p.state==='dead' ? ' dead' : (p.state==='down' ? ' down' : '');
+    return '<div class="pl'+st+'">' +
+      '<span class="pnm">'+esc(p.name)+(p.move===2?' <span class="mv2" title="Elite movement">\u26a1</span>'
+        :(p.move===1?' <span class="mv1" title="Strong movement">\u26a1</span>':''))+'</span>' +
+      '<span class="lg '+cls+'">'+esc(p.legend)+'</span>' +
+      (p.state==='alive'
+        ? '<span class="gun">'+loadoutHtml(p)+'</span>' + shieldBar(p.shield, p.shieldMax||50) +
+          '<span class="hb"><i class="hp" style="width:'+p.hp+'%"></i></span>'
+        : '<span class="gun">'+pbar(p)+'</span>') +
+      '</div>';
+  }
+  function teamCard(t, aliveView){
+    if (!aliveView){
+      return '<div class="tc out"><div class="th"><span class="plc">#'+t.place+'</span>' +
+        '<img class="emb" src="'+t.emblem+'" alt="">' +
+        '<span class="tn">'+esc(t.name)+'</span><span class="kc">'+t.kills+'K</span></div></div>';
+    }
+    const up = t.live.filter(function(p){ return p.state==='alive'; }).length;
+    return '<div class="tc"><div class="th">' +
+      '<img class="emb" src="'+t.emblem+'" alt="">' +
+      '<span class="tg">'+esc(t.tag)+'</span>' +
+      '<span class="tn">'+esc(t.name)+'</span>' +
+      '<span class="alv">'+up+'/3</span><span class="kc">'+t.kills+'K</span></div>' +
+      t.live.map(playerRow).join('') + '</div>';
+  }
+  function renderMatch(){
+    const v = live.view;
+    const alive = v.filter(function(t){ return t.alive; });
+    const dead = v.filter(function(t){ return !t.alive; }).sort(function(a,b){ return a.place-b.place; });
+    const totalAlive = alive.reduce(function(s,t){
+      return s + t.live.filter(function(p){ return p.state==='alive'; }).length; }, 0);
+    document.getElementById('mRing').innerHTML = 'RING <b>'+Math.max(1,live.ring)+'</b>';
+    document.getElementById('mSquads').innerHTML = 'SQUADS <b>'+alive.length+'</b>/20';
+    document.getElementById('mAlive').innerHTML = 'ALIVE <b>'+totalAlive+'</b>/60';
+    document.getElementById('mRingBar').style.width = Math.min(100, (live.ring/7)*100) + '%';
+    document.getElementById('mFeed').innerHTML = live.feed.slice(-9).map(function(f){
+      return '<div class="fl '+f.cls+'"><span class="ft">R'+f.ring+'</span><span>'+f.html+'</span></div>';
+    }).join('');
+    document.getElementById('mAliveHead').textContent = 'ALIVE \u2014 ' + alive.length + ' SQUADS';
+    document.getElementById('mGrid').innerHTML = alive.map(function(t){ return teamCard(t,true); }).join('');
+    document.getElementById('mDeadHead').style.display = dead.length ? 'block' : 'none';
+    document.getElementById('mDead').innerHTML = dead.map(function(t){ return teamCard(t,false); }).join('');
+    const fd = document.getElementById('mFeed'); if (fd) fd.scrollTop = fd.scrollHeight;
+  }
+
+  /* ===================== STANDINGS ===================== */
+  function showStandings(finalDone){
+    showScreen('standScreen');
+    const rows = tour.teams.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+    document.getElementById('sKick').textContent = finalDone
+      ? (tour.isQualifier ? 'QUALIFIER COMPLETE \u2014 TOP 2 PROMOTED' : 'TOURNAMENT COMPLETE')
+      : ('AFTER MATCH ' + tour.matchNo + ' OF ' + tour.total +
+         (tour.isQualifier ? ' \u00b7 TOP 2 EARN ORG STATUS' : ''));
+    document.getElementById('sTitle').textContent = finalDone ? 'FINAL STANDINGS' : 'STANDINGS';
+    const cut = tour.isQualifier ? 2 : 3;
+    document.getElementById('sBody').innerHTML = rows.map(function(t,i){
+      const cls = i<cut ? ' st-top' : '';
+      return '<div class="strow'+cls+'"><span class="stpos">'+(i+1)+'</span>' +
+        '<img class="emb" src="'+t.emblem+'" alt="">' +
+        '<span class="sttag">'+esc(t.tag)+'</span>' +
+        '<span class="stname">'+esc(t.name)+(t.permanent?' <span class="permtag">ORG</span>':'')+'</span>' +
+        '<span class="stk">'+t.kills+'K</span><span class="stpts">'+t.pts+'</span></div>';
+    }).join('');
+    const bar = document.getElementById('sBtns');
+    if (finalDone){
+      // A qualifier promotes two; a normal tournament promotes three.
+      const slots = tour.isQualifier ? 2 : 3;
+      const promoted = [];
+      rows.slice(0,slots).forEach(function(t){
+        if (t.permanent) return;
+        t.permanent = true;
+        world.permanent.push({name:t.name, tag:t.tag, emblem:t.emblem,
+          roster:t.roster.map(function(p){ return {name:p.name}; })});
+        promoted.push(t.name);
+      });
+      recordTournamentStrikes(rows);
+      const champ = rows[0];
+      const ts = world.teamStats[champ.name]; if (ts) ts.titles = (ts.titles||0)+1;
+      champ.roster.forEach(function(p){
+        const ps = world.playerStats[p.name]; if (ps) ps.titles = (ps.titles||0)+1;
+      });
+      save();
+      const rm = runRostermania();
+      save();
+      let note = promoted.length
+        ? '\u2b50 <b>'+promoted.map(esc).join(', ')+'</b> ' +
+          (tour.isQualifier ? 'won through the qualifier and are now permanent orgs.'
+                            : 'finished top three and are now permanent orgs.')
+        : 'The podium was all established orgs \u2014 no new teams promoted.';
+      if (rm.length){
+        note += '<div class="rmnote">' + rm.map(function(n){
+          return n.type==='disband'
+            ? '\ud83d\udca5 <b>'+esc(n.team)+'</b> disbanded \u2014 '+esc(n.reason)
+            : '\ud83d\udd01 <b>'+esc(n.team)+'</b> dropped '+esc(n.out)+' for '+esc(n.in)+' \u2014 '+esc(n.reason);
+        }).join('<br>') + '</div>';
+      }
+      document.getElementById('sNote').innerHTML = note + eventLeaderHtml();
+      bar.innerHTML = '<button class="btn pri" id="sNew">NEW TOURNAMENT</button>' +
+                      '<button class="btn" id="sRank">\ud83c\udf10 WORLD RANKING</button>';
+      document.getElementById('sNew').onclick = function(){ showScreen('setupScreen'); };
+    } else {
+      document.getElementById('sNote').textContent = '';
+      bar.innerHTML = '<button class="btn pri" id="sBack">\u2190 BACK TO MATCH</button>' +
+                      '<button class="btn" id="sRank">\ud83c\udf10 WORLD RANKING</button>';
+      document.getElementById('sBack').onclick = function(){ showScreen('matchScreen'); };
+    }
+    document.getElementById('sRank').onclick = showRankings;
+  }
+
+  // Top performers across the whole event, shown when it finishes.
+  function eventLeaderHtml(){
+    const L = eventLeaders();
+    if (!L) return '';
+    const row = function(p, i, val){
+      return '<div class="elrow"><span class="stpos">'+(i+1)+'</span>' +
+        '<span class="stname">'+esc(p.name)+'</span>' +
+        '<span class="psteam">'+esc(p.team)+'</span>' +
+        '<span class="psd">'+val+'</span></div>';
+    };
+    return '<div class="elwrap">' +
+      '<div><div class="note">EVENT TOP FRAGGERS</div>' +
+        L.kills.slice(0,5).map(function(p,i){ return row(p,i,p.kills+' K'); }).join('') + '</div>' +
+      '<div><div class="note">EVENT TOP DAMAGE</div>' +
+        L.dmg.slice(0,5).map(function(p,i){ return row(p,i,p.dmg.toLocaleString()); }).join('') + '</div>' +
+      '</div>';
+  }
+
+  /* ===================== RANKINGS ===================== */
+  function showRankings(){
+    showScreen('rankScreen');
+    const teams = Object.keys(world.teamStats)
+      .map(function(n){ const s=world.teamStats[n];
+        return {name:n, r:teamRating(n), m:s.matches, pts:s.pts, w:s.wins,
+                t:s.titles||0, mj:s.majors||0}; })
+      .filter(function(t){ return t.m>=3; })
+      .sort(function(a,b){ return b.r-a.r; }).slice(0,40);
+    const players = Object.keys(world.playerStats)
+      .map(function(n){ const s=world.playerStats[n];
+        return {name:n, r:playerRating(n), m:s.matches, k:s.kills,
+                t:s.titles||0, mj:s.majors||0}; })
+      .filter(function(p){ return p.m>=3; })
+      .sort(function(a,b){ return b.r-a.r; }).slice(0,40);
+    document.getElementById('rTeams').innerHTML = teams.length ? teams.map(function(t,i){
+      return '<div class="strow"><span class="stpos">'+(i+1)+'</span>' +
+        '<span class="stname">'+esc(t.name)+'</span>' +
+        '<span class="stk">'+t.m+'m \u00b7 '+t.w+'W' +
+          (t.mj?' \u00b7 '+t.mj+'\ud83d\udc51':'') + (t.t?' \u00b7 '+t.t+'\ud83c\udfc6':'') + '</span>' +
+        '<span class="stpts">'+t.r.toFixed(0)+'</span></div>';
+    }).join('') : '<div class="empty">Play a tournament to build the ranking.</div>';
+    document.getElementById('rPlayers').innerHTML = players.length ? players.map(function(p,i){
+      return '<div class="strow"><span class="stpos">'+(i+1)+'</span>' +
+        '<span class="stname">'+esc(p.name)+' <span class="natx">'+esc(nationOf(p.name))+'</span></span>' +
+        '<span class="stk">'+p.k+'K \u00b7 '+p.m+'m' +
+          (p.mj?' \u00b7 '+p.mj+'\ud83d\udc51':'') + (p.t?' \u00b7 '+p.t+'\ud83c\udfc6':'') + '</span>' +
+        '<span class="stpts">'+p.r.toFixed(0)+'</span></div>';
+    }).join('') : '<div class="empty">No player data yet.</div>';
+    document.getElementById('rBack').onclick = function(){
+      showScreen(tour ? 'standScreen' : 'setupScreen');
+    };
+  }
+
+  /* ===================== LEGENDS REFERENCE ===================== */
+  const FX_LABEL = {
+    fight:'Fighting power', initiate:'Winning the opening exchange', hold:'Holding a position',
+    escape:'Escaping a lost fight', teamEscape:'Getting the squad out', disengage:'Breaking contact',
+    antiEscape:'Stopping enemies fleeing', antiPush:'Punishing pushes', breakHold:'Cracking a held position',
+    revive:'Reviving team-mates', respawn:'Respawning the dead', heal:'Crafting and healing',
+    selfHeal:'Self-sustain', teamShield:'Shielding the squad', damageResist:'Soaking damage',
+    ringResist:'Surviving the ring', rotate:'Rotating early', loot:'Contesting care packages',
+    shieldStrip:'Stripping enemy shields', markDamage:'Marked-target damage',
+    finishLow:'Finishing wounded enemies', sling:'Third weapon slot', shieldOvercharge:'Shield overcharge'
+  };
+  function showLegends(){
+    showScreen('legendScreen');
+    const order = ['Assault','Skirmisher','Recon','Support','Controller'];
+    document.getElementById('lgBody').innerHTML = order.map(function(cls){
+      const perk = CLASS_PERKS[cls] || {};
+      const members = LEGEND_DATA.filter(function(L){ return L.c===cls; });
+      return '<div class="lgclass">' +
+        '<div class="lgch"><span class="lg '+CLASS_CODE[cls]+'">'+cls.toUpperCase()+'</span>' +
+          '<span class="lgcount">'+members.length+' legends</span></div>' +
+        '<div class="lgperk"><b>Class perk:</b> '+esc(perk.perk||'')+'</div>' +
+        '<div class="lggrid">' + members.map(function(L){
+          const fx = Object.keys(L.fx).map(function(k){
+            return '<span class="fxchip">'+esc(FX_LABEL[k]||k)+'</span>'; }).join('');
+          return '<div class="lgcard">' +
+            '<div class="lgname">'+esc(L.n)+'</div>' +
+            '<div class="lgab"><span class="abk">TACTICAL</span>'+esc(L.t)+'</div>' +
+            '<div class="lgab"><span class="abk">PASSIVE</span>'+esc(L.p)+'</div>' +
+            '<div class="lgab"><span class="abk">ULTIMATE</span>'+esc(L.u)+'</div>' +
+            '<div class="lgfx">'+fx+'</div></div>';
+        }).join('') + '</div></div>';
+    }).join('');
+    document.getElementById('lgBack').onclick = function(){ showScreen('setupScreen'); };
+  }
+
+  /* ===================== META PANEL ===================== */
+  function renderMeta(){
+    const el = document.getElementById('metaBox');
+    if (!el) return;
+    const chip = function(v, up){ return '<span class="chip '+(up?'up':'down')+'">'+esc(v)+'</span>'; };
+    el.innerHTML =
+      '<div class="metarow"><span class="mlab">LEGENDS BUFFED</span>' +
+        (meta.legendUp.map(function(l){ return chip(l,true); }).join('') || '<i>none yet</i>') + '</div>' +
+      '<div class="metarow"><span class="mlab">LEGENDS NERFED</span>' +
+        (meta.legendDown.map(function(l){ return chip(l,false); }).join('') || '<i>none yet</i>') + '</div>' +
+      '<div class="metarow"><span class="mlab">WEAPONS BUFFED</span>' +
+        (meta.gunUp.map(function(g){ return chip(g,true); }).join('') || '<i>none yet</i>') + '</div>' +
+      '<div class="metarow"><span class="mlab">WEAPONS NERFED</span>' +
+        (meta.gunDown.map(function(g){ return chip(g,false); }).join('') || '<i>none yet</i>') + '</div>' +
+      '<div class="metarow"><span class="mlab">CARE PACKAGE</span>' +
+        careList().map(function(g){ return '<span class="chip care">'+esc(g)+'</span>'; }).join('') +
+        '<span class="mnote">pulled from floor loot</span></div>';
+    document.getElementById('metaSeason').textContent = 'SEASON ' + meta.season;
+  }
+
+  /* ===================== BOOT ===================== */
+  load();
+  renderMeta();
+  document.getElementById('startBtn').addEventListener('click', function(){ major=null; startTournament(); });
+  document.getElementById('majorBtn').addEventListener('click', startMajor);
+  document.getElementById('qualBtn').addEventListener('click', startQualifier);
+  document.getElementById('metaBtn').addEventListener('click', function(){ rollMeta(); renderMeta(); });
+  document.getElementById('rankBtn').addEventListener('click', showRankings);
+  document.getElementById('legendBtn').addEventListener('click', showLegends);
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    if (!confirm('Wipe all rankings, orgs and history?')) return;
+    world = {meta:null, teamStats:{}, playerStats:{}, permanent:[], events:0};
+    meta = {season:1, legendUp:[], legendDown:[], gunUp:[], gunDown:[]};
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    renderMeta();
+  });
+  document.getElementById('mPlay').addEventListener('click', function(){
+    if (!live) return;
+    if (live.playing) stopPlayback(); else startPlayback();
+  });
+  document.getElementById('mSkip').addEventListener('click', skipMatch);
+  document.getElementById('mSimAll').addEventListener('click', function(){
+    if (major && !major.done){ simRestOfStage(); return; }
+    if (!tour) return;
+    stopPlayback();
+    while (live && live.idx < live.res.events.length) applyEvent(live.res.events[live.idx++]);
+    while (tour.matchNo < tour.total){
+      tour.matchNo++;
+      const res = simulateMatch(tour.teams, MAPS[(tour.matchNo-1)%MAPS.length]);
+      recordMatch(res);
+      res.results.forEach(function(r){ const t=tour.teams[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
+      tour.log.push(res);
+    }
+    save();
+    showStandings(true);
+  });
+
+})();
+</script>
+</body></html>
