@@ -112,7 +112,9 @@ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sg{flex:1;height:4px;background:#0a0b0e;border:1px solid #23272f;display:block;position:relative}
 .sg b{position:absolute;left:0;top:0;height:100%;display:block;transition:width .3s}
 .sg.wht b{background:#dfe4ea} .sg.blu b{background:#5aa9f0} .sg.pur b{background:#b06ef0}
+.sg.red b{background:#e8452c} .sg.over b{background:#ffd94a}
 .sg.wht{border-color:#3a4048} .sg.blu{border-color:#2b4a63} .sg.pur{border-color:#4a2d63}
+.sg.red{border-color:#5c1f16} .sg.over{border-color:#6b5410}
 /* match result table */
 .rhead,.rrow{display:grid;grid-template-columns:34px 1fr 52px 52px 56px;gap:8px;align-items:center;
 padding:7px 11px;font-size:12.5px}
@@ -268,7 +270,11 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
 .pick{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--gold);border:1px solid rgba(255,193,69,.4);padding:1px 4px}
 
 /* match browser tabs */
-.mtabs{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.mtabs{display:flex;gap:6px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.mscroll{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;padding-bottom:3px}
+.mscroll::-webkit-scrollbar{height:5px}
+.mscroll::-webkit-scrollbar-thumb{background:var(--line)}
+.mscroll .mtab{flex:0 0 auto}
 .mtab{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;padding:7px 11px;
 background:var(--panel);border:1px solid var(--line);color:var(--mut);cursor:pointer;
 clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
@@ -279,6 +285,39 @@ clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100
 .mvhead{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;text-transform:uppercase;
 margin-bottom:12px;color:var(--acc2)}
 .mvhead span{color:var(--mut);font-size:14px}
+
+/* amps */
+.ampb{font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#c9a2ff;border:1px solid rgba(201,162,255,.4);
+padding:1px 3px;margin-left:3px}
+.ampw{color:#c9a2ff;font-weight:600}
+/* legend pick rates */
+.prnote{font-size:12px;color:var(--mut);margin-bottom:16px;line-height:1.6}
+.prnote b{color:var(--txt)}
+.prrow{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.prlab{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:var(--mut)}
+.prval{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px}
+.prd{font-family:'IBM Plex Mono',monospace;font-size:10px}
+.prd.up{color:var(--good)} .prd.down{color:var(--acc)} .prd.flat,.prd.new{color:var(--mut)}
+/* team roster popup */
+.rpop{position:absolute;z-index:60;width:238px;background:var(--panel);border:1px solid var(--acc2);
+padding:10px 12px;box-shadow:0 8px 26px rgba(0,0,0,.6);
+clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
+.rpop-h{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;text-transform:uppercase;
+margin-bottom:7px;color:var(--acc2)}
+.rpop-p{display:grid;grid-template-columns:1fr auto auto;gap:7px;align-items:center;font-size:12px;padding:3px 0}
+.rpop-n{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpop-c,.rpop-k{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
+.rpop-f{margin-top:7px;padding-top:6px;border-top:1px solid var(--line);
+font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
+.rteam{cursor:pointer}
+.rteam:hover{border-color:var(--acc2)}
+.fl .dim{color:var(--mut)}
+
+.armr{font-weight:600}
+.armr.a1{color:#dfe4ea} .armr.a2{color:#5aa9f0} .armr.a3{color:#b06ef0} .armr.a4{color:#e8452c}
+
+.hred{color:#e8452c;font-weight:600} .hgold{color:#ffd94a;font-weight:600}
+.helm{font-size:9px;margin-left:3px}
 </style>
 </head><body><div class="wrap">
 
@@ -358,6 +397,7 @@ margin-bottom:12px;color:var(--acc2)}
 </div>
 
 </div>
+<div id="rosterPop" class="rpop" style="display:none"></div>
 <script>
 (function(){
 "use strict";
@@ -367,7 +407,7 @@ margin-bottom:12px;color:var(--acc2)}
 
   const LEGEND_DATA = [{"n": "Bangalore", "c": "Assault", "t": "Smoke Launcher", "p": "Double Time", "u": "Rolling Thunder", "fx": {"escape": 0.1, "disengage": 0.12}}, {"n": "Fuse", "c": "Assault", "t": "Knuckle Cluster", "p": "Grenadier", "u": "The Motherlode", "fx": {"fight": 1.2, "breakHold": 0.14}}, {"n": "Ash", "c": "Assault", "t": "Arc Snare", "p": "Predator's Pursuit", "u": "Phase Breach", "fx": {"initiate": 0.1, "antiEscape": 0.16}}, {"n": "Mad Maggie", "c": "Assault", "t": "Riot Drill", "p": "Warlord's Ire", "u": "Wrecking Ball", "fx": {"breakHold": 0.18, "fight": 0.9}}, {"n": "Ballistic", "c": "Assault", "t": "Whistler", "p": "Sling", "u": "Tempest", "fx": {"fight": 0.8, "sling": 1}}, {"n": "Caustic", "c": "Controller", "t": "Nox Gas Trap", "p": "Nox Vision", "u": "Nox Gas Grenade", "fx": {"hold": 1.9, "antiPush": 0.16}}, {"n": "Wattson", "c": "Controller", "t": "Perimeter Security", "p": "Spark of Genius", "u": "Interception Pylon", "fx": {"hold": 1.4, "thirdPartyResist": 0.2}}, {"n": "Rampart", "c": "Controller", "t": "Amped Cover", "p": "Battle Modder", "u": "Emplaced Minigun “Sheila”", "fx": {"hold": 1.7, "fight": 0.8}}, {"n": "Catalyst", "c": "Controller", "t": "Piercing Spikes", "p": "Barricade", "u": "Dark Veil", "fx": {"hold": 1.5, "ringResist": 0.1, "antiPush": 0.12}}, {"n": "Bloodhound", "c": "Recon", "t": "Eye of the Allfather", "p": "Tracker", "u": "Beast of the Hunt", "fx": {"initiate": 0.16, "fight": 0.7}}, {"n": "Crypto", "c": "Recon", "t": "Surveillance Drone", "p": "Neurolink", "u": "Drone EMP", "fx": {"initiate": 0.14, "shieldStrip": 0.18}}, {"n": "Valkyrie", "c": "Recon", "t": "Missile Swarm", "p": "VTOL Jets", "u": "Skyward Dive", "fx": {"rotate": 0.2, "ringResist": 0.16, "escape": 0.1}}, {"n": "Seer", "c": "Recon", "t": "Focus of Attention", "p": "Heart Seeker", "u": "Exhibit", "fx": {"initiate": 0.12, "finishLow": 0.16}}, {"n": "Vantage", "c": "Recon", "t": "Echo Relocation", "p": "Spotter's Lens", "u": "Sniper's Mark", "fx": {"markDamage": 0.16, "initiate": 0.08}}, {"n": "Sparrow", "c": "Recon", "t": "Tracker Dart", "p": "Double Jump", "u": "Stinger Bolt", "fx": {"initiate": 0.12, "breakHold": 0.1, "rotate": 0.08}}, {"n": "Octane", "c": "Skirmisher", "t": "Stim", "p": "Swift Mend", "u": "Launch Pad", "fx": {"escape": 0.16, "selfHeal": 0.18, "rotate": 0.1}}, {"n": "Pathfinder", "c": "Skirmisher", "t": "Grappling Hook", "p": "Insider Knowledge", "u": "Zipline Gun", "fx": {"rotate": 0.18, "escape": 0.12}}, {"n": "Wraith", "c": "Skirmisher", "t": "Into the Void", "p": "Voices from the Void", "u": "Dimensional Rift", "fx": {"escape": 0.24, "teamEscape": 0.14}}, {"n": "Revenant", "c": "Skirmisher", "t": "Shadow Pounce", "p": "Assassin's Instinct", "u": "Forged Shadows", "fx": {"initiate": 0.14, "fight": 1.3, "finishLow": 0.12}}, {"n": "Horizon", "c": "Skirmisher", "t": "Gravity Lift", "p": "Spacewalk", "u": "Black Hole", "fx": {"fight": 1.0, "initiate": 0.1, "breakHold": 0.1}}, {"n": "Alter", "c": "Skirmisher", "t": "Void Passage", "p": "Gift from the Rift", "u": "Void Nexus", "fx": {"initiate": 0.12, "teamEscape": 0.16, "loot": 0.1}}, {"n": "Axle", "c": "Skirmisher", "t": "Nitro Gate", "p": "Drift", "u": "Kickstart", "fx": {"rotate": 0.22, "escape": 0.14, "initiate": 0.06}}, {"n": "Gibraltar", "c": "Support", "t": "Dome of Protection", "p": "Gun Shield", "u": "Defensive Bombardment", "fx": {"revive": 0.2, "damageResist": 0.14, "hold": 0.8}}, {"n": "Lifeline", "c": "Support", "t": "D.O.C Heal Drone", "p": "Combat Medic", "u": "D.O.C Halo", "fx": {"revive": 0.26, "heal": 0.22}}, {"n": "Mirage", "c": "Support", "t": "Psyche Out", "p": "Now You See Me", "u": "Life of the Party", "fx": {"revive": 0.16, "escape": 0.14}}, {"n": "Loba", "c": "Support", "t": "Burglar's Best Friend", "p": "Eye for Quality", "u": "Black Market Boutique", "fx": {"loot": 0.24, "escape": 0.1}}, {"n": "Newcastle", "c": "Support", "t": "Mobile Shield", "p": "Retrieve the Wounded", "u": "Castle Wall", "fx": {"revive": 0.24, "hold": 1.0, "damageResist": 0.1}}, {"n": "Conduit", "c": "Support", "t": "Radiant Transfer", "p": "Savior's Speed", "u": "Energy Barricade", "fx": {"teamShield": 0.2, "hold": 0.7}}];
   const CLASS_PERKS = {"Assault": {"perk": "Extra ammo per stack, extra ordnance slots, faster weapon swap, and a reload/move speed boost on breaking a shield. Opens the hidden compartment in Weapon Supply Bins.", "fx": {"fight": 0.6, "breakHold": 0.05}}, "Controller": {"perk": "Ring Consoles reveal the next Ring. +25 shield overcharge while inside the Ring. Can remotely retrieve placed traps.", "fx": {"hold": 0.7, "shieldOvercharge": 25}}, "Recon": {"perk": "Survey Beacon scans are faster, don't reveal your position, and expose enemies three times per scan. Threat vision while aiming down sights.", "fx": {"initiate": 0.08, "thirdPartyResist": 0.08}}, "Skirmisher": {"perk": "Spot the contents of incoming Care Packages. Faster movement while using consumables, and allies move faster toward you.", "fx": {"loot": 0.14, "escape": 0.06, "rotate": 0.06}}, "Support": {"perk": "Craft ally banners at Replicators, faster revives and healing, Mobile Respawn Beacons in ally death boxes, and extra loot from Extended Supply Bins.", "fx": {"revive": 0.08, "respawn": 0.1, "heal": 0.1}}};
-  const NAMED_TEAMS = [{"n": "BeeHyve", "t": "BEE", "r": ["Hyvred", "TiniiBee", "TokieShepherdVT"]}, {"n": "Eiromancers", "t": "EIR", "r": ["Skiazelle", "RaviasEir", "kanarivt"]}, {"n": "Syzygy", "t": "SYZ", "r": ["AyanOwOT", "dudriduo_", "anju_o"]}, {"n": "Aimpunch", "t": "AIM", "r": ["Sketch", "AcroBlaze", "[Idiot] AngelCrutcher"]}, {"n": "Infernum E-Sports", "t": "IE", "r": null}, {"n": "Lemon Tree", "t": "LT", "r": null}, {"n": "Artisian", "t": "ART", "r": null}, {"n": "Opal", "t": "OPA", "r": null}, {"n": "Unforgettable", "t": "UNF", "r": null}, {"n": "Neverland", "t": "NEV", "r": ["Ice", "Sayucchi", "AnjuValse"]}, {"n": "Divide&Conquer", "t": "DIV", "r": null}, {"n": "Bluebird", "t": "BLU", "r": null}, {"n": "Kiedz", "t": "KIE", "r": null}, {"n": "The Gigarage", "t": "TG", "r": null}, {"n": "New Jade", "t": "NJ", "r": null}, {"n": "Cosmos", "t": "COS", "r": null}, {"n": "degree", "t": "DEG", "r": null}, {"n": "Setting Sun", "t": "SS", "r": null}, {"n": "0v3", "t": "0V3", "r": null}, {"n": "99Lives", "t": "99L", "r": null}, {"n": "The Nomads", "t": "TN", "r": ["ItzMaigo", "keikatamori", "inaxho"]}, {"n": "Masmark", "t": "MAS", "r": ["Xyrolizea", "TiF2", "xolalotl"]}, {"n": "Aetherline", "t": "AET", "r": null}, {"n": "entity", "t": "ENT", "r": null}, {"n": "Ukiyo", "t": "UKI", "r": null}, {"n": "Alcheministry", "t": "ALC", "r": null}, {"n": "Aeternum", "t": "AETE", "r": ["Suzuyunn", "Nikorasu", "OchakoKiyomi"]}, {"n": "DiamondOnes", "t": "DIA", "r": null}, {"n": "Cyanide", "t": "CYA", "r": null}, {"n": "Fruit Basket", "t": "FB", "r": null}, {"n": "Sacred Raven", "t": "SR", "r": null}, {"n": "Flood Flashers", "t": "FF", "r": null}, {"n": "PepegaX", "t": "PEP", "r": null}, {"n": "Aspire", "t": "ASP", "r": ["Hanarisu", "YoJareddo", "ProPHOcy_"]}, {"n": "xPlosiv", "t": "XPL", "r": null}, {"n": "Team Neverseen", "t": "TEA", "r": null}, {"n": "Moonlit Tempo", "t": "MT", "r": null}, {"n": "Technomancy", "t": "TEC", "r": null}, {"n": "Caelum Scala", "t": "CS", "r": null}, {"n": "5PERCENT", "t": "5PE", "r": null}, {"n": "Bloom E-Sports", "t": "BE", "r": null}, {"n": "Round Loss Bonus", "t": "RLB", "r": null}, {"n": "Raven Song", "t": "RS", "r": null}, {"n": "division20", "t": "DIVI", "r": null}, {"n": "Astral Bloom", "t": "AB", "r": ["Tachibana Hinano", "Nekota Tsuna", "Kaminari Qpi"]}];
+  const NAMED_TEAMS = [{"n": "BeeHyve", "t": "BEE", "r": ["Hyvred", "TiniiBee", "TokieShepherdVT"]}, {"n": "Eiromancers", "t": "EIR", "r": ["Skiazelle", "RaviasEir", "kanarivt"]}, {"n": "Syzygy", "t": "SYZ", "r": ["AyanOwOT", "dudriduo_", "anju_o"]}, {"n": "Aimpunch", "t": "AIM", "r": ["Sketch", "AcroBlaze", "[Idiot] AngelCrutcher"]}, {"n": "Infernum E-Sports", "t": "IE", "r": null}, {"n": "Lemon Tree", "t": "LT", "r": null}, {"n": "Artisian", "t": "ART", "r": null}, {"n": "Opal", "t": "OPA", "r": null}, {"n": "Unforgettable", "t": "UNF", "r": null}, {"n": "Neverland", "t": "NEV", "r": ["Ice", "Sayucchi", "AnjuValse"]}, {"n": "Divide&Conquer", "t": "DIV", "r": null}, {"n": "Bluebird", "t": "BLU", "r": ["88EXP", "Tigeraxd", "Cursiffe"]}, {"n": "Kiedz", "t": "KIE", "r": null}, {"n": "The Gigarage", "t": "TG", "r": null}, {"n": "New Jade", "t": "NJ", "r": null}, {"n": "Cosmos", "t": "COS", "r": null}, {"n": "degree", "t": "DEG", "r": null}, {"n": "Setting Sun", "t": "SS", "r": null}, {"n": "0v3", "t": "0V3", "r": null}, {"n": "99Lives", "t": "99L", "r": null}, {"n": "The Nomads", "t": "TN", "r": ["ItzMaigo", "keikatamori", "inaxho"]}, {"n": "Masmark", "t": "MAS", "r": ["Xyrolizea", "TiF2", "xolalotl"]}, {"n": "Aetherline", "t": "AET", "r": null}, {"n": "entity", "t": "ENT", "r": null}, {"n": "Ukiyo", "t": "UKI", "r": null}, {"n": "Alcheministry", "t": "ALC", "r": null}, {"n": "Aeternum", "t": "AETE", "r": ["Suzuyunn", "Nikorasu", "OchakoKiyomi"]}, {"n": "DiamondOnes", "t": "DIA", "r": null}, {"n": "Cyanide", "t": "CYA", "r": null}, {"n": "Fruit Basket", "t": "FB", "r": null}, {"n": "Sacred Raven", "t": "SR", "r": null}, {"n": "Flood Flashers", "t": "FF", "r": null}, {"n": "PepegaX", "t": "PEP", "r": null}, {"n": "Aspire", "t": "ASP", "r": ["Hanarisu", "YoJareddo", "ProPHOcy_"]}, {"n": "xPlosiv", "t": "XPL", "r": null}, {"n": "Team Neverseen", "t": "TEA", "r": null}, {"n": "Moonlit Tempo", "t": "MT", "r": null}, {"n": "Technomancy", "t": "TEC", "r": null}, {"n": "Caelum Scala", "t": "CS", "r": null}, {"n": "5PERCENT", "t": "5PE", "r": null}, {"n": "Bloom E-Sports", "t": "BE", "r": null}, {"n": "Round Loss Bonus", "t": "RLB", "r": null}, {"n": "Raven Song", "t": "RS", "r": null}, {"n": "division20", "t": "DIVI", "r": null}, {"n": "Astral Bloom", "t": "AB", "r": ["Tachibana Hinano", "Nekota Tsuna", "Kaminari Qpi"]}];
   /* ===================== REFERENCE DATA ===================== */
   const LEGENDS = {};
   const LEGEND_FX = {};
@@ -403,6 +443,59 @@ margin-bottom:12px;color:var(--acc2)}
   function careList(){ return ['Kraber'].concat(meta.care || ['Devotion','Prowler']); }
   function isCareWeapon(g){ return careList().indexOf(g) !== -1; }
   const MAPS = ['World\u2019s Edge','Storm Point','E-District','Broken Moon'];
+
+  // Amps: lootable passives that stack on top of a legend's kit. One at a time.
+  // w = relative drop weight, so Over Armor and Infinite Ammo turn up more often
+  // than Bottomless Batteries or Heal Overflow.
+  const AMPS = [
+    {id:'over',   n:'Over Armor',          d:'+25 shield capacity',                       w:30, fx:{shieldCap:25}},
+    {id:'ammo',   n:'Infinite Ammo',       d:'Never reload \u00b7 locks two inventory slots', w:28, fx:{fight:2.2, heal:-0.22}},
+    {id:'power',  n:'Power Booster',       d:'Tactical refreshes on a knock',             w:20, fx:{initiate:0.10, fight:1.0}},
+    {id:'heal',   n:'Heal Overflow',       d:'Cells and syringes heal fully over time',   w:12, fx:{heal:0.30, selfHeal:0.20}},
+    {id:'batt',   n:'Bottomless Batteries',d:'Batteries are not consumed',                w:10, fx:{heal:0.22, teamShield:0.14}}
+  ];
+  // Legend Armor: capacity comes from EVO points you earn yourself. The Shield
+  // Core only holds the current charge, so swapping a core never changes your
+  // level \u2014 it just refills you, or overcharges you if theirs was higher.
+  // EVO caps at Level 3 (purple) since Season 24, and helmets were removed in
+  // the same patch — so the Over Armor amp is the only route to red.
+  const EVO_THRESHOLDS = [0, 450, 1350];              // points needed for L1..L3
+  const ARMOR_CAP      = [50, 75, 100];               // white, blue, purple
+  const ARMOR_NAME     = ['White','Blue','Purple'];
+  function evoLevelFor(pts){
+    let lv = 1;
+    for (let i=1;i<EVO_THRESHOLDS.length;i++) if (pts >= EVO_THRESHOLDS[i]) lv = i+1;
+    return lv;
+  }
+  function armorCap(p){
+    // Helmets were removed in S24, so purple is the ceiling unless you're
+    // running the Over Armor amp.
+    return ARMOR_CAP[(p.evoLevel||1)-1] + (p.amp==='over' ? 25 : 0);
+  }
+  function armorTier(p){
+    return armorCap(p) >= 125 ? 'Red' : ARMOR_NAME[(p.evoLevel||1)-1];
+  }
+  // Award EVO and level the armor if a threshold is crossed. Returns the new
+  // level if it changed, else null.
+  function addEvo(p, pts){
+    p.evo = (p.evo||0) + pts;
+    const lv = evoLevelFor(p.evo);
+    if (lv > (p.evoLevel||1)){
+      p.evoLevel = lv;
+      p.shieldMax = armorCap(p);
+      p.shield = p.shieldMax;                          // levelling refills you
+      return lv;
+    }
+    p.shieldMax = armorCap(p);
+    return null;
+  }
+  function ampById(id){ return AMPS.find(function(a){ return a.id===id; }) || null; }
+  function rollAmp(){
+    const tot = AMPS.reduce(function(s,a){ return s+a.w; }, 0);
+    let r = Math.random()*tot;
+    for (let i=0;i<AMPS.length;i++){ r -= AMPS[i].w; if (r<=0) return AMPS[i]; }
+    return AMPS[0];
+  }
 
   const PLACEMENT_PTS = [0,12,9,7,5,4,3,3,2,2,2,1,1,1,1,1,0,0,0,0,0];  // index = finishing place
   function placementPoints(place){ return PLACEMENT_PTS[place] || 0; }
@@ -708,7 +801,8 @@ margin-bottom:12px;color:var(--acc2)}
     const l = LEGEND_FX[p.legend] || {};
     const c = (CLASS_PERKS[LEGENDS[p.legend]] || {}).fx || {};
     const m = MOVE_FX[p.move || 0] || {};
-    return (l[key] || 0) + (c[key] || 0) + (m[key] || 0);
+    const a = (p.amp && ampById(p.amp)) ? ampById(p.amp).fx : {};
+    return (l[key] || 0) + (c[key] || 0) + (m[key] || 0) + (a[key] || 0);
   }
   // Squad total for an effect, counting only players still up.
   function squadFx(t, key){
@@ -873,9 +967,93 @@ margin-bottom:12px;color:var(--acc2)}
           killer.dmg += 120 + Math.floor(Math.random()*60);
           events.push({t:'kill', ring:0, team:victim.i, player:killer.name,
                        vteam:t.i, victim:dead.name, gun:killer.gun, hs:false, drop:true});
+          lootBox(victim, dead, 0, events);
         }
       });
     });
+  }
+  function ampCap(p){ return 100 + (p.amp==='over' ? 25 : 0); }
+
+  // A downed player's box is worth stopping for: their gun, their amp, and
+  // whatever shields and syringes they were carrying.
+  function lootBox(winSquad, victim, ring, events){
+    if (!winSquad.alive) return;
+    const up = winSquad.live.filter(function(p){ return p.state==='alive'; });
+    if (!up.length) return;
+    // Sometimes you have to leave the box and rotate.
+    if (Math.random() > 0.62) return;
+    const looter = up[Math.floor(Math.random()*up.length)];
+    const took = [];
+
+    // Weapons. A care-package gun is always worth taking.
+    if (victim.red && !looter.red){
+      const swappable = looter.guns.filter(function(g){ return g!==looter.sling; });
+      const worst = swappable.sort(function(a,b){ return gunBase(looter,a)-gunBase(looter,b); })[0];
+      if (worst){
+        looter.guns = looter.guns.map(function(g){ return g===worst ? victim.gun : g; });
+        looter.gun = victim.gun;
+        looter.red = true;
+        victim.red = false;                 // the gun moved, it isn't in the box twice
+        took.push(victim.gun);
+      }
+    } else if (Math.random() < 0.42){
+      // Otherwise only swap if it's a genuine upgrade.
+      const theirs = (victim.guns||[victim.gun]).filter(function(g){ return g!==victim.sling; })
+        .sort(function(a,b){ return gunBase(victim,b)-gunBase(victim,a); })[0];
+      const mineWorst = looter.guns.filter(function(g){ return g!==looter.sling; })
+        .sort(function(a,b){ return gunBase(looter,a)-gunBase(looter,b); })[0];
+      if (theirs && mineWorst && looter.guns.indexOf(theirs)===-1 &&
+          gunBase(victim,theirs) > gunBase(looter,mineWorst) + 0.8){
+        looter.guns = looter.guns.map(function(g){ return g===mineWorst ? theirs : g; });
+        took.push(theirs);
+      }
+    }
+
+    // Amps transfer too \u2014 you can only run one, so an empty slot gets filled.
+    if (victim.amp && !looter.amp){
+      looter.amp = victim.amp;
+      const a = ampById(victim.amp);
+      if (victim.amp==='over'){
+        looter.shieldMax = Math.min(125, looter.shieldMax + 25);
+      }
+      victim.amp = null;
+      took.push((a ? a.n : 'amp') + ' amp');
+    }
+
+
+    // Shield Core swap. A higher-level core overcharges you for a while; an
+    // equal or lower one just tops your own armor back up. Either way your
+    // Legend Armor level is untouched \u2014 that's your own EVO.
+    if ((victim.evoLevel||1) > (looter.evoLevel||1)){
+      const bonus = ARMOR_CAP[(victim.evoLevel||1)-1] - ARMOR_CAP[(looter.evoLevel||1)-1];
+      looter.shield = looter.shieldMax;
+      looter.over = Math.max(looter.over||0, bonus);
+      looter.overRing = ring;
+      took.push('L'+victim.evoLevel+' core (+'+bonus+' overcharge)');
+    } else if (looter.shield < looter.shieldMax){
+      looter.shield = looter.shieldMax;
+      took.push('shield core');
+    }
+
+    // Consumables: shields and health off the box, shared round the squad.
+    let topped = 0;
+    up.forEach(function(p){
+      if (Math.random() > 0.72) return;
+      let did = false;
+      if (p.shield < p.shieldMax){ p.shield = p.shieldMax; did = true; }
+      if (p.hp < 100){ p.hp = Math.min(100, p.hp + 45); did = true; }
+      if (did) topped++;
+    });
+    if (topped) took.push('shields \u00d7' + topped);
+
+    if (took.length){
+      events.push({t:'loot', ring:ring, team:winSquad.i, player:looter.name,
+                   from:victim.name, took:took,
+                   gun:looter.gun, guns:looter.guns.slice(), red:looter.red,
+                   amp:looter.amp, hp:looter.hp, shield:looter.shield,
+                   shieldMax:looter.shieldMax, over:looter.over||0,
+                   evoLevel:looter.evoLevel||1});
+    }
   }
   function lootUp(t, tier, won){
     t.live.forEach(function(p){
@@ -914,21 +1092,22 @@ margin-bottom:12px;color:var(--acc2)}
       return {
         i:i, ref:t, name:t.name, tag:t.tag, emblem:t.emblem,
         live: t.roster.map(function(p){
-          // Evo shields start white/blue and level up as the player deals damage.
-          let start = Math.random()<0.45 ? 50 : 75;
+          // Everyone drops with a Level 1 Shield Core; armor grows from EVO.
           const oc = ((CLASS_PERKS[LEGENDS[p.legend]]||{}).fx||{}).shieldOvercharge || 0;
-          start = Math.min(100, start + (oc ? 25 : 0));
+          const start = 50 + (oc ? 25 : 0);
           return {name:p.name, legend:p.legend, gun:p.gun, guns:(p.guns||[p.gun]).slice(),
                   sling:p.sling||null, skill:p.skill, igl:p.igl,
                   move:p.move||0, techs:p.techs||[],
-                  state:'alive', hp:100, shield:start, shieldMax:start, evoDmg:0,
-                  kills:0, dmg:0, red:false, banner:false};
+                  state:'alive', hp:100, shield:start, shieldMax:start,
+                  evo:0, evoLevel:1, over:0,
+                  kills:0, dmg:0, red:false, banner:false, amp:null};
         }),
         kills:0, place:null, alive:true
       };
     });
     const events = [];
     const RINGS = 7;
+    let mythicTaken = false;
     let nextPlace = 20;
     state.forEach(function(t){ t.style = teamPlaystyle(t.ref); });
 
@@ -957,8 +1136,10 @@ margin-bottom:12px;color:var(--acc2)}
         t.live.forEach(function(p){
           const ringOdds = Math.max(0.04, 0.16 - squadFx(t,'ringResist')*0.5 - squadFx(t,'rotate')*0.15);
           if (p.state==='alive' && Math.random()<ringOdds){
-            p.shield = Math.max(0, p.shield-25);
-            if (p.shield===0) p.hp = Math.max(1, p.hp-18);
+            // The ring burns through health directly \u2014 shields don't stop it,
+            // and it bites harder the later it gets.
+            const tick = 6 + ring*3;
+            p.hp = Math.max(1, p.hp - tick);
             events.push({t:'ringdmg', ring:ring, team:t.i, player:p.name, hp:p.hp,
                          shield:p.shield, shieldMax:p.shieldMax});
           }
@@ -1021,17 +1202,97 @@ margin-bottom:12px;color:var(--acc2)}
             if (p.state!=='alive' || Math.random()>0.58) return;
             const poke = 45 + Math.floor(Math.random()*135);
             p.dmg += poke;
-            p.evoDmg += poke;
-            if (p.shieldMax < 100 && p.evoDmg >= (p.shieldMax===50 ? 200 : 700)){
-              p.shieldMax += 25; p.shield = Math.min(p.shieldMax, p.shield + 25);
-              events.push({t:'evo', ring:ring, team:t.i, player:p.name,
-                           shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
-            }
+            const lv = addEvo(p, poke);
+            if (lv) events.push({t:'evo', ring:ring, team:t.i, player:p.name, level:lv,
+                                 tier:armorTier(p), shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
             // Poke goes both ways, so it chips the poker too.
             const back = Math.floor(poke*0.35);
             p.shield = Math.max(0, p.shield - back);
             if (p.shield===0) p.hp = Math.max(12, p.hp - Math.floor(back*0.4));
           });
+        });
+      }
+
+      // EVO comes from far more than raw damage: harvesters, survey beacons,
+      // assists and squad EVO all feed it, which is why squads poke and farm
+      // rather than sitting still.
+      aliveTeams().forEach(function(t){
+        const beacon = 1 + squadFx(t,'initiate')*1.5;      // Recon scans are worth EVO
+        t.live.forEach(function(p){
+          if (p.state!=='alive') return;
+          const gain = Math.round((125 + Math.random()*105) * beacon);
+          const lv = addEvo(p, gain);
+          if (lv) events.push({t:'evo', ring:ring, team:t.i, player:p.name, level:lv,
+                               tier:armorTier(p), shieldMax:p.shieldMax, shield:p.shield, hp:p.hp});
+        });
+      });
+
+      // Overcharge is temporary \u2014 it drains away a ring after you took it.
+      aliveTeams().forEach(function(t){
+        t.live.forEach(function(p){
+          if (p.over && ring > (p.overRing||0)){
+            p.over = 0;
+            events.push({t:'overgone', ring:ring, team:t.i, player:p.name,
+                         shield:p.shield, shieldMax:p.shieldMax});
+          }
+        });
+      });
+
+      // Amps turn up in bins \u2014 uncommon early, better odds from high-tier loot,
+      // and much more common once the bins reset mid-game.
+      aliveTeams().forEach(function(t){
+        t.live.forEach(function(p){
+          if (p.state!=='alive' || p.amp) return;
+          // Uncommon early; bins reset around ring 4 and the odds improve.
+          let odds = (ring>=4) ? 0.075 : 0.022;
+          odds += (p.loot===3 ? 0.025 : (p.loot===1 ? -0.010 : 0));
+          if (Math.random() < odds){
+            const a = rollAmp();
+            p.amp = a.id;
+            if (a.id==='over'){ p.shieldMax = armorCap(p); p.shield = p.shieldMax; }
+            events.push({t:'amp', ring:ring, team:t.i, player:p.name, amp:a.id, name:a.n,
+                         shield:p.shield, shieldMax:p.shieldMax});
+          }
+        });
+      });
+
+      // One mythic bin lands at ring 4. A single squad gets to it, and one
+      // player walks off with a red weapon.
+      if (ring===4 && !mythicTaken){
+        const pool = aliveTeams().filter(function(t){
+          return t.live.some(function(p){ return p.state==='alive' && !p.red; });
+        });
+        if (pool.length){
+          const weights = pool.map(function(x){ return 1 + squadFx(x,'loot')*3; });
+          let tot = weights.reduce(function(a,b){ return a+b; },0), rr = Math.random()*tot, ti = 0;
+          for (; ti<pool.length-1; ti++){ rr -= weights[ti]; if (rr<=0) break; }
+          const t = pool[ti];
+          const cands = t.live.filter(function(p){ return p.state==='alive' && !p.red; });
+          const p = cands[Math.floor(Math.random()*cands.length)];
+          const care = careList();
+          const got = care[Math.floor(Math.random()*care.length)];
+          const swappable = p.guns.filter(function(g){ return g!==p.sling; });
+          const drop = swappable.sort(function(a,b){ return gunBase(p,a)-gunBase(p,b); })[0];
+          p.guns = p.guns.map(function(g){ return g===drop ? got : g; });
+          p.gun = got; p.red = true;
+          mythicTaken = true;
+          events.push({t:'mythic', ring:ring, team:t.i, player:p.name, gun:got, guns:p.guns.slice()});
+        }
+      }
+
+      // Boxes from earlier fights are still lying around; squads rotating through
+      // pick them over.
+      const boxes = state.filter(function(t){ return !t.alive; })
+        .reduce(function(acc, t){
+          t.live.forEach(function(p){ if (p.state==='dead' && (p.red || p.amp)) acc.push(p); });
+          return acc;
+        }, []);
+      if (boxes.length){
+        aliveTeams().forEach(function(t){
+          if (Math.random() > 0.18) return;
+          const box = boxes[Math.floor(Math.random()*boxes.length)];
+          if (!box.red && !box.amp) return;
+          lootBox(t, box, ring, events);
         });
       }
 
@@ -1043,9 +1304,11 @@ margin-bottom:12px;color:var(--acc2)}
         t.live.forEach(function(p){
           if (p.state!=='alive') return;
           const supply = stock + (p.loot===3 ? 0.18 : (p.loot===1 ? -0.16 : 0));
+
           let did = null;
           if (p.shield < p.shieldMax && Math.random() < supply){
-            p.shield = p.shieldMax; did = (p.shieldMax>=75) ? 'battery' : 'cells';
+            p.shield = p.shieldMax;
+            did = (p.amp==='batt') ? 'battery (bottomless)' : ((p.shieldMax>=75) ? 'battery' : 'cells');
           }
           if (p.hp < 100 && Math.random() < supply){
             p.hp = 100; did = did ? 'kit' : ((p.hp < 55) ? 'med kit' : 'syringe');
@@ -1089,14 +1352,18 @@ margin-bottom:12px;color:var(--acc2)}
         if (Math.random() < chance){
           const back = pick(withBanner.length ? withBanner : dead);
           back.state='alive'; back.hp=60;
-            back.shieldMax = 50; back.shield = 25;   // respawn with a fresh white shield
+            // You keep your armor level and EVO through a respawn; the core you
+          // pick back up is empty, so you return lightly shielded.
+          back.shieldMax = armorCap(back);
+          back.shield = 25; back.over = 0;
           back.red = false;                       // red weapon is lost on death
           back.guns = activeGuns(back.name);
           if (back.sling){ back.guns = back.guns.concat([back.sling]); }
           back.gun = back.guns[0];
           const viaBanner = back.banner; back.banner = false;
           events.push({t:'respawn', ring:ring, team:t.i, player:back.name, hp:60,
-                       shield:25, shieldMax:50, gun:back.gun, guns:back.guns.slice(), banner:viaBanner});
+                       shield:25, shieldMax:back.shieldMax, evoLevel:back.evoLevel||1,
+                       gun:back.gun, guns:back.guns.slice(), banner:viaBanner});
         }
       });
       if (aliveTeams().length<=1) break;
@@ -1156,16 +1423,18 @@ margin-bottom:12px;color:var(--acc2)}
         // The victim gets return fire in before they go down.
         const taken = 25 + Math.floor(Math.random()*60);
         winner.q.dmg += taken;
-        winner.p.shield = Math.max(0, winner.p.shield - taken);
-        if (winner.p.shield===0) winner.p.hp = Math.max(6, winner.p.hp - Math.floor(taken*0.55));
-        // Evo progress runs off damage dealt, same as the real thing.
-        winner.p.evoDmg += dealt;
-        if (winner.p.shieldMax < 100 && winner.p.evoDmg >= (winner.p.shieldMax===50 ? 200 : 700)){
-          winner.p.shieldMax += 25;
-          winner.p.shield = winner.p.shieldMax;
-          events.push({t:'evo', ring:ring, team:winner.s.i, player:winner.p.name,
-                       shieldMax:winner.p.shieldMax, shield:winner.p.shield, hp:winner.p.hp});
+        let left = taken;
+        if (winner.p.over){                       // overcharge soaks it first
+          const eat = Math.min(winner.p.over, left);
+          winner.p.over -= eat; left -= eat;
         }
+        winner.p.shield = Math.max(0, winner.p.shield - left);
+        if (winner.p.shield===0) winner.p.hp = Math.max(6, winner.p.hp - Math.floor(left*0.55));
+        // EVO comes from damage dealt, same as the real thing.
+        const lvUp = addEvo(winner.p, dealt);
+        if (lvUp) events.push({t:'evo', ring:ring, team:winner.s.i, player:winner.p.name, level:lvUp,
+                               tier:armorTier(winner.p), shieldMax:winner.p.shieldMax,
+                               shield:winner.p.shield, hp:winner.p.hp});
         const gun = pickGun(winner.p), hs = Math.random()<0.22;
         winner.q.state = 'down'; winner.q.hp = 0; winner.q.shield = 0;
         events.push({t:'knock', ring:ring, team:winner.s.i, player:winner.p.name,
@@ -1184,6 +1453,7 @@ margin-bottom:12px;color:var(--acc2)}
           winner.p.kills++; winner.s.kills++;
           events.push({t:'kill', ring:ring, team:winner.s.i, player:winner.p.name,
                        vteam:winner.o.i, victim:winner.q.name, gun:gun, hs:hs});
+          lootBox(winner.s, winner.q, ring, events);
           wipeCheck(winner.o, ring);
         }
         const esc = 0.16 + squadFx(winner.o,'escape')*0.5 + squadFx(winner.o,'teamEscape')*0.6
@@ -1209,8 +1479,9 @@ margin-bottom:12px;color:var(--acc2)}
               pts: t.kills + placementPoints(t.place),
               players: t.live.map(function(p){
                 return {name:p.name, kills:p.kills, dmg:Math.round(p.dmg),
-                        gun:p.gun, guns:p.guns, sling:p.sling, red:p.red,
-                        move:p.move||0, techs:p.techs||[]}; })};
+                        gun:p.gun, guns:p.guns, sling:p.sling, red:p.red, amp:p.amp||null,
+                        legend:p.legend, move:p.move||0, techs:p.techs||[],
+                        evo:Math.round(p.evo||0), evoLevel:p.evoLevel||1}; })};
     });
     return {map:mapName, events:events, results:results, state:state};
   }
@@ -1265,6 +1536,7 @@ margin-bottom:12px;color:var(--acc2)}
     const m = major;
     if (m.stage==='group'){
       const q = m.queue[m.qi];
+      if (!q) return (m.survivalTeams && m.survivalTeams.length) ? m.survivalTeams : m.field.slice(0,20);
       return m.groups[q.g[0]].concat(m.groups[q.g[1]]);
     }
     if (m.stage==='survival') return m.survivalTeams;
@@ -1273,6 +1545,17 @@ margin-bottom:12px;color:var(--acc2)}
   function pairName(pi){
     const pr = PAIRINGS[pi];
     return 'GROUP ' + GROUP_LABELS[pr[0]] + ' vs GROUP ' + GROUP_LABELS[pr[1]];
+  }
+  // Short form for match tabs and log entries.
+  function majorShortLabel(){
+    const m = major;
+    if (m.stage==='group'){
+      const pi = Math.floor(m.qi/6), mi = (m.qi%6)+1;
+      const pr = PAIRINGS[pi];
+      return 'R'+(pi+1)+' M'+mi+' \u00b7 '+GROUP_LABELS[pr[0]]+' v '+GROUP_LABELS[pr[1]];
+    }
+    if (m.stage==='survival') return 'SURVIVAL M'+(m.svMatch+1);
+    return 'PLAYOFF M'+(m.poMatch+1);
   }
   function majorStageLabel(){
     const m = major;
@@ -1286,6 +1569,9 @@ margin-bottom:12px;color:var(--acc2)}
   function nextMajorMatch(){
     const m = major;
     if (!m) return;
+    // The group table is being held for review; commit to survival rather than
+    // trying to play a 37th group match that doesn't exist.
+    if (m.pendingSurvival) beginSurvival();
     const lobby = majorLobby();
     const mapName = (m.stage==='group') ? m.queue[m.qi].map
                                         : MAPS[((m.stage==='survival'?m.svMatch:m.poMatch)) % MAPS.length];
@@ -1296,7 +1582,7 @@ margin-bottom:12px;color:var(--acc2)}
       t.pts += r.pts; t.kills += r.kills;
       t.gp = (t.gp||0) + 1;
     });
-    m.log.push({res:res, label:majorStageLabel(), map:mapName});
+    m.log.push({res:res, label:majorShortLabel(), map:mapName, stage:m.stage});
     m.lastLobby = lobby;
     openMajorMatch(res, mapName);
     save();
@@ -1322,14 +1608,17 @@ margin-bottom:12px;color:var(--acc2)}
         }
         return {more:true};
       }
-      // Group stage over: split the 40.
+      // Already parked at the gate — don't recompute or re-announce it.
+      if (m.pendingSurvival) return {more:true, groupDone:true};
+      // Group stage over: work out the split but hold on the group table so it
+      // can be read before any points reset.
       const table = m.field.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
       m.playoffTeams = table.slice(0,14);
       m.survivalTeams = table.slice(14,34);
       m.eliminated = table.slice(34);
-      m.survivalTeams.forEach(function(t){ t.pts=0; t.kills=0; t.gp=0; });   // survival starts level
-      m.stage='survival'; m.svMatch=0;
-      return {more:true, banner:'Group stage complete — top 14 through, bottom 6 out, 20 into survival.'};
+      m.pendingSurvival = true;
+      return {more:true, groupDone:true,
+              banner:'Group stage complete — top 14 through, bottom 6 eliminated, 20 into survival.'};
     }
     if (m.stage==='survival'){
       m.svMatch++;
@@ -1352,6 +1641,15 @@ margin-bottom:12px;color:var(--acc2)}
       return {more:false, banner:wTeam.name + ' win the Major.'};
     }
     return {more:true};
+  }
+
+  // Called once the group table has been seen.
+  function beginSurvival(){
+    const m = major;
+    if (!m || !m.pendingSurvival) return;
+    m.pendingSurvival = false;
+    m.survivalTeams.forEach(function(t){ t.pts=0; t.kills=0; t.gp=0; });   // survival starts level
+    m.stage='survival'; m.svMatch=0;
   }
 
   /* ===================== ROSTERMANIA ===================== */
@@ -1384,23 +1682,62 @@ margin-bottom:12px;color:var(--acc2)}
   function runRostermania(){
     const notes = [];
     world.orgStrikes = world.orgStrikes || {};
+    world.fixedFails = world.fixedFails || {};
     world.permanent = world.permanent.filter(function(org){
       const s = strikesOf(org.name);
       if (s.bad < 2 && s.missed < 2) return true;          // still safe
       const reason = (s.bad>=2) ? (s.bad+' bottom-five finishes') : (s.missed+' missed Majors');
+      const named = NAMED_TEAMS.find(function(t){ return t.n===org.name; });
+      const isFixed = !!(named && named.r);
+
+      const onTeams = {};
+      world.permanent.forEach(function(o){ o.roster.forEach(function(r){ onTeams[r.name]=true; }); });
+      const freeAgent = function(){
+        return PLAYERS.map(function(p){ return p.n; })
+          .filter(function(n){ return !onTeams[n]; })
+          .sort(function(a,b){ return playerRating(b)-playerRating(a); })[0];
+      };
+
+      if (isFixed){
+        // A real org doesn't fold on one bad run \u2014 it changes a player and
+        // goes again, always keeping someone from the original line-up.
+        world.fixedFails[org.name] = (world.fixedFails[org.name]||0) + 1;
+        if (world.fixedFails[org.name] >= 3){
+          notes.push({type:'disband', team:org.name, reason:reason + ' \u2014 rebuilds exhausted'});
+          delete world.orgStrikes[org.name];
+          delete world.fixedFails[org.name];
+          return false;
+        }
+        const originals = named.r;
+        const stillOriginal = org.roster.filter(function(r){ return originals.indexOf(r.name)!==-1; });
+        // Cut the weakest, but never the last remaining original member.
+        const cuttable = org.roster.filter(function(r){
+          return !(stillOriginal.length<=1 && originals.indexOf(r.name)!==-1);
+        });
+        const worst = cuttable.slice().sort(function(a,b){
+          return playerRating(a.name)-playerRating(b.name); })[0];
+        const fa = freeAgent();
+        if (worst && fa){
+          org.roster = org.roster.map(function(r){ return r.name===worst.name ? {name:fa} : r; });
+          notes.push({type:'swap', team:org.name, out:worst.name, in:fa,
+                      reason:reason + ' \u2014 rebuild ' + world.fixedFails[org.name] + ' of 3'});
+          world.orgStrikes[org.name] = {bad:0, missed:0};
+          return true;
+        }
+        notes.push({type:'disband', team:org.name, reason:reason});
+        delete world.orgStrikes[org.name];
+        return false;
+      }
+
+      // Scratch-built orgs mostly just fold.
       if (Math.random() < 0.72){
         notes.push({type:'disband', team:org.name, reason:reason});
         delete world.orgStrikes[org.name];
-        return false;                                       // players released
+        return false;
       }
-      // Cut the weakest link, sign the best free agent, wipe the slate.
-      const onTeams = {};
-      world.permanent.forEach(function(o){ o.roster.forEach(function(r){ onTeams[r.name]=true; }); });
       const worst = org.roster.slice().sort(function(a,b){
         return playerRating(a.name)-playerRating(b.name); })[0];
-      const fa = PLAYERS.map(function(p){ return p.n; })
-        .filter(function(n){ return !onTeams[n]; })
-        .sort(function(a,b){ return playerRating(b)-playerRating(a); })[0];
+      const fa = freeAgent();
       if (worst && fa){
         org.roster = org.roster.map(function(r){ return r.name===worst.name ? {name:fa} : r; });
         notes.push({type:'swap', team:org.name, out:worst.name, in:fa, reason:reason});
@@ -1415,7 +1752,6 @@ margin-bottom:12px;color:var(--acc2)}
     save();
     return notes;
   }
-
   /* ===================== PERSISTENCE ===================== */
   const KEY = 'apexsim_v1';
   let world = {meta:null, teamStats:{}, playerStats:{}, permanent:[], events:0};
@@ -1475,6 +1811,13 @@ margin-bottom:12px;color:var(--acc2)}
   }
   function recordMatch(res){
     aggEvent(res);
+    // Pick counts drive the meta report on the legends screen.
+    world.legendPicks = world.legendPicks || {};
+    res.results.forEach(function(r){
+      r.players.forEach(function(p){
+        if (p.legend) world.legendPicks[p.legend] = (world.legendPicks[p.legend]||0) + 1;
+      });
+    });
     res.results.forEach(function(r){
       const ts = world.teamStats[r.name] = world.teamStats[r.name] ||
         {matches:0, pts:0, kills:0, wins:0, titles:0, best:20};
@@ -1581,8 +1924,9 @@ margin-bottom:12px;color:var(--acc2)}
               live:t.ref.roster.map(function(p){
                 return {name:p.name, legend:p.legend, gun:p.gun,
                         guns:(p.guns||[p.gun]).slice(), sling:p.sling||null,
-                        move:p.move||0, techs:p.techs||[],
-                        state:'alive', hp:100, shield:75, shieldMax:75, red:false};
+                        move:p.move||0, techs:p.techs||[], amp:null, ampName:null,
+                        state:'alive', hp:100, shield:50, shieldMax:50,
+                        evoLevel:1, over:0, red:false};
               })};
     });
     live = {res:res, idx:0, timer:null, view:view, feed:[], ring:0, playing:true};
@@ -1625,7 +1969,25 @@ margin-bottom:12px;color:var(--acc2)}
     else if (e.t==='drop'){ if (v[e.team]){ v[e.team].poi = e.poi; v[e.team].contested = e.contested; } }
     else if (e.t==='contest'){ /* flavour only */ }
     else if (e.t==='ringdmg'){ const p = find(e.team, e.player); if (p){ p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; } }
-    else if (e.t==='care'){ const p = find(e.team, e.player); if (p){ p.gun=e.gun; p.red=true; if(e.guns) p.guns=e.guns.slice(); } }
+    else if (e.t==='care' || e.t==='mythic'){ const p = find(e.team, e.player); if (p){ p.gun=e.gun; p.red=true; if(e.guns) p.guns=e.guns.slice(); } }
+    else if (e.t==='amp'){ const p = find(e.team, e.player); if (p){ p.amp=e.amp; p.ampName=e.name; if(e.shieldMax){p.shieldMax=e.shieldMax;p.shield=e.shield;} } }
+    else if (e.t==='loot'){
+      const p = find(e.team, e.player);
+      if (p){
+        if (e.guns) p.guns = e.guns.slice();
+        if (e.gun) p.gun = e.gun;
+        p.red = !!e.red;
+        if (e.amp){ p.amp = e.amp; const a = (AMPS.find(function(x){return x.id===e.amp;})||{}); p.ampName = a.n||''; }
+        if (e.hp!=null) p.hp = e.hp;
+        if (e.shield!=null) p.shield = e.shield;
+        if (e.shieldMax) p.shieldMax = e.shieldMax;
+        if (e.over!=null) p.over = e.over;
+        if (e.evoLevel) p.evoLevel = e.evoLevel;
+      }
+      // the gun left the victim's hands
+      const v = find(e.vteam!=null?e.vteam:e.team, e.from);
+      if (v && e.red) v.red = false;
+    }
     else if (e.t==='craft'){
       const p = find(e.team, e.player);
       if (p && e.kind!=='banner'){ if(e.hp!=null)p.hp=e.hp; if(e.shield!=null)p.shield=e.shield; if(e.shieldMax)p.shieldMax=e.shieldMax; }
@@ -1636,14 +1998,15 @@ margin-bottom:12px;color:var(--acc2)}
         if (p){ p.hp = h.hp; p.shield = h.shield; if (h.shieldMax) p.shieldMax = h.shieldMax; }
       });
     }
-    else if (e.t==='evo'){ const p = find(e.team, e.player); if (p){ p.shieldMax=e.shieldMax; p.shield=e.shield; p.hp=e.hp; } }
+    else if (e.t==='evo'){ const p = find(e.team, e.player); if (p){ p.shieldMax=e.shieldMax; p.shield=e.shield; p.hp=e.hp; if(e.level) p.evoLevel=e.level; } }
+    else if (e.t==='overgone'){ const p = find(e.team, e.player); if (p){ p.over=0; p.shield=Math.min(e.shield,e.shieldMax); p.shieldMax=e.shieldMax; } }
     else if (e.t==='knock'){
       const s = find(e.team, e.player), q = find(e.vteam, e.victim);
       if (s){ s.hp=e.hp; s.shield=e.shield; if(e.shieldMax) s.shieldMax=e.shieldMax; }
       if (q){ q.state='down'; q.hp=0; q.shield=0; }
     }
     else if (e.t==='revive'){ const p = find(e.team, e.player); if (p){ p.state='alive'; p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; } }
-    else if (e.t==='respawn'){ const p = find(e.team, e.player); if (p){ p.state='alive'; p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; if(e.gun){p.gun=e.gun;} if(e.guns) p.guns=e.guns.slice(); p.red=false; } }
+    else if (e.t==='respawn'){ const p = find(e.team, e.player); if (p){ p.state='alive'; p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; if(e.gun){p.gun=e.gun;} if(e.guns) p.guns=e.guns.slice(); p.red=false; if(e.evoLevel)p.evoLevel=e.evoLevel; p.over=0; } }
     else if (e.t==='kill'){
       const q = find(e.vteam, e.victim); if (q) q.state='dead';
       if (v[e.team]) v[e.team].kills++;
@@ -1661,7 +2024,8 @@ margin-bottom:12px;color:var(--acc2)}
          : e.t==='engage' ? 'dim' : (e.t==='evo'||e.t==='craft') ? 'info'
          : e.t==='care' ? 'care' : e.t==='move' ? 'mv'
          : e.t==='drop' ? 'info' : e.t==='contest' ? 'elim'
-         : e.t==='heal' ? 'dim' : 'kill';
+         : e.t==='heal' ? 'dim' : e.t==='amp' ? 'info' : e.t==='mythic' ? 'care'
+         : e.t==='loot' ? 'info' : e.t==='overgone' ? 'dim' : 'kill';
   }
   function nm(i){ return live.view[i] ? esc(live.view[i].name) : '?'; }
   function feedText(e){
@@ -1679,14 +2043,25 @@ margin-bottom:12px;color:var(--acc2)}
                           (e.kind==='battery' ? 'shield battery' : 'med kit');
       case 'heal':    return nm(e.team) + ' healed up \u2014 ' +
                              e.players.map(function(h){ return '<b>'+esc(h.name)+'</b> '+esc(h.item); }).join(', ');
+      case 'loot':    return '\ud83c\udf92 <b>' + esc(e.player) + '</b> looted <b>' + esc(e.from) +
+                             '</b>\u2019s box \u2014 ' + e.took.map(function(x){
+                               return /amp$/.test(x) ? '<span class="ampw">'+esc(x)+'</span>'
+                                    : (/\u00d7/.test(x) ? '<span class="dim">'+esc(x)+'</span>'
+                                    : '<span class="redw">'+esc(x)+'</span>'); }).join(', ');
+      case 'amp':     return '\u26a1 <b>' + esc(e.player) + '</b> picked up the <span class="ampw">' +
+                             esc(e.name) + '</span> amp';
+      case 'mythic':  return '\ud83d\udc8e ' + nm(e.team) + ' cracked the mythic bin \u2014 <b>' +
+                             esc(e.player) + '</b> took the <span class="redw">' + esc(e.gun) + '</span>';
       case 'drop':    return (e.pick ? '<span class="pick">#' + e.pick + '</span> ' : '\ud83e\ude82 ') +
                              nm(e.team) + (e.pick ? ' drafted ' : ' dropped ') + '<b>' + esc(e.poi) + '</b>' +
                              (e.contested ? ' <span class="hot">CONTESTED</span>' : '');
       case 'contest': return '\u2694\ufe0f <b>' + e.teams.length + ' squads</b> contesting <b>' + esc(e.poi) + '</b>';
       case 'move':    return '\ud83c\udf00 <b>' + esc(e.player) + '</b> broke away \u2014 <span class="mvt">' +
                              esc(e.tech) + '</span>';
-      case 'evo':     return '<b>' + esc(e.player) + '</b> evolved to a ' +
-                             (e.shieldMax===100?'purple':'blue') + ' shield';
+      case 'evo':     return '<b>' + esc(e.player) + '</b> hit <span class="armr a'+e.level+'">' +
+                             esc(e.tier) + ' armor</span> (L' + e.level + ')';
+                             (e.kind==='red'?' \u2014 armor overridden to red':'');
+      case 'overgone':return '<span class="dim"><b>' + esc(e.player) + '</b>\u2019s overcharge ran out</span>';
       case 'revive':  return '<b>' + esc(e.player) + '</b> was revived';
       case 'respawn': return nm(e.team) + ' respawned <b>' + esc(e.player) + '</b> at a beacon' +
                              (e.banner ? ' (banner crafted)' : '');
@@ -1756,12 +2131,12 @@ margin-bottom:12px;color:var(--acc2)}
       const res = simulateMatch(lobby, mapName, {draft:true});
       recordMatch(res);
       res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
-      major.log.push({res:res, label:majorStageLabel(), map:mapName});
+      major.log.push({res:res, label:majorShortLabel(), map:mapName, stage:major.stage});
       live = {res:res, idx:0, view:[], feed:[], ring:0, playing:false, timer:null};
       const step = advanceMajor();
       if (step.banner) banner = step.banner;
       if (!step.more) break;
-      if (step.roundDone) break;
+      if (step.roundDone || step.groupDone) break;
     }
     save();
     showMajorTable(!!(major && major.done), banner);
@@ -1771,7 +2146,11 @@ margin-bottom:12px;color:var(--acc2)}
     showScreen('standScreen');
     const m = major;
     const pool = (m.stage==='group') ? m.field : (m.stage==='survival' ? m.survivalTeams : m.playoffTeams);
-    const rows = pool.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+    let rows = pool.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+    if (m.done && m.champion){
+      // Winning the Major puts you first, whatever the points say.
+      rows = [m.champion].concat(rows.filter(function(t){ return t !== m.champion; }));
+    }
     document.getElementById('sKick').textContent = majorStageLabel();
     document.getElementById('sTitle').textContent = m.done ? 'MAJOR CHAMPION' :
       (m.stage==='group' ? 'GROUP STAGE STANDINGS' : m.stage==='survival' ? 'SURVIVAL STANDINGS' : 'PLAYOFF STANDINGS');
@@ -1834,6 +2213,15 @@ margin-bottom:12px;color:var(--acc2)}
         }).join('<br>') + '</div>';
       }
     } else {
+      if (m.pendingSurvival){
+        bar.innerHTML = '<button class="btn pri" id="sSurv">\u2192 BEGIN SURVIVAL STAGE</button>' +
+          '<button class="btn" id="sRank">\ud83c\udf10 WORLD RANKING</button>';
+        document.getElementById('sSurv').onclick = function(){
+          beginSurvival(); viewMatch = null; nextMajorMatch();
+        };
+        document.getElementById('sRank').onclick = showRankings;
+        return;
+      }
       const nextLbl = (m.stage==='group' && m.qi%6===0 && m.qi<36)
         ? 'START ROUND ' + (Math.floor(m.qi/6)+1) + ' \u2192' : 'NEXT MATCH \u2192';
       bar.innerHTML = '<button class="btn pri" id="sBack">\u2190 BACK TO MATCH</button>' +
@@ -1910,14 +2298,21 @@ margin-bottom:12px;color:var(--acc2)}
       return esc(g);
     }).join(' <span class="gsep">/</span> ');
   }
-  // Evo shield: 25hp per segment. Two white, three blue, four purple.
-  function shieldBar(cur, max){
+  // Legend Armor: 25hp per segment, coloured by level. Overcharge from a looted
+  // Shield Core shows as extra gold segments on the end.
+  const TIER_CLS = ['wht','blu','pur'];
+  function shieldBar(cur, max, lvl, over){
     const segs = Math.max(2, Math.round(max/25));
-    const tier = max>=100 ? 'pur' : (max>=75 ? 'blu' : 'wht');
+    const tier = (max>=125) ? 'red' : TIER_CLS[Math.max(0, Math.min(2, (lvl||1)-1))];
     let h = '<span class="shw">';
     for (let i=0;i<segs;i++){
       const fill = Math.max(0, Math.min(25, cur - i*25)) / 25 * 100;
       h += '<i class="sg '+tier+'"><b style="width:'+fill+'%"></b></i>';
+    }
+    const oc = Math.ceil((over||0)/25);
+    for (let i=0;i<oc;i++){
+      const fill = Math.max(0, Math.min(25, (over||0) - i*25)) / 25 * 100;
+      h += '<i class="sg over"><b style="width:'+fill+'%"></b></i>';
     }
     return h + '</span>';
   }
@@ -1928,8 +2323,9 @@ margin-bottom:12px;color:var(--acc2)}
       '<span class="pnm">'+esc(p.name)+(p.move===2?' <span class="mv2" title="Elite movement">\u26a1</span>'
         :(p.move===1?' <span class="mv1" title="Strong movement">\u26a1</span>':''))+'</span>' +
       '<span class="lg '+cls+'">'+esc(p.legend)+'</span>' +
+      (p.amp ? '<span class="ampb" title="'+esc(p.ampName||'')+'">\u26a1'+esc((p.ampName||'').split(' ')[0])+'</span>' : '') +
       (p.state==='alive'
-        ? '<span class="gun">'+loadoutHtml(p)+'</span>' + shieldBar(p.shield, p.shieldMax||50) +
+        ? '<span class="gun">'+loadoutHtml(p)+'</span>' + shieldBar(p.shield, p.shieldMax||50, p.evoLevel, p.over) +
           '<span class="hb"><i class="hp" style="width:'+p.hp+'%"></i></span>'
         : '<span class="gun">'+pbar(p)+'</span>') +
       '</div>';
@@ -2062,8 +2458,18 @@ margin-bottom:12px;color:var(--acc2)}
   // Browse any match already played in this event.
   var viewMatch = null;   // null = the standings table itself
   function eventLog(){
-    if (major && major.log) return major.log;
+    if (major && major.log){
+      // Only the stage you're looking at, not all 50-odd matches.
+      const st = major.stage;
+      return major.log.filter(function(e){ return e.stage === st; });
+    }
     return (tour && tour.log) ? tour.log : [];
+  }
+  function stageTotal(){
+    if (!major) return null;
+    if (major.stage==='group') return 36;
+    if (major.stage==='survival') return 10;
+    return null;   // playoffs are uncapped
   }
   function eventTotal(){
     if (major) return null;                       // major length varies by stage
@@ -2072,16 +2478,17 @@ margin-bottom:12px;color:var(--acc2)}
   function matchTabsHtml(){
     const log = eventLog();
     if (!log.length) return '';
-    const total = eventTotal();
-    let html = '<div class="mtabs"><button class="mtab'+(viewMatch===null?' on':'')+'" data-m="all">STANDINGS</button>';
+    const total = major ? stageTotal() : eventTotal();
+    let html = '<div class="mtabs">' +
+      '<button class="mtab'+(viewMatch===null?' on':'')+'" data-m="all">STANDINGS</button>' +
+      '<div class="mscroll">';
     log.forEach(function(entry, i){
-      html += '<button class="mtab'+(viewMatch===i?' on':'')+'" data-m="'+i+'">' +
-              (major ? 'M'+(i+1) : 'M'+(i+1)) + '</button>';
+      html += '<button class="mtab'+(viewMatch===i?' on':'')+'" data-m="'+i+'" title="'+esc(entry.label)+'">M'+(i+1)+'</button>';
     });
     if (total && log.length < total){
       for (let i=log.length; i<total; i++) html += '<button class="mtab off" disabled>M'+(i+1)+'</button>';
     }
-    html += '<span class="mtabnote">' + log.length + (total ? ' of ' + total : '') + ' played' +
+    html += '</div><span class="mtabnote">' + log.length + (total ? ' of ' + total : '') + ' played' +
             (total && log.length<total ? ' \u00b7 ' + (total-log.length) + ' to go' : '') + '</span></div>';
     return html;
   }
@@ -2121,7 +2528,8 @@ margin-bottom:12px;color:var(--acc2)}
       .filter(function(p){ return p.m>=3; })
       .sort(function(a,b){ return b.r-a.r; }).slice(0,40);
     document.getElementById('rTeams').innerHTML = teams.length ? teams.map(function(t,i){
-      return '<div class="strow"><span class="stpos">'+(i+1)+'</span>' +
+      return '<div class="strow rteam" data-team="'+esc(t.name)+'" tabindex="0">' +
+        '<span class="stpos">'+(i+1)+'</span>' +
         '<span class="stname">'+esc(t.name)+'</span>' +
         '<span class="stk">'+t.m+'m \u00b7 '+t.w+'W' +
           (t.mj?' \u00b7 '+t.mj+'\ud83d\udc51':'') + (t.t?' \u00b7 '+t.t+'\ud83c\udfc6':'') + '</span>' +
@@ -2134,9 +2542,64 @@ margin-bottom:12px;color:var(--acc2)}
           (p.mj?' \u00b7 '+p.mj+'\ud83d\udc51':'') + (p.t?' \u00b7 '+p.t+'\ud83c\udfc6':'') + '</span>' +
         '<span class="stpts">'+p.r.toFixed(0)+'</span></div>';
     }).join('') : '<div class="empty">No player data yet.</div>';
+    wireRosterPopups();
     document.getElementById('rBack').onclick = function(){
       showScreen(tour ? 'standScreen' : 'setupScreen');
     };
+  }
+
+  // Who plays for a team \u2014 the permanent roster if it has one, otherwise the
+  // line-up it's fielded from the named-team list.
+  function rosterOf(name){
+    const org = world.permanent.find(function(o){ return o.name===name; });
+    if (org) return org.roster.map(function(r){ return r.name; });
+    const named = NAMED_TEAMS.find(function(t){ return t.n===name; });
+    if (named && named.r) return named.r.slice();
+    return null;
+  }
+  function rosterCardHtml(name){
+    const roster = rosterOf(name);
+    const s = world.teamStats[name];
+    const org = world.permanent.some(function(o){ return o.name===name; });
+    let html = '<div class="rpop-h">'+esc(name)+(org?' <span class="permtag">ORG</span>':'')+'</div>';
+    if (roster){
+      html += roster.map(function(n){
+        const ps = world.playerStats[n];
+        return '<div class="rpop-p"><span class="rpop-n">'+esc(n)+'</span>' +
+          '<span class="rpop-c">'+esc(nationOf(n))+'</span>' +
+          '<span class="rpop-k">'+(ps?ps.kills+'K':'\u2014')+'</span></div>';
+      }).join('');
+    } else {
+      html += '<div class="rpop-p"><span class="rpop-n"><i>roster varies by event</i></span></div>';
+    }
+    if (s) html += '<div class="rpop-f">'+s.matches+' matches \u00b7 '+s.wins+' wins' +
+      ((s.majors||0)?' \u00b7 '+s.majors+' Major'+(s.majors>1?'s':''):'') + '</div>';
+    return html;
+  }
+  function wireRosterPopups(){
+    const pop = document.getElementById('rosterPop');
+    if (!pop) return;
+    const hide = function(){ pop.style.display='none'; };
+    const show = function(el){
+      pop.innerHTML = rosterCardHtml(el.getAttribute('data-team'));
+      pop.style.display = 'block';
+      const r = el.getBoundingClientRect();
+      const top = r.bottom + window.scrollY + 6;
+      pop.style.top = top + 'px';
+      pop.style.left = Math.max(8, Math.min(window.innerWidth - 250, r.left)) + 'px';
+    };
+    Array.prototype.forEach.call(document.querySelectorAll('.rteam'), function(el){
+      el.onmouseenter = function(){ show(el); };
+      el.onmouseleave = hide;
+      // Touch has no hover, so tapping toggles it.
+      el.onclick = function(e){
+        e.stopPropagation();
+        if (pop.style.display==='block' && pop.dataset.for===el.getAttribute('data-team')){ hide(); return; }
+        pop.dataset.for = el.getAttribute('data-team');
+        show(el);
+      };
+    });
+    document.addEventListener('click', hide);
   }
 
   /* ===================== LEGENDS REFERENCE ===================== */
@@ -2150,10 +2613,41 @@ margin-bottom:12px;color:var(--acc2)}
     shieldStrip:'Stripping enemy shields', markDamage:'Marked-target damage',
     finishLow:'Finishing wounded enemies', sling:'Third weapon slot', shieldOvercharge:'Shield overcharge'
   };
+  // Pick rate now vs. where it stood when the last patch landed.
+  function pickRates(){
+    const cur = world.legendPicks || {};
+    const at  = world.picksAtPatch || null;
+    const totCur = Object.keys(cur).reduce(function(s,k){ return s+cur[k]; },0);
+    const out = {};
+    LEGEND_DATA.forEach(function(L){
+      const c = cur[L.n]||0;
+      const rate = totCur ? (c/totCur*100) : 0;
+      let delta = null;
+      if (at){
+        // Picks made since the patch, versus the whole record before it.
+        const since = c - (at[L.n]||0);
+        const totSince = totCur - Object.keys(at).reduce(function(s,k){ return s+at[k]; },0);
+        const beforeTot = Object.keys(at).reduce(function(s,k){ return s+at[k]; },0);
+        if (totSince >= 60 && beforeTot > 0){
+          const before = (at[L.n]||0)/beforeTot*100;
+          const now = since/totSince*100;
+          delta = now - before;
+        }
+      }
+      out[L.n] = {rate:rate, delta:delta, count:c};
+    });
+    return {rates:out, total:totCur};
+  }
   function showLegends(){
     showScreen('legendScreen');
+    const PR = pickRates();
     const order = ['Assault','Skirmisher','Recon','Support','Controller'];
-    document.getElementById('lgBody').innerHTML = order.map(function(cls){
+    const head = PR.total
+      ? '<div class="prnote">Pick rates from <b>'+PR.total.toLocaleString()+'</b> legend selections. ' +
+        (world.picksAtPatch ? 'Arrows show the shift since the last patch (needs 60+ picks to read).'
+                            : 'Roll a patch to start tracking shifts.') + '</div>'
+      : '<div class="prnote">Play some matches to build pick-rate data.</div>';
+    document.getElementById('lgBody').innerHTML = head + order.map(function(cls){
       const perk = CLASS_PERKS[cls] || {};
       const members = LEGEND_DATA.filter(function(L){ return L.c===cls; });
       return '<div class="lgclass">' +
@@ -2163,8 +2657,17 @@ margin-bottom:12px;color:var(--acc2)}
         '<div class="lggrid">' + members.map(function(L){
           const fx = Object.keys(L.fx).map(function(k){
             return '<span class="fxchip">'+esc(FX_LABEL[k]||k)+'</span>'; }).join('');
+          const pr = PR.rates[L.n] || {rate:0, delta:null, count:0};
+          const dtxt = (pr.delta===null) ? '<span class="prd new">\u2014</span>'
+            : (pr.delta > 0.35 ? '<span class="prd up">\u25b2'+pr.delta.toFixed(1)+'</span>'
+            : (pr.delta < -0.35 ? '<span class="prd down">\u25bc'+Math.abs(pr.delta).toFixed(1)+'</span>'
+            : '<span class="prd flat">\u2013</span>'));
+          const prHtml = PR.total
+            ? '<div class="prrow"><span class="prlab">PICK RATE</span>' +
+              '<span class="prval">'+pr.rate.toFixed(1)+'%</span>'+dtxt+'</div>'
+            : '';
           return '<div class="lgcard">' +
-            '<div class="lgname">'+esc(L.n)+'</div>' +
+            '<div class="lgname">'+esc(L.n)+'</div>' + prHtml +
             '<div class="lgab"><span class="abk">TACTICAL</span>'+esc(L.t)+'</div>' +
             '<div class="lgab"><span class="abk">PASSIVE</span>'+esc(L.p)+'</div>' +
             '<div class="lgab"><span class="abk">ULTIMATE</span>'+esc(L.u)+'</div>' +
@@ -2200,7 +2703,12 @@ margin-bottom:12px;color:var(--acc2)}
   document.getElementById('startBtn').addEventListener('click', function(){ major=null; startTournament(); });
   document.getElementById('majorBtn').addEventListener('click', startMajor);
   document.getElementById('qualBtn').addEventListener('click', startQualifier);
-  document.getElementById('metaBtn').addEventListener('click', function(){ rollMeta(); renderMeta(); });
+  document.getElementById('metaBtn').addEventListener('click', function(){
+    // Freeze the current pick rates so the next patch can be compared to them.
+    world.legendPicksPrev = Object.assign({}, world.legendPicks || {});
+    world.picksAtPatch = Object.assign({}, world.legendPicks || {});
+    rollMeta(); renderMeta(); save();
+  });
   document.getElementById('rankBtn').addEventListener('click', showRankings);
   document.getElementById('legendBtn').addEventListener('click', showLegends);
   document.getElementById('resetBtn').addEventListener('click', function(){
