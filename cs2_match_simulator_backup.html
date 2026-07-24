@@ -322,6 +322,10 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
 .cachew{color:#5aa9f0;font-weight:600}
 .sty-farmer{color:#ffd94a;border:1px solid rgba(255,217,74,.4)}
 .dwn.cov{color:#5aa9f0;border:1px solid rgba(90,169,240,.45);padding:0 3px}
+
+.zn{color:var(--acc2);font-size:9px}
+.outz{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:.06em;color:#141414;
+background:var(--acc);padding:1px 4px}
 </style>
 </head><body><div class="wrap">
 
@@ -868,18 +872,40 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
   // t:3 = hot drop, contested and loot-rich. t:1 = edge, quiet and poor.
   const MAP_POIS = {
     'World\u2019s Edge': [
-      {n:'Fragment East',t:3,c:2},{n:'Fragment West',t:3,c:2},{n:'Skyhook',t:3,c:2},{n:'The Epicenter',t:2,c:2},{n:'Lava Fissure',t:2,c:2},{n:'Harvester',t:2,c:1},{n:'Countdown',t:2,c:1},{n:'Climatizer',t:2,c:1},{n:'Sorting Factory',t:2,c:1},{n:'Launch Site',t:2,c:1},{n:'Big Maude',t:1,c:1},{n:'Landslide',t:1,c:1},{n:'Stacks',t:1,c:1},{n:'Overlook',t:1,c:1},{n:'Thermal Station',t:1,c:1},{n:'Mirage a Trois',t:1,c:1}
+      {n:'Fragment East',t:3,c:2,x:0.62,y:0.551},{n:'Fragment West',t:3,c:2,x:0.396,y:0.578},{n:'Skyhook',t:3,c:2,x:0.484,y:0.371},{n:'The Epicenter',t:2,c:2,x:0.797,y:0.545},{n:'Lava Fissure',t:2,c:2,x:0.65,y:0.76},{n:'Harvester',t:2,c:1,x:0.39,y:0.779},{n:'Countdown',t:2,c:1,x:0.213,y:0.588},{n:'Climatizer',t:2,c:1,x:0.252,y:0.331},{n:'Sorting Factory',t:2,c:1,x:0.478,y:0.201},{n:'Launch Site',t:2,c:1,x:0.72,y:0.296},{n:'Big Maude',t:1,c:1,x:0.774,y:0.845},{n:'Landslide',t:1,c:1,x:0.338,y:0.909},{n:'Stacks',t:1,c:1,x:0.065,y:0.565},{n:'Overlook',t:1,c:1,x:0.226,y:0.155},{n:'Thermal Station',t:1,c:1,x:0.662,y:0.091},{n:'Mirage a Trois',t:1,c:1,x:0.935,y:0.435}
     ],
     'Storm Point': [
-      {n:'Barometer',t:3,c:2},{n:'Downed Beast',t:3,c:2},{n:'Command Center',t:3,c:2},{n:'Cascade Falls',t:2,c:2},{n:'Checkpoint',t:2,c:2},{n:'Ceto Station',t:2,c:1},{n:'Gale Station',t:2,c:1},{n:'Echo HQ',t:2,c:1},{n:'The Wall',t:2,c:1},{n:'Storm Catcher',t:2,c:1},{n:'Cenote Cave',t:1,c:1},{n:'Fish Farm',t:1,c:1},{n:'The Mill',t:1,c:1},{n:'Lightning Rod',t:1,c:1},{n:'North Pad',t:1,c:1},{n:'Devastated Coast',t:1,c:1}
+      {n:'Barometer',t:3,c:2,x:0.62,y:0.551},{n:'Downed Beast',t:3,c:2,x:0.396,y:0.578},{n:'Command Center',t:3,c:2,x:0.484,y:0.371},{n:'Cascade Falls',t:2,c:2,x:0.797,y:0.545},{n:'Checkpoint',t:2,c:2,x:0.65,y:0.76},{n:'Ceto Station',t:2,c:1,x:0.39,y:0.779},{n:'Gale Station',t:2,c:1,x:0.213,y:0.588},{n:'Echo HQ',t:2,c:1,x:0.252,y:0.331},{n:'The Wall',t:2,c:1,x:0.478,y:0.201},{n:'Storm Catcher',t:2,c:1,x:0.72,y:0.296},{n:'Cenote Cave',t:1,c:1,x:0.774,y:0.845},{n:'Fish Farm',t:1,c:1,x:0.338,y:0.909},{n:'The Mill',t:1,c:1,x:0.065,y:0.565},{n:'Lightning Rod',t:1,c:1,x:0.226,y:0.155},{n:'North Pad',t:1,c:1,x:0.662,y:0.091},{n:'Devastated Coast',t:1,c:1,x:0.935,y:0.435}
     ],
     'E-District': [
-      {n:'The Lotus',t:3,c:2},{n:'City Hall',t:3,c:2},{n:'Neon Square',t:3,c:2},{n:'Energy Bank',t:2,c:2},{n:'Street Market',t:2,c:2},{n:'Electro Dam',t:2,c:1},{n:'Coliseum',t:2,c:1},{n:'Sky Terrace',t:2,c:1},{n:'Angels Atrium',t:2,c:1},{n:'Galleria',t:2,c:1},{n:'Draft Point',t:1,c:1},{n:'Boardwalk',t:1,c:1},{n:'Riverside',t:1,c:1},{n:'Roller Rink',t:1,c:1},{n:'Resort',t:1,c:1},{n:'The Vault',t:1,c:1}
+      {n:'The Lotus',t:3,c:2,x:0.62,y:0.551},{n:'City Hall',t:3,c:2,x:0.396,y:0.578},{n:'Neon Square',t:3,c:2,x:0.484,y:0.371},{n:'Energy Bank',t:2,c:2,x:0.797,y:0.545},{n:'Street Market',t:2,c:2,x:0.65,y:0.76},{n:'Electro Dam',t:2,c:1,x:0.39,y:0.779},{n:'Coliseum',t:2,c:1,x:0.213,y:0.588},{n:'Sky Terrace',t:2,c:1,x:0.252,y:0.331},{n:'Angels Atrium',t:2,c:1,x:0.478,y:0.201},{n:'Galleria',t:2,c:1,x:0.72,y:0.296},{n:'Draft Point',t:1,c:1,x:0.774,y:0.845},{n:'Boardwalk',t:1,c:1,x:0.338,y:0.909},{n:'Riverside',t:1,c:1,x:0.065,y:0.565},{n:'Roller Rink',t:1,c:1,x:0.226,y:0.155},{n:'Resort',t:1,c:1,x:0.662,y:0.091},{n:'The Vault',t:1,c:1,x:0.935,y:0.435}
     ],
     'Broken Moon': [
-      {n:'Terraformer',t:3,c:2},{n:'Perpetual Core',t:3,c:2},{n:'The Foundry',t:3,c:2},{n:'Dry Gulch',t:2,c:2},{n:'Breaker Wharf',t:2,c:2},{n:'Production Yard',t:2,c:1},{n:'Eternal Gardens',t:2,c:1},{n:'Bionomics',t:2,c:1},{n:'Promenade',t:2,c:1},{n:'Stasis Array',t:2,c:1},{n:'Cliff Side',t:1,c:1},{n:'The Divide',t:1,c:1},{n:'Underpass',t:1,c:1},{n:'Alpha Base',t:1,c:1},{n:'Atmostation',t:1,c:1},{n:'Backwater',t:1,c:1}
+      {n:'Terraformer',t:3,c:2,x:0.62,y:0.551},{n:'Perpetual Core',t:3,c:2,x:0.396,y:0.578},{n:'The Foundry',t:3,c:2,x:0.484,y:0.371},{n:'Dry Gulch',t:2,c:2,x:0.797,y:0.545},{n:'Breaker Wharf',t:2,c:2,x:0.65,y:0.76},{n:'Production Yard',t:2,c:1,x:0.39,y:0.779},{n:'Eternal Gardens',t:2,c:1,x:0.213,y:0.588},{n:'Bionomics',t:2,c:1,x:0.252,y:0.331},{n:'Promenade',t:2,c:1,x:0.478,y:0.201},{n:'Stasis Array',t:2,c:1,x:0.72,y:0.296},{n:'Cliff Side',t:1,c:1,x:0.774,y:0.845},{n:'The Divide',t:1,c:1,x:0.338,y:0.909},{n:'Underpass',t:1,c:1,x:0.065,y:0.565},{n:'Alpha Base',t:1,c:1,x:0.226,y:0.155},{n:'Atmostation',t:1,c:1,x:0.662,y:0.091},{n:'Backwater',t:1,c:1,x:0.935,y:0.435}
     ]
   };
+  // Where the ring ends up decides the match. Each closure pulls toward a final
+  // point, so squads either already hold zone or have to rotate through people.
+  const RING_RADIUS = [1.00, 0.46, 0.35, 0.26, 0.19, 0.14, 0.09, 0.05];
+  function dist(a, b){ const dx=a[0]-b[0], dy=a[1]-b[1]; return Math.sqrt(dx*dx+dy*dy); }
+  function pickFinalZone(mapName){
+    // Final zones favour the middle of the map but can land well off-centre.
+    const a = Math.random()*Math.PI*2, r = Math.random()*0.30;
+    return [0.5 + Math.cos(a)*r, 0.5 + Math.sin(a)*r];
+  }
+  function ringCentre(finalZone, ring){
+    // Early rings sit near the middle, later ones converge on the final point.
+    const t = Math.min(1, ring/2.2);
+    return [0.5 + (finalZone[0]-0.5)*t, 0.5 + (finalZone[1]-0.5)*t];
+  }
+  function nearestPoi(mapName, pt){
+    let best=null, bd=99;
+    poisFor(mapName).forEach(function(p){
+      const d = dist([p.x,p.y], pt);
+      if (d < bd){ bd = d; best = p; }
+    });
+    return best ? best.n : '';
+  }
   const HARVESTERS = 15;                     // per map, as in the real game
   const WILDLIFE = {'Storm Point':true};     // spiders and prowlers to farm
   function poisFor(m){ return MAP_POIS[m] || MAP_POIS['World\u2019s Edge']; }
@@ -932,7 +958,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
         for (; i<open.length-1; i++){ r -= weights[i]; if (r<=0) break; }
         const p = open[i];
         room[p.n]--;
-        t.poi = p;
+        t.poi = p; t.pos = [p.x, p.y];
         events.push({t:'drop', team:t.i, poi:p.n, tier:p.t, contested:false, pick:idx+1});
         lootUp(t, p.t, true);   // unopposed landing, full loot
       });
@@ -949,7 +975,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       });
       let tot = weights.reduce(function(a,b){ return a+b; }, 0), r = Math.random()*tot, i = 0;
       for (; i<pois.length-1; i++){ r -= weights[i]; if (r<=0) break; }
-      t.poi = pois[i];
+      t.poi = pois[i]; t.pos = [pois[i].x, pois[i].y];
       claims[pois[i].n] = (claims[pois[i].n]||0) + 1;
     });
     Object.keys(claims).forEach(function(name){
@@ -1120,7 +1146,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
                   evo:0, evoLevel:1, over:0,
                   kills:0, assists:0, dmg:0, red:false, banner:false, amp:null};
         }),
-        kills:0, place:null, alive:true
+        kills:0, place:null, alive:true, pos:[0.5,0.5], inZone:true, rotated:0
       };
     });
     const events = [];
@@ -1151,17 +1177,43 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     dropPhase(state, mapName, events, drafted);
     state.forEach(function(t){ wipeCheck(t, 0); });
 
+    const finalZone = pickFinalZone(mapName);
+    state.forEach(function(t){ t.zoneDist = t.poi ? dist([t.poi.x,t.poi.y], finalZone) : 0.5; });
     for (let ring=1; ring<=RINGS; ring++){
       const alive = aliveTeams();
-      events.push({t:'ring', ring:ring, alive:alive.length});
+      const centre = ringCentre(finalZone, ring);
+      const radius = RING_RADIUS[Math.min(ring, RING_RADIUS.length-1)];
+      const zoneName = nearestPoi(mapName, centre);
+      events.push({t:'ring', ring:ring, alive:alive.length, zone:zoneName});
+
+      // Rotate. How fast you close on zone depends on your kit and how much
+      // you're willing to leave behind.
+      let caught = [];
+      alive.forEach(function(t){
+        const d = dist(t.pos, centre);
+        t.inZone = d <= radius;
+        if (t.inZone) return;
+        // Move toward the ring; Valkyrie, Pathfinder and Octane cover ground fast.
+        const speed = 0.095 + squadFx(t,'rotate')*0.50 + (t.style==='passive' ? 0.02 : 0);
+        const k = Math.min(1, speed / Math.max(0.01, d));
+        t.pos = [t.pos[0] + (centre[0]-t.pos[0])*k, t.pos[1] + (centre[1]-t.pos[1])*k];
+        t.rotated++;
+        const nd = dist(t.pos, centre);
+        t.inZone = nd <= radius;
+        if (!t.inZone) caught.push(t.i);
+      });
+      if (caught.length) events.push({t:'outside', ring:ring, teams:caught, zone:zoneName});
       if (alive.length<=1) break;
 
       // Ring damage on anyone caught out — light, but it finishes off weak squads.
       alive.forEach(function(t){
         t.live.forEach(function(p){
-          // Time spent farming is time not spent rotating.
+          // Time spent farming is time not spent rotating, and being caught
+          // outside the ring is where the damage really comes from.
           const farmCost = (t.style==='farmer') ? 0.09 : 0;
-          const ringOdds = Math.max(0.04, 0.16 + farmCost - squadFx(t,'ringResist')*0.5 - squadFx(t,'rotate')*0.15);
+          const outCost = t.inZone ? 0 : 0.62;
+          const ringOdds = Math.max(0.04, 0.16 + farmCost + outCost
+                                        - squadFx(t,'ringResist')*0.5 - squadFx(t,'rotate')*0.15);
           if (p.state==='alive' && Math.random()<ringOdds){
             // The ring burns through health directly \u2014 shields don't stop it,
             // and it bites harder the later it gets.
@@ -1512,6 +1564,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
           if (mp.move===2 && Math.random()<0.68) v += 11.0;
           else if (mp.move===1 && Math.random()<0.8) v += 4.5;
           v += squadFx(me,'hold')*holdW;                       // gas, fences, walls
+          if (me.inZone && !foe.inZone) v += 11.0;              // set up, they're rotating in
+          else if (!me.inZone && foe.inZone) v -= 11.0;
           v += squadFx(me,'markDamage')*7;                     // Vantage mark
           v -= squadFx(foe,'damageResist')*4;                  // domes, shields
           v -= squadFx(foe,'antiPush')*4;                      // pushing into traps
@@ -1645,6 +1699,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     const results = state.map(function(t){
       return {name:t.name, tag:t.tag, i:t.i, place:t.place, kills:t.kills,
               style:t.style, poi:t.poi ? t.poi.n : null, drafted:drafted,
+              rotated:t.rotated, endedInZone:t.inZone, zoneDist:t.zoneDist,
               pts: t.kills + placementPoints(t.place),
               players: t.live.map(function(p){
                 return {name:p.name, kills:p.kills, assists:p.assists||0, dmg:Math.round(p.dmg),
@@ -2090,7 +2145,7 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     // Fresh view state the events will mutate as they replay.
     const view = res.state.map(function(t){
       return {i:t.i, name:t.name, tag:t.tag, emblem:t.emblem, kills:0, place:null, alive:true,
-              poi:null, style:t.style,
+              poi:null, style:t.style, inZone:true,
               live:t.ref.roster.map(function(p){
                 return {name:p.name, legend:p.legend, gun:p.gun,
                         guns:(p.guns||[p.gun]).slice(), sling:p.sling||null,
@@ -2135,7 +2190,11 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       const t = v[ti]; if (!t) return null;
       return t.live.find(function(p){ return p.name===nm; });
     };
-    if (e.t==='ring'){ live.ring = e.ring; }
+    if (e.t==='ring'){
+      live.ring = e.ring; live.zone = e.zone || '';
+      v.forEach(function(t){ t.inZone = true; });     // assume in until told otherwise
+    }
+    else if (e.t==='outside'){ e.teams.forEach(function(i){ if (v[i]) v[i].inZone = false; }); }
     else if (e.t==='drop'){ if (v[e.team]){ v[e.team].poi = e.poi; v[e.team].contested = e.contested; } }
     else if (e.t==='contest'){ /* flavour only */ }
     else if (e.t==='ringdmg'){ const p = find(e.team, e.player); if (p){ p.hp=e.hp; p.shield=e.shield; if(e.shieldMax) p.shieldMax=e.shieldMax; } }
@@ -2201,12 +2260,16 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
          : e.t==='heal' ? 'dim' : e.t==='amp' ? 'info' : e.t==='mythic' ? 'care'
          : e.t==='loot' ? 'info' : e.t==='overgone' ? 'dim'
          : e.t==='harvest' ? 'dim' : e.t==='cache' ? 'care' : e.t==='finisher' ? 'elim'
-         : e.t==='cover' ? 'info' : (e.t==='coverbreak'||e.t==='bleed') ? 'dim' : 'kill';
+         : e.t==='cover' ? 'info' : (e.t==='coverbreak'||e.t==='bleed') ? 'dim'
+         : e.t==='outside' ? 'elim' : 'kill';
   }
   function nm(i){ return live.view[i] ? esc(live.view[i].name) : '?'; }
   function feedText(e){
     switch(e.t){
-      case 'ring':    return 'Ring ' + e.ring + ' closing \u2014 <b>' + e.alive + ' squads</b> remain';
+      case 'ring':    return 'Ring ' + e.ring + ' closing on <b>' + esc(e.zone||'zone') + '</b> \u2014 <b>' +
+                             e.alive + ' squads</b> remain';
+      case 'outside': return '\u26a0\ufe0f <b>' + e.teams.length + ' squad' + (e.teams.length===1?'':'s') +
+                             '</b> caught outside the ring, rotating to <b>' + esc(e.zone) + '</b>';
       case 'engage':  return 'Contact: ' + e.teams.map(nm).join(' vs ');
       case 'ringdmg': return '<b>' + esc(e.player) + '</b> taking ring damage';
       case 'knock':   return '<b>' + esc(e.player) + '</b> knocked <b>' + esc(e.victim) + '</b> <i>' +
@@ -2534,7 +2597,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
       '<span class="tn">'+esc(t.name)+'</span>' +
       '<span class="alv">'+up+'/3</span><span class="kc">'+t.kills+'K</span></div>' +
       (t.poi ? '<div class="poirow"><span class="poi'+(t.contested?' hot':'')+'">'+esc(t.poi)+'</span>' +
-               '<span class="sty sty-'+t.style+'">'+STYLE_LABEL[t.style]+'</span></div>' : '') +
+               '<span class="sty sty-'+t.style+'">'+STYLE_LABEL[t.style]+'</span>' +
+               (t.inZone===false ? '<span class="outz">OUT OF ZONE</span>' : '') + '</div>' : '') +
       t.live.map(playerRow).join('') + '</div>';
   }
   function renderMatch(){
@@ -2543,7 +2607,8 @@ font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mut)}
     const dead = v.filter(function(t){ return !t.alive; }).sort(function(a,b){ return a.place-b.place; });
     const totalAlive = alive.reduce(function(s,t){
       return s + t.live.filter(function(p){ return p.state==='alive'; }).length; }, 0);
-    document.getElementById('mRing').innerHTML = 'RING <b>'+Math.max(1,live.ring)+'</b>';
+    document.getElementById('mRing').innerHTML = 'RING <b>'+Math.max(1,live.ring)+'</b>' +
+      (live.zone ? ' <span class="zn">\u2192 '+esc(live.zone)+'</span>' : '');
     document.getElementById('mSquads').innerHTML = 'SQUADS <b>'+alive.length+'</b>/20';
     document.getElementById('mAlive').innerHTML = 'ALIVE <b>'+totalAlive+'</b>/60';
     document.getElementById('mRingBar').style.width = Math.min(100, (live.ring/7)*100) + '%';
