@@ -155,6 +155,9 @@ border-top:1px solid rgba(255,255,255,.05)}
 .mps .ultm{color:#c07bff;font-size:8.5px;margin-left:2px}
 .upw{color:#5ad1c0;font-weight:600}
 .mps .upm{color:#5ad1c0;font-size:8.5px;margin-left:2px;cursor:default}
+.mps .rolet{font-size:7.5px;font-weight:700;margin-left:3px;padding:0 3px;border-radius:2px;
+  color:var(--mut);border:1px solid var(--line);vertical-align:top;cursor:default;letter-spacing:.02em}
+.mps .rolet.igl{color:#ffd94a;border-color:rgba(255,217,74,.45);background:rgba(255,217,74,.08)}
 .bans{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 2px;
   font-family:'IBM Plex Mono',monospace;font-size:10px}
 .bans .lbl{color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-right:2px}
@@ -524,16 +527,18 @@ background:var(--acc);padding:1px 4px}
   const CLASS_CODE = {'Assault':'as','Skirmisher':'sk','Recon':'rc','Support':'sp','Controller':'ct'};
 
   /* ===================== ALGS LEGEND BANS ===================== */
-  // A series starts with every legend open. After each match the legend the most
-  // TEAMS fielded is banned for the rest of the series, so the meta keeps moving.
-  // One legend per class is always kept available: if a class would be wiped out,
-  // its longest-standing ban is lifted.
-  function banReset(series){ series.bans = []; series.banOrder = []; }
-  function classesWiped(bans){
-    const open = {};
-    LEGEND_NAMES.forEach(function(l){ const c=LEGENDS[l]; if (bans.indexOf(l)===-1) open[c]=(open[c]||0)+1; });
-    const CLASSES = ['Assault','Skirmisher','Recon','Support','Controller'];
-    return CLASSES.filter(function(c){ return !(open[c] > 0); });
+  // Every match bans the legend the most TEAMS fielded. Bans accumulate one per
+  // match and persist for the whole series. Each context has a cap on how many
+  // legends can be banned at once; once the pool is full, the oldest ban is
+  // lifted to make room for the newest (FIFO cycling), so the count holds at the
+  // cap and the meta keeps rotating.
+  //   • Tournament / qualifier: cap = matches − 1 (a 6-match event ends with 5).
+  //   • Major (continuous across stages): group 8 → survival 9 → playoffs 10.
+  function banReset(series){ series.bans = []; series.banOrder = []; series.lastUnban = null; }
+  function majorBanCap(m){
+    if (m.stage==='survival') return 9;
+    if (m.stage==='playoffs') return 10;
+    return 8;   // group stage
   }
   // The legend a player actually fields this match: their main, unless it's
   // banned — then the best still-open legend, preferring their own class and
@@ -547,9 +552,11 @@ background:var(--acc);padding:1px 4px}
     const pool = sameClass.length ? sameClass : avail;
     return pool[hashStr('sub:'+p.name+':'+bans.join(','))%pool.length];
   }
-  // Tally the match and ban the legend the most teams ran. Returns the new ban.
-  function banMostPicked(series, res){
+  // Tally the match and ban the legend the most teams ran. Cap limits the pool;
+  // going over it cycles the oldest ban out. Returns the newly banned legend.
+  function banMostPicked(series, res, cap){
     if (!series.bans) banReset(series);
+    series.lastUnban = null;
     const teamCount = {};
     res.results.forEach(function(r){
       const seen = {};
@@ -565,15 +572,13 @@ background:var(--acc);padding:1px 4px}
     });
     if (!best) return null;
     series.bans.push(best); series.banOrder.push(best);
-    // Class protection: never let a whole class be banned out.
-    classesWiped(series.bans).forEach(function(c){
-      const idx = series.banOrder.findIndex(function(l){ return LEGENDS[l]===c; });
-      if (idx !== -1){
-        const restore = series.banOrder[idx];
-        series.banOrder.splice(idx,1);
-        series.bans.splice(series.bans.indexOf(restore),1);
-      }
-    });
+    // Pool full for this context — cycle the oldest ban(s) out (FIFO).
+    while (cap && series.bans.length > cap && series.banOrder.length){
+      const oldest = series.banOrder.shift();
+      const idx = series.bans.indexOf(oldest);
+      if (idx !== -1) series.bans.splice(idx, 1);
+      series.lastUnban = oldest;
+    }
     return best;
   }
 
@@ -723,6 +728,24 @@ background:var(--acc);padding:1px 4px}
   function favLegendOf(name){ return LEGEND_NAMES[hashStr('legend:'+name) % LEGEND_NAMES.length]; }
   function favGunOf(name){ return WEAPON_NAMES[hashStr('gun:'+name) % WEAPON_NAMES.length]; }
   function nationOf(name){ const p = PLAYER_INDEX[name]; return p ? p.c : ''; }
+
+  /* ---- Player role, clutch, consistency ---- */
+  // A player is more than a skill number. Their ROLE shapes what they add — an
+  // entry fragger drives pushes, an anchor holds the setup, a support enables the
+  // squad. CLUTCH is how they perform under pressure (endgame, outnumbered):
+  // high-clutch players carry, low-clutch fold. CONSISTENCY is game-to-game
+  // variance: a steady pro plays near their skill every map, a boom-or-bust
+  // player no-shows one game and pops off the next. All are stable per player.
+  function roleOf(name){
+    const h = hashStr('role:'+name) % 100, mv = movementTier(name);
+    // Movement-heavy players lean entry; steadier hands anchor or support.
+    if (mv >= 2)  return h<70 ? 'entry' : (h<86 ? 'anchor' : 'support');
+    if (mv === 1) return h<48 ? 'entry' : (h<77 ? 'anchor' : 'support');
+    return h<26 ? 'entry' : (h<62 ? 'anchor' : 'support');
+  }
+  function clutchOf(name){ return 0.30 + (hashStr('clutch:'+name) % 1000)/1000 * 0.70; }   // 0.30..1.00
+  function consistencyOf(name){ return 0.40 + (hashStr('cons:'+name) % 1000)/1000 * 0.60; } // 0.40..1.00
+  const ROLE_TAG = {entry:'E', anchor:'A', support:'S'};
 
   /* ===================== META ===================== */
   // Buffs and nerfs shift which picks are strong. Players keep their main forever
@@ -876,6 +899,7 @@ background:var(--acc);padding:1px 4px}
     const guns = activeGuns(name);
     return {name:name, skill:skillOf(name), legend:activeLegend(name),
             gun:guns[0], guns:guns, nation:nationOf(name), igl:false,
+            role:roleOf(name), clutch:clutchOf(name), consistency:consistencyOf(name),
             move:movementTier(name), techs:movementKit(name)};
   }
   function buildTeam(names, teamName, tag){
@@ -1070,6 +1094,10 @@ background:var(--acc);padding:1px 4px}
   }
   function hasClassAlive(t, cls){
     return t.live.some(function(p){ return p.state==='alive' && LEGENDS[p.legend]===cls; });
+  }
+  function hasIGL(t){ return t.live.some(function(p){ return p.state==='alive' && p.igl; }); }
+  function roleCount(t, role){
+    return t.live.reduce(function(s,p){ return s + (p.state==='alive' && p.role===role ? 1 : 0); }, 0);
   }
 
   /* ===================== DROP SPOTS & PLAYSTYLES ===================== */
@@ -1593,8 +1621,13 @@ background:var(--acc);padding:1px 4px}
           // Everyone drops with a Level 1 Shield Core; armor grows from EVO.
           const oc = ((CLASS_PERKS[LEGENDS[leg]]||{}).fx||{}).shieldOvercharge || 0;
           const start = 50 + (oc ? 25 : 0);
+          // Consistency: each map a player rolls a form swing. Steady pros stay
+          // near their skill; boom-or-bust players can no-show or pop off.
+          const cons = (p.consistency != null) ? p.consistency : consistencyOf(p.name);
+          const form = (Math.random()*2 - 1) * (1 - cons) * 13;   // ±0..13 skill (boom/bust)
           return {name:p.name, legend:leg, gun:p.gun, guns:(p.guns||[p.gun]).slice(),
-                  sling:p.sling||null, skill:p.skill, igl:p.igl,
+                  sling:p.sling||null, skill:(p.skill||75) + form, igl:p.igl,
+                  role:p.role||roleOf(p.name), clutch:(p.clutch!=null?p.clutch:clutchOf(p.name)), form:form,
                   move:p.move||0, techs:p.techs||[],
                   state:'alive', hp:100, shield:start, shieldMax:start,
                   evo:0, evoLevel:1, over:0, att:newAtt(), ord:newOrd(), hopDmg:{}, hopOn:{},
@@ -1667,7 +1700,8 @@ background:var(--acc);padding:1px 4px}
         const recon = hasClassAlive(t,'Recon'), ctrl = hasClassAlive(t,'Controller');
         t.knowsRing = false;
         if (!scanMetaOn || (!recon && !ctrl)) return;
-        const chance = Math.min(0.92, (recon?0.55:0) + (ctrl?0.42:0) + squadFx(t,'initiate')*0.35);
+        const chance = Math.min(0.92, (recon?0.55:0) + (ctrl?0.42:0) + squadFx(t,'initiate')*0.35
+                     + (hasIGL(t) ? 0.08 : 0));   // an IGL calls the reads
         if (Math.random() < chance){
           t.knowsRing = true; t.intel = (t.intel||0) + 1;
           events.push({t:'scan', ring:ring, team:t.i, kind:(recon?'beacon':'console'), zone:zoneName});
@@ -1696,7 +1730,8 @@ background:var(--acc);padding:1px 4px}
         // fast, and a squad that already knows where the ring is heading leaves
         // early and takes the direct line.
         const speed = 0.095 + squadFx(t,'rotate')*0.50 + (t.style==='passive' ? 0.02 : 0)
-                    + (t.knowsRing ? 0.05 : 0) + (t.intel||0)*0.004 + mobBoost;
+                    + (t.knowsRing ? 0.05 : 0) + (t.intel||0)*0.004 + mobBoost
+                    + (hasIGL(t) ? 0.02 : 0);
         const k = Math.min(1, speed / Math.max(0.01, d));
         t.pos = [t.pos[0] + (centre[0]-t.pos[0])*k, t.pos[1] + (centre[1]-t.pos[1])*k];
         t.rotated++;
@@ -2111,11 +2146,13 @@ background:var(--acc);padding:1px 4px}
       s += squadFx(t,'revive')*3;                              // can pull downs mid-fight
       s += (t.intel||0)*0.9 + (t.knowsRing ? 5 : 0);           // knew where to set up
       s += (t.usedMob||0)*0.5;                                 // rotated cleanly via map mobility
+      s += roleCount(t,'anchor')*2.2 + roleCount(t,'support')*1.3 + (hasIGL(t) ? 3 : 0);  // roles in the final circle
       s -= (t.sitLean||0)*2.5;                                 // playing safe holds position; sending it exposes you
       live.forEach(function(p){
         if ((p.ult||0) >= 100) s += ultPow(p);                 // ults banked for this
         if ((p.evoLevel||1) >= 3) s += 2.2;                     // Purple upgrades
         s += (p.hp + p.shield) * 0.02;                          // topped up
+        s += ((p.clutch||0.6) - 0.62) * 14;                     // clutch players rise in the final circle
       });
       return Math.max(1, s);
     }
@@ -2163,7 +2200,7 @@ background:var(--acc);padding:1px 4px}
       s.live.forEach(function(p){
         if (p.state !== 'down') return;
         const mates = s.live.some(function(m){ return m.state==='alive'; });
-        if (mates && Math.random() < 0.55 + squadFx(s,'revive')*0.30){
+        if (mates && Math.random() < 0.55 + squadFx(s,'revive')*0.30 + roleCount(s,'support')*0.04){
           p.state='alive'; p.hp=45; p.shield=0;
           events.push({t:'revive', ring:ring, team:s.i, player:p.name,
                        hp:45, shield:0, shieldMax:p.shieldMax});
@@ -2248,12 +2285,30 @@ background:var(--acc);padding:1px 4px}
         // Two squads trade; who wins the duel is weighted by squad strength.
         const s1 = pick(standing);
         const s2 = pick(standing.filter(function(x){ return x!==s1; }));
-        const p1 = pick(s1.live.filter(function(p){ return p.state==='alive'; }));
-        const p2 = pick(s2.live.filter(function(p){ return p.state==='alive'; }));
+        // Who's on the trigger: entries take most of the fights, supports the
+        // fewest — so roles show up in the kill sheet, not just the outcome.
+        const duelist = function(s){
+          const av = s.live.filter(function(p){ return p.state==='alive'; });
+          const w = av.map(function(p){ return p.role==='entry' ? 2.3 : (p.role==='anchor' ? 1.0 : 0.6); });
+          let tot = w.reduce(function(a,b){ return a+b; },0), r = Math.random()*tot, i = 0;
+          for (; i<av.length-1; i++){ r -= w[i]; if (r<=0) break; }
+          return av[i];
+        };
+        const p1 = duelist(s1);
+        const p2 = duelist(s2);
         // Late rings favour whoever is set up; early rings favour whoever sees first.
         const holdW = (ring>=5) ? 1.35 : 0.55;
         const edge = function(me, foe, mp, fp){
           let v = power(mp) + teamPower(me)*0.35;
+          // Player roles: entries are the fraggers, anchors hold the setup.
+          if (mp.role==='entry')                v += 4.5;
+          else if (mp.role==='anchor' && me.inZone) v += 4.5;
+          // Clutch: pressure = endgame and/or being outnumbered. High-clutch
+          // players rise to it, low-clutch players fold.
+          const meN = me.live.filter(function(p){ return p.state==='alive'; }).length;
+          const foeN = foe.live.filter(function(p){ return p.state==='alive'; }).length;
+          const pressure = (ring>=5?0.5:0) + (meN < foeN ? 0.5 : (ring>=6?0.2:0));
+          if (pressure > 0) v += ((mp.clutch||0.6) - 0.62) * pressure * 18;
           v += squadFx(me,'initiate')*9;                       // scans, drones, snares
           if (me.knowsRing) v += 6;                            // knows the ring/positions — sees them first
           // Frame-perfect tech doesn't land every time, even for pros.
@@ -2362,7 +2417,8 @@ background:var(--acc);padding:1px 4px}
                      hp:winner.p.hp, shield:winner.p.shield});
         // A knocked player is only saved if a teammate is up and it goes their way.
         const mates = winner.o.live.filter(function(p){ return p.state==='alive'; });
-        const reviveOdds = Math.min(0.58, 0.28 + squadFx(winner.o,'revive')*0.30
+        const reviveOdds = Math.min(0.60, 0.28 + squadFx(winner.o,'revive')*0.30
+                                          + roleCount(winner.o,'support')*0.04
                                           - squadFx(winner.s,'antiEscape')*0.35);
         // Mid-fight there often isn't time to pick someone up. Instead the squad
         // plays off their knockdown shield, using them as mobile cover.
@@ -2428,6 +2484,7 @@ background:var(--acc);padding:1px 4px}
                 return {name:p.name, kills:p.kills, assists:p.assists||0, dmg:Math.round(p.dmg),
                         gun:p.gun, guns:p.guns, sling:p.sling, red:p.red, amp:p.amp||null,
                         legend:p.legend, move:p.move||0, techs:p.techs||[],
+                        role:p.role||'entry', igl:!!p.igl, clutch:p.clutch||0.6, form:p.form||0,
                         evo:Math.round(p.evo||0), evoLevel:p.evoLevel||1,
                         att:cloneAtt(p.att), ord:cloneOrd(p.ord),
                         cls:mainClass(p), fullkit:isFullyKitted(p, mainClass(p)),
@@ -2526,7 +2583,7 @@ background:var(--acc);padding:1px 4px}
     if (m.pendingSurvival) beginSurvival();
     const lobby = majorLobby();
     // Bans run per stage — a fresh series each time the stage changes.
-    if (m.banStage !== m.stage){ m.banStage = m.stage; banReset(m); }
+    if (!m.bans) banReset(m);   // bans run for the whole major (not per stage)
     const mapName = (m.stage==='group') ? m.queue[m.qi].map
                                         : MAPS[((m.stage==='survival'?m.svMatch:m.poMatch)) % MAPS.length];
     const bansInEffect = m.bans.slice();
@@ -2541,7 +2598,7 @@ background:var(--acc);padding:1px 4px}
     });
     m.log.push({res:res, label:majorShortLabel(), map:mapName, stage:m.stage, bans:bansInEffect});
     m.lastLobby = lobby;
-    m.newBan = banMostPicked(m, res);
+    m.newBan = banMostPicked(m, res, majorBanCap(m));
     openMajorMatch(res, mapName);
     save();
   }
@@ -2884,7 +2941,7 @@ background:var(--acc);padding:1px 4px}
       t.pts += r.pts; t.kills += r.kills;
     });
     tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName, bans:bansInEffect});
-    tour.newBan = banMostPicked(tour, res);   // most-fielded legend is banned for the rest of the series
+    tour.newBan = banMostPicked(tour, res, (tour.total||6) - 1);   // most-fielded legend banned for the rest of the series
     openMatch(res);
     save();
   }
@@ -3184,7 +3241,7 @@ background:var(--acc);padding:1px 4px}
       // In the group stage, stop when the current round is done.
       if (startStage==='group' && Math.floor(major.qi/6) !== startRound) break;
       const lobby = majorLobby();
-      if (major.banStage !== major.stage){ major.banStage = major.stage; banReset(major); }
+      if (!major.bans) banReset(major);
       const mapName = MAPS[guard % MAPS.length];
       const leans = situationalLeans(lobby, {progress: majorProgress(major),
                       matchPointPts: (major.stage==='playoffs') ? 50 : null});
@@ -3192,7 +3249,7 @@ background:var(--acc);padding:1px 4px}
       recordMatch(res);
       res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       major.log.push({res:res, label:majorShortLabel(), map:mapName, stage:major.stage, bans:major.bans.slice()});
-      major.newBan = banMostPicked(major, res);
+      major.newBan = banMostPicked(major, res, majorBanCap(major));
       live = {res:res, idx:0, view:[], feed:[], ring:0, playing:false, timer:null};
       const step = advanceMajor();
       if (step.banner) banner = step.banner;
@@ -3344,7 +3401,10 @@ background:var(--acc);padding:1px 4px}
       rows.map(function(r){
         const cls = r.place<=3 ? ' st-top' : '';
         const pl = r.players.slice().sort(function(a,b){ return b.dmg-a.dmg; }).map(function(p){
-          return '<span class="mps"><b>'+esc(p.name)+'</b> '+p.kills+'K'+
+          return '<span class="mps"><b>'+esc(p.name)+'</b>'+
+                 (p.igl?'<span class="rolet igl" title="In-Game Leader">IGL</span>'
+                       :'<span class="rolet" title="'+(p.role||'entry')+'">'+(ROLE_TAG[p.role]||'E')+'</span>')+
+                 ' '+p.kills+'K'+
                  (p.assists?'/'+p.assists+'A':'')+' \u00b7 '+p.dmg +
                  (p.move===2?' <span class="mv2">\u26a1</span>':(p.move===1?' <span class="mv1">\u26a1</span>':'')) +
                  (p.sling?' <span class="goldw">\u2b50</span>':'') + (p.red?' <span class="redw">\u2726</span>':'') +
@@ -3850,7 +3910,7 @@ background:var(--acc);padding:1px 4px}
       recordMatch(res);
       res.results.forEach(function(r){ const t=tour.teams[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName, bans:bansInEffect});
-      tour.newBan = banMostPicked(tour, res);
+      tour.newBan = banMostPicked(tour, res, (tour.total||6) - 1);
     }
     save();
     showStandings(true);
