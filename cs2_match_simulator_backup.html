@@ -286,7 +286,10 @@ border:1px solid rgba(90,169,240,.35);padding:1px 5px;letter-spacing:.03em}
 .sty-passive{color:var(--good);border:1px solid rgba(74,222,128,.35)}
 .hot{color:var(--acc2)}
 .poitag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--mut);font-weight:400;text-transform:none}
-@media(max-width:560px){.poitag{display:none}}
+.syntag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#7aa2ff;font-weight:600;
+  padding:1px 5px;border:1px solid rgba(122,162,255,.32);border-radius:3px;background:rgba(122,162,255,.08);
+  text-transform:none;margin-left:2px;cursor:default}
+@media(max-width:560px){.poitag,.syntag{display:none}}
 .pick{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--gold);border:1px solid rgba(255,193,69,.4);padding:1px 4px}
 
 /* match browser tabs */
@@ -964,6 +967,44 @@ background:var(--acc);padding:1px 4px}
   /* ---- Ability effects ---- */
   // A player's contribution for one effect: their legend's kit plus the perk
   // every legend of that class gets.
+  // ===================== LEGEND COMP SYNERGY =====================
+  // Comps aren't just three separate kits — the strong ones are built around a
+  // core. Recognised cores grant a squad-wide bonus, so deliberate drafting is
+  // rewarded and a legend ban that breaks your core actually hurts (the pieces
+  // are checked against who you ACTUALLY field this match, post-substitution).
+  const SYNERGIES = [
+    {name:'Meta Core',      req:function(c,l){ return c.Recon && c.Controller && c.Support; },
+     fx:{initiate:0.06, hold:0.6, revive:0.08, rotate:0.04}},
+    {name:'Info + Zone',    req:function(c,l){ return c.Recon && c.Controller && !c.Support; },
+     fx:{initiate:0.06, hold:0.4, antiPush:0.06}},
+    {name:'Smoke & Scan',   req:function(c,l){ return l['Bangalore'] && (l['Bloodhound']||l['Seer']||l['Crypto']); },
+     fx:{initiate:0.08, fight:0.6, finishLow:0.06}},
+    {name:'Wall & Gas',     req:function(c,l){ return (l['Newcastle']||l['Catalyst']||l['Rampart']) && l['Caustic']; },
+     fx:{hold:0.65, antiPush:0.08, damageResist:0.06}},
+    {name:'Bubble Barrage', req:function(c,l){ return l['Gibraltar'] && (l['Fuse']||l['Bangalore']||l['Ballistic']||l['Rampart']); },
+     fx:{hold:0.45, breakHold:0.06, damageResist:0.06}},
+    {name:'Scan & Dive',    req:function(c,l){ return (l['Bloodhound']||l['Seer']) && (l['Revenant']||l['Ash']||l['Horizon']); },
+     fx:{initiate:0.08, fight:0.6, antiEscape:0.08}},
+    {name:'Zone Lockdown',  req:function(c,l){ return l['Catalyst'] && l['Wattson']; },
+     fx:{hold:0.65, antiPush:0.10}},
+    {name:'Sustain Core',   req:function(c,l){ return (l['Lifeline']||l['Newcastle']||l['Gibraltar']) && l['Conduit']; },
+     fx:{revive:0.10, heal:0.10, teamShield:0.08}},
+    {name:'Mobility Core',  req:function(c,l){ return (l['Valkyrie']||l['Pathfinder']||l['Ash']||l['Axle']) && (l['Octane']||l['Wraith']||l['Horizon']); },
+     fx:{rotate:0.08, escape:0.08, initiate:0.04}}
+  ];
+  function computeSynergies(legendList){
+    const c = {}, l = {};
+    legendList.forEach(function(name){ l[name] = true; const cls = LEGENDS[name]; if (cls) c[cls] = (c[cls]||0)+1; });
+    const fx = {}, names = [];
+    SYNERGIES.forEach(function(s){
+      if (s.req(c, l)){
+        names.push(s.name);
+        Object.keys(s.fx).forEach(function(k){ fx[k] = (fx[k]||0) + s.fx[k]; });
+      }
+    });
+    return {fx:fx, names:names};
+  }
+
   function fxOf(p, key){
     const l = LEGEND_FX[p.legend] || {};
     const c = (CLASS_PERKS[LEGENDS[p.legend]] || {}).fx || {};
@@ -974,9 +1015,13 @@ background:var(--acc);padding:1px 4px}
   }
   // Squad total for an effect, counting only players still up.
   function squadFx(t, key){
-    return t.live.reduce(function(s,p){
-      return s + (p.state==='alive' ? fxOf(p, key) : 0);
+    let alive = 0;
+    const base = t.live.reduce(function(s,p){
+      if (p.state==='alive'){ alive++; return s + fxOf(p, key); }
+      return s;
     }, 0);
+    const syn = (t.synFx && t.synFx[key]) ? t.synFx[key] * (alive/3) : 0;   // core fades as the squad thins
+    return base + syn;
   }
   function anyFx(t, key){
     return t.live.some(function(p){ return p.state!=='dead' && fxOf(p,key) > 0; });
@@ -1101,6 +1146,7 @@ background:var(--acc);padding:1px 4px}
   ];
   const HOP_UNLOCK = 150;   // default unlock cost, in damage, if a hop-up omits one
   let scanMetaOn = true;    // information/scan meta (recon beacons + ring consoles)
+  let synergyOn = true;     // legend comp synergies
   // Map each weapon to its locked hop-up, built once from the pool above.
   const GUN_HOPUP = {};
   HOPUPS.forEach(function(h){ h.guns.forEach(function(g){ GUN_HOPUP[g] = h; }); });
@@ -1560,6 +1606,8 @@ background:var(--acc);padding:1px 4px}
     state.forEach(function(t){
       t.style = teamPlaystyle(t.ref); t.intel = 0; t.knowsRing = false;
       t.sitLean = leans ? (leans[t.i] || 0) : 0;
+      const syn = computeSynergies(t.live.map(function(p){ return p.legend; }));
+      t.synFx = synergyOn ? syn.fx : {}; t.synergies = syn.names;
     });
 
     const aliveTeams = function(){ return state.filter(function(t){ return t.alive; }); };
@@ -2351,6 +2399,7 @@ background:var(--acc);padding:1px 4px}
     const results = state.map(function(t){
       return {name:t.name, tag:t.tag, i:t.i, place:t.place, kills:t.kills,
               style:t.style, poi:t.poi ? t.poi.n : null, drafted:drafted,
+              synergies:(t.synergies||[]).slice(),
               rotated:t.rotated, endedInZone:t.inZone, zoneDist:t.zoneDist,
               pts: t.kills + placementPoints(t.place),
               players: t.live.map(function(p){
@@ -3282,7 +3331,10 @@ background:var(--acc);padding:1px 4px}
         }).join('');
         return '<div class="rrow'+cls+'"><span class="stpos">'+r.place+'</span>' +
           '<span class="stname">'+esc(r.name)+
-            (r.poi?' <span class="poitag">'+esc(r.poi)+'</span>':'')+'</span>' +
+            (r.poi?' <span class="poitag">'+esc(r.poi)+'</span>':'')+
+            (r.synergies&&r.synergies.length?' <span class="syntag" title="'+esc(r.synergies.join(' \u00b7 '))+'">'+
+              esc(r.synergies[0])+(r.synergies.length>1?' +'+(r.synergies.length-1):'')+'</span>':'')+
+            '</span>' +
           '<span class="rk">'+r.kills+'</span>' +
           '<span class="rp">+'+placementPoints(r.place)+'</span>' +
           '<span class="stpts">'+r.pts+'</span>' +
