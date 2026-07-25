@@ -1277,6 +1277,33 @@ background:var(--acc);padding:1px 4px}
     return base;
   }
 
+  // Situational aggression: teams don't play the same way every game of a series.
+  // A squad sitting on a lead late in a series plays for placement and dodges
+  // fights; a squad that needs points sends it. On match point (playoffs) a team
+  // must WIN a game, so it pushes. Returns a lean per team, -1 (protect) .. +1
+  // (desperate), that rides on top of their base playstyle for THIS match.
+  // ctx: { progress: 0..1 through the series, matchPointPts: number|null }
+  function situationalLeans(teams, ctx){
+    const n = teams.length;
+    if (!n) return [];
+    const order = teams.map(function(t,i){ return {i:i, pts:t.pts||0}; })
+                       .sort(function(a,b){ return b.pts-a.pts; });
+    const rankOf = {}; order.forEach(function(r,idx){ rankOf[r.i] = idx; });   // 0 = leader
+    const pressure = 0.30 + 0.70*Math.max(0, Math.min(1, ctx.progress||0));
+    return teams.map(function(t,i){
+      const pos = n>1 ? rankOf[i]/(n-1) : 0.5;                 // 0 leader .. 1 last
+      let lean = (pos - 0.5) * 2 * pressure;                    // leader protects(−), tail sends it(+)
+      if (ctx.matchPointPts != null && (t.pts||0) >= ctx.matchPointPts) lean = Math.max(lean, 0.6);
+      return Math.max(-1, Math.min(1, lean));
+    });
+  }
+  // Roughly how deep into a major stage we are, for situational pressure.
+  function majorProgress(m){
+    if (m.stage==='group')    return Math.min(1, (m.qi||0)/Math.max(1, (m.queue ? m.queue.length : 36)));
+    if (m.stage==='survival') return Math.min(1, (m.svMatch||0)/8);
+    return Math.min(1, (m.poMatch||0)/10);
+  }
+
   // Two ways to land. In a drafted event (tournament/major) teams pick a POI in
   // world-ranking order and drop there unopposed, so everyone gets to loot —
   // the way ALGS actually runs. In an open qualifier it's a live dropship, so
@@ -1529,7 +1556,11 @@ background:var(--acc);padding:1px 4px}
     let lastWipeCredit = -1;
     let vaultOpened = false;
     let nextPlace = 20;
-    state.forEach(function(t){ t.style = teamPlaystyle(t.ref); t.intel = 0; t.knowsRing = false; });
+    const leans = (opts && opts.leans) || null;
+    state.forEach(function(t){
+      t.style = teamPlaystyle(t.ref); t.intel = 0; t.knowsRing = false;
+      t.sitLean = leans ? (leans[t.i] || 0) : 0;
+    });
 
     const aliveTeams = function(){ return state.filter(function(t){ return t.alive; }); };
     const pick = function(a){ return a[Math.floor(Math.random()*a.length)]; };
@@ -1933,14 +1964,22 @@ background:var(--acc);padding:1px 4px}
       for (let f=0; f<fights; f++){
         const pool = aliveTeams();
         if (pool.length<=1) break;
-        // Aggressive squads start more of the fights; edge teams avoid them.
-        const aw = pool.map(function(t){ return Math.max(0.25, 1 + PLAYSTYLES[t.style].fight); });
+        // Who starts fights: base playstyle plus their situational lean — a
+        // squad protecting a lead picks fewer, a squad chasing points forces them.
+        const aw = pool.map(function(t){
+          return Math.max(0.15, 1 + PLAYSTYLES[t.style].fight + (t.sitLean||0)*0.8);
+        });
         let at = aw.reduce(function(a,b){ return a+b; },0), ar = Math.random()*at, ai = 0;
         for (; ai<pool.length-1; ai++){ ar -= aw[ai]; if (ar<=0) break; }
         const A = pool[ai];
         const others = pool.filter(function(t){ return t!==A; });
         if (!others.length) break;
-        const B = pick(others);
+        // The target: teams playing for placement dodge contact; aggressive
+        // teams are the ones out in the open getting into it.
+        const bw = others.map(function(t){ return Math.max(0.2, 1 + (t.sitLean||0)*0.5); });
+        let bt = bw.reduce(function(a,b){ return a+b; },0), br = Math.random()*bt, bi = 0;
+        for (; bi<others.length-1; bi++){ br -= bw[bi]; if (br<=0) break; }
+        const B = others[bi];
         // Third parties are no longer pre-rolled — they emerge inside the fight
         // from its noise and who's nearby (see resolveFight).
         resolveFight(A, B, null, ring);
@@ -2002,6 +2041,7 @@ background:var(--acc);padding:1px 4px}
       s += squadFx(t,'hold')*1.4 + squadFx(t,'antiPush')*3;     // controllers set up late
       s += squadFx(t,'revive')*3;                              // can pull downs mid-fight
       s += (t.intel||0)*0.9 + (t.knowsRing ? 5 : 0);           // knew where to set up
+      s -= (t.sitLean||0)*2.5;                                 // playing safe holds position; sending it exposes you
       live.forEach(function(p){
         if ((p.ult||0) >= 100) s += ultPow(p);                 // ults banked for this
         if ((p.evoLevel||1) >= 3) s += 2.2;                     // Purple upgrades
@@ -2109,7 +2149,8 @@ background:var(--acc);padding:1px 4px}
         const resist = sides.reduce(function(s,x){
           return s + squadFx(x,'thirdPartyResist')*0.5 + (x.knowsRing?0.05:0);
         }, 0) / sides.length;
-        const capitalise = (hasClassAlive(near.t,'Recon') ? 0.06 : 0) + (near.t.knowsRing ? 0.05 : 0);
+        const capitalise = (hasClassAlive(near.t,'Recon') ? 0.06 : 0) + (near.t.knowsRing ? 0.05 : 0)
+                         + (near.t.sitLean||0)*0.05;          // chasers crash in, leaders hold off
         const chance = Math.min(0.5, noise*0.013*(0.35+prox) + capitalise - resist);
         if (Math.random() >= chance) return;
         const C = near.t;
@@ -2418,7 +2459,9 @@ background:var(--acc);padding:1px 4px}
     const mapName = (m.stage==='group') ? m.queue[m.qi].map
                                         : MAPS[((m.stage==='survival'?m.svMatch:m.poMatch)) % MAPS.length];
     const bansInEffect = m.bans.slice();
-    const res = simulateMatch(lobby, mapName, {draft:true, bans: m.bans});
+    const leans = situationalLeans(lobby, {progress: majorProgress(m),
+                    matchPointPts: (m.stage==='playoffs') ? 50 : null});
+    const res = simulateMatch(lobby, mapName, {draft:true, bans: m.bans, leans: leans});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = lobby[r.i];
@@ -2762,7 +2805,8 @@ background:var(--acc);padding:1px 4px}
     if (!tour.bans) banReset(tour);
     const mapName = MAPS[(tour.matchNo-1) % MAPS.length];
     const bansInEffect = tour.bans.slice();
-    const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans});
+    const leans = situationalLeans(tour.teams, {progress: (tour.matchNo-1)/tour.total});
+    const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans, leans: leans});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = tour.teams[r.i];
@@ -3070,7 +3114,9 @@ background:var(--acc);padding:1px 4px}
       const lobby = majorLobby();
       if (major.banStage !== major.stage){ major.banStage = major.stage; banReset(major); }
       const mapName = MAPS[guard % MAPS.length];
-      const res = simulateMatch(lobby, mapName, {draft:true, bans: major.bans});
+      const leans = situationalLeans(lobby, {progress: majorProgress(major),
+                      matchPointPts: (major.stage==='playoffs') ? 50 : null});
+      const res = simulateMatch(lobby, mapName, {draft:true, bans: major.bans, leans: leans});
       recordMatch(res);
       res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       major.log.push({res:res, label:majorShortLabel(), map:mapName, stage:major.stage, bans:major.bans.slice()});
@@ -3724,7 +3770,8 @@ background:var(--acc);padding:1px 4px}
       tour.matchNo++;
       const mapName = MAPS[(tour.matchNo-1)%MAPS.length];
       const bansInEffect = tour.bans.slice();
-      const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans});
+      const leans = situationalLeans(tour.teams, {progress: (tour.matchNo-1)/tour.total});
+      const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans, leans: leans});
       recordMatch(res);
       res.results.forEach(function(r){ const t=tour.teams[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName, bans:bansInEffect});
