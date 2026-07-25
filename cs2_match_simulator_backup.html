@@ -535,10 +535,20 @@ background:var(--acc);padding:1px 4px}
   //   • Tournament / qualifier: cap = matches − 1 (a 6-match event ends with 5).
   //   • Major (continuous across stages): group 8 → survival 9 → playoffs 10.
   function banReset(series){ series.bans = []; series.banOrder = []; series.lastUnban = null; }
+  // Bans reset at every stage boundary AND at every 6-match group pairing — each
+  // A-vs-B / A-vs-C block is its own mini-series, so all legends open again.
+  function majorBanKey(m){
+    if (m.stage==='group') return 'group:' + Math.floor((m.qi||0)/6);
+    return m.stage;   // 'survival' | 'playoffs'
+  }
+  // How many legends can be banned at once in the current context.
+  //   • Group: each 6-match block ends with 5 banned (matches − 1).
+  //   • Survival: 10 matches, ends with 9 banned.
+  //   • Playoffs: caps at 10, then cycles the oldest out (FIFO).
   function majorBanCap(m){
     if (m.stage==='survival') return 9;
     if (m.stage==='playoffs') return 10;
-    return 8;   // group stage
+    return 5;   // each group pairing block
   }
   // The legend a player actually fields this match: their main, unless it's
   // banned — then the best still-open legend, preferring their own class and
@@ -2559,6 +2569,7 @@ background:var(--acc);padding:1px 4px}
   function majorShortLabel(){
     const m = major;
     if (m.stage==='group'){
+      if (m.qi >= 36) return 'GROUP FINAL';
       const pi = Math.floor(m.qi/6), mi = (m.qi%6)+1;
       const pr = PAIRINGS[pi];
       return 'R'+(pi+1)+' M'+mi+' \u00b7 '+GROUP_LABELS[pr[0]]+' v '+GROUP_LABELS[pr[1]];
@@ -2569,11 +2580,15 @@ background:var(--acc);padding:1px 4px}
   function majorStageLabel(){
     const m = major;
     if (m.stage==='group'){
+      if (m.qi >= 36) return 'GROUP STAGE COMPLETE \u00b7 FINAL STANDINGS';
       const pi = Math.floor(m.qi/6), mi = (m.qi%6)+1;
-      return 'GROUP STAGE · ROUND ' + (pi+1) + ' OF 6 · ' + pairName(pi) + ' · MATCH ' + mi + ' OF 6';
+      return 'GROUP STAGE \u00b7 ROUND ' + (pi+1) + ' OF 6 \u00b7 ' + pairName(pi) + ' \u00b7 MATCH ' + mi + ' OF 6';
     }
-    if (m.stage==='survival') return 'SURVIVAL STAGE · MATCH ' + (m.svMatch+1) + ' OF 10';
-    return 'PLAYOFFS · MATCH ' + (m.poMatch+1) + ' · FIRST TO 50 THEN WIN';
+    if (m.stage==='survival'){
+      if (m.pendingPlayoffs || m.svMatch >= 10) return 'SURVIVAL STAGE COMPLETE \u00b7 FINAL STANDINGS';
+      return 'SURVIVAL STAGE \u00b7 MATCH ' + (m.svMatch+1) + ' OF 10';
+    }
+    return 'PLAYOFFS \u00b7 MATCH ' + (m.poMatch+1) + ' \u00b7 FIRST TO 50 THEN WIN';
   }
   function nextMajorMatch(){
     const m = major;
@@ -2581,9 +2596,12 @@ background:var(--acc);padding:1px 4px}
     // The group table is being held for review; commit to survival rather than
     // trying to play a 37th group match that doesn't exist.
     if (m.pendingSurvival) beginSurvival();
+    if (m.pendingPlayoffs) beginPlayoffs();
     const lobby = majorLobby();
     // Bans run per stage — a fresh series each time the stage changes.
-    if (!m.bans) banReset(m);   // bans run for the whole major (not per stage)
+    // Bans reset each stage and each 6-match group pairing.
+    const banKey = majorBanKey(m);
+    if (m.banKey !== banKey){ m.banKey = banKey; banReset(m); }
     const mapName = (m.stage==='group') ? m.queue[m.qi].map
                                         : MAPS[((m.stage==='survival'?m.svMatch:m.poMatch)) % MAPS.length];
     const bansInEffect = m.bans.slice();
@@ -2638,11 +2656,14 @@ background:var(--acc);padding:1px 4px}
     if (m.stage==='survival'){
       m.svMatch++;
       if (m.svMatch < 10) return {more:true};
+      if (m.pendingPlayoffs) return {more:true, survivalDone:true};   // parked at the gate
+      // Survival over: work out who advances but hold on the survival table so
+      // its final standings can be read before points reset for playoffs.
       const table = m.survivalTeams.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
-      m.playoffTeams = m.playoffTeams.concat(table.slice(0,6));
-      m.playoffTeams.forEach(function(t){ t.pts=0; t.kills=0; t.gp=0; });    // playoffs start level
-      m.stage='playoffs'; m.poMatch=0;
-      return {more:true, banner:'Survival complete — 6 more advance. Playoffs: 20 teams, first to 50 then win.'};
+      m.survivalAdvance = table.slice(0,6);
+      m.pendingPlayoffs = true;
+      return {more:true, survivalDone:true,
+              banner:'Survival complete \u2014 top 6 advance. Playoffs: 20 teams, first to 50 then win.'};
     }
     // Playoffs. A team goes ON MATCH POINT the moment its total reaches 50, but
     // crossing 50 does NOT clinch the title — a team has to win a match while
@@ -2678,6 +2699,15 @@ background:var(--acc);padding:1px 4px}
     m.pendingSurvival = false;
     m.survivalTeams.forEach(function(t){ t.pts=0; t.kills=0; t.gp=0; });   // survival starts level
     m.stage='survival'; m.svMatch=0;
+  }
+  // Called once the survival table has been seen.
+  function beginPlayoffs(){
+    const m = major;
+    if (!m || !m.pendingPlayoffs) return;
+    m.pendingPlayoffs = false;
+    m.playoffTeams = m.playoffTeams.concat(m.survivalAdvance || []);
+    m.playoffTeams.forEach(function(t){ t.pts=0; t.kills=0; t.gp=0; });    // playoffs start level
+    m.stage='playoffs'; m.poMatch=0;
   }
 
   /* ===================== ROSTERMANIA ===================== */
@@ -3206,8 +3236,9 @@ background:var(--acc);padding:1px 4px}
       const step = advanceMajor();
       if (step.banner) document.getElementById('mBanner').textContent = step.banner;
       document.getElementById('mBanner').style.display = step.banner ? 'block' : 'none';
-      if (step.roundDone){
-        // A round of the group stage just finished — show where everyone stands.
+      if (step.roundDone || step.groupDone || step.survivalDone){
+        // A round finished, or a stage just ended — show the final standings
+        // (group table, or the survival table before playoffs begins).
         showMajorTable(false, step.banner);
         return;
       }
@@ -3241,7 +3272,8 @@ background:var(--acc);padding:1px 4px}
       // In the group stage, stop when the current round is done.
       if (startStage==='group' && Math.floor(major.qi/6) !== startRound) break;
       const lobby = majorLobby();
-      if (!major.bans) banReset(major);
+      const banKey = majorBanKey(major);
+      if (major.banKey !== banKey){ major.banKey = banKey; banReset(major); }
       const mapName = MAPS[guard % MAPS.length];
       const leans = situationalLeans(lobby, {progress: majorProgress(major),
                       matchPointPts: (major.stage==='playoffs') ? 50 : null});
@@ -3254,7 +3286,7 @@ background:var(--acc);padding:1px 4px}
       const step = advanceMajor();
       if (step.banner) banner = step.banner;
       if (!step.more) break;
-      if (step.roundDone || step.groupDone) break;
+      if (step.roundDone || step.groupDone || step.survivalDone) break;
     }
     save();
     showMajorTable(!!(major && major.done), banner);
@@ -3344,6 +3376,15 @@ background:var(--acc);padding:1px 4px}
           '<button class="btn" id="sRank">\ud83c\udf10 WORLD RANKING</button>';
         document.getElementById('sSurv').onclick = function(){
           beginSurvival(); viewMatch = null; nextMajorMatch();
+        };
+        document.getElementById('sRank').onclick = showRankings;
+        return;
+      }
+      if (m.pendingPlayoffs){
+        bar.innerHTML = '<button class="btn pri" id="sPlay">\u2192 BEGIN PLAYOFFS</button>' +
+          '<button class="btn" id="sRank">\ud83c\udf10 WORLD RANKING</button>';
+        document.getElementById('sPlay').onclick = function(){
+          beginPlayoffs(); viewMatch = null; nextMajorMatch();
         };
         document.getElementById('sRank').onclick = showRankings;
         return;
