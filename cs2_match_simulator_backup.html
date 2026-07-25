@@ -1941,13 +1941,10 @@ background:var(--acc);padding:1px 4px}
         const others = pool.filter(function(t){ return t!==A; });
         if (!others.length) break;
         const B = pick(others);
-        // Late rings get third parties.
-        const rest = others.filter(function(t){ return t!==B; });
-        const tpResist = (squadFx(A,'thirdPartyResist') + squadFx(B,'thirdPartyResist')) * 0.5
-                       + ((A.knowsRing?0.04:0) + (B.knowsRing?0.04:0));
-        const C = (ring>=4 && rest.length && Math.random() < Math.max(0.06, 0.25 - tpResist)) ? pick(rest) : null;
-        resolveFight(A, B, C, ring);
-        [A,B].concat(C?[C]:[]).forEach(function(s){ settleDowns(s, ring); });
+        // Third parties are no longer pre-rolled — they emerge inside the fight
+        // from its noise and who's nearby (see resolveFight).
+        resolveFight(A, B, null, ring);
+        aliveTeams().forEach(function(s){ settleDowns(s, ring); });
         if (aliveTeams().length<=1) break;
       }
 
@@ -2088,7 +2085,46 @@ background:var(--acc);padding:1px 4px}
           }
         });
       });
-      let rounds = 0;
+      let rounds = 0, knocks = 0;
+      // Where this fight is happening, and who's already in it.
+      const joined = {};
+      sides.forEach(function(s){ joined[s.i] = true; });
+      const fightCentre = (function(){
+        let x=0, y=0; sides.forEach(function(s){ x+=s.pos[0]; y+=s.pos[1]; });
+        return [x/sides.length, y/sides.length];
+      })();
+      // Emergent third party: the louder (knocks) and longer (rounds) a fight
+      // runs, the more likely the nearest squad crashes in — but only if they're
+      // close enough to hear it. Fights resolved fast and clean go unpunished;
+      // drawn-out brawls invite company. Recon and ring-knowledge squads both
+      // resist being caught and are quicker to capitalise on someone else's fight.
+      function pullThirdParty(){
+        const cands = aliveTeams().filter(function(t){ return !joined[t.i]; });
+        if (!cands.length) return;
+        const near = cands.map(function(t){ return {t:t, d:dist(t.pos, fightCentre)}; })
+                          .sort(function(a,b){ return a.d-b.d; })[0];
+        const prox = Math.max(0, 1 - near.d/0.32);            // within ~a third of the map
+        if (prox <= 0) return;                                // nobody near enough to notice
+        const noise = rounds + knocks*1.2;
+        const resist = sides.reduce(function(s,x){
+          return s + squadFx(x,'thirdPartyResist')*0.5 + (x.knowsRing?0.05:0);
+        }, 0) / sides.length;
+        const capitalise = (hasClassAlive(near.t,'Recon') ? 0.06 : 0) + (near.t.knowsRing ? 0.05 : 0);
+        const chance = Math.min(0.5, noise*0.013*(0.35+prox) + capitalise - resist);
+        if (Math.random() >= chance) return;
+        const C = near.t;
+        joined[C.i] = true;
+        C.coverHp = 0; C.coverFor = null; C.ultEdge = 0;
+        // A fresh squad crashing in commits hard — ults come out on the way.
+        C.live.forEach(function(p){
+          if (p.state==='alive' && (p.ult||0) >= 100 && Math.random() < 0.7){
+            p.ult = 8; p.ultUsed = (p.ultUsed||0) + 1; C.ultEdge += ultPow(p);
+            events.push({t:'ult', ring:ring, team:C.i, player:p.name, legend:p.legend, name:ultName(p)});
+          }
+        });
+        sides.push(C);
+        events.push({t:'thirdparty', ring:ring, team:C.i, teams:sides.map(function(s){ return s.i; })});
+      }
       while (rounds++ < 14){
         // Safety: a squad with nobody up and nobody down is finished.
         sides.forEach(function(s){ wipeCheck(s, ring); });
@@ -2096,6 +2132,8 @@ background:var(--acc);padding:1px 4px}
           return s.alive && s.live.some(function(p){ return p.state==='alive'; });
         });
         if (standing.length<=1) break;
+        // A drawn-out fight draws a crowd — check who might be crashing in.
+        if (sides.length < 3 && ring >= 3 && rounds >= 2) pullThirdParty();
         // Two squads trade; who wins the duel is weighted by squad strength.
         const s1 = pick(standing);
         const s2 = pick(standing.filter(function(x){ return x!==s1; }));
@@ -2207,6 +2245,7 @@ background:var(--acc);padding:1px 4px}
         // Knocking someone with better armor than you is worth extra.
         if ((winner.q.evoLevel||1) > (winner.p.evoLevel||1)) addEvo(winner.p, 90);
         winner.q.state = 'down'; winner.q.hp = 0; winner.q.shield = 0;
+        knocks++;                                            // fight noise draws third parties
         events.push({t:'knock', ring:ring, team:winner.s.i, player:winner.p.name,
                      vteam:winner.o.i, victim:winner.q.name, gun:gun, hs:hs,
                      hp:winner.p.hp, shield:winner.p.shield});
@@ -2264,6 +2303,8 @@ background:var(--acc);padding:1px 4px}
           break;   // squads disengage
         }
       }
+      // Settle everyone who ended up in this fight, including any late arrivals.
+      sides.forEach(function(s){ settleDowns(s, ring); });
     }
 
     const results = state.map(function(t){
@@ -2895,6 +2936,7 @@ background:var(--acc);padding:1px 4px}
       case 'outside': return '\u26a0\ufe0f <b>' + e.teams.length + ' squad' + (e.teams.length===1?'':'s') +
                              '</b> caught outside the ring, rotating to <b>' + esc(e.zone) + '</b>';
       case 'engage':  return 'Contact: ' + e.teams.map(nm).join(' vs ');
+      case 'thirdparty': return '\u2694\ufe0f <b>' + nm(e.team) + '</b> third-party the fight \u2014 <span class="dim">' + e.teams.map(nm).join(' vs ') + '</span>';
       case 'ringdmg': return '<span class="dim"><b>' + esc(e.player) + '</b> taking ring damage (\u2212' +
                              e.dmg + ')</span>';
       case 'ringkill':return '\u2622\ufe0f <b>' + esc(e.player) + '</b> died to the ring <span class="dim">(\u2212' +
