@@ -1122,6 +1122,15 @@ background:var(--acc);padding:1px 4px}
     'E-District':        {}
   };
   const WILDLIFE = {'Storm Point':true};     // spiders and prowlers to farm
+  // Map mobility: the traversal tools each map offers for beating the ring to
+  // a spot. Richer maps let more squads rotate cleanly; a squad that uses one
+  // covers ground fast. (No Tridents.)
+  const MAP_MOBILITY = {
+    'World\u2019s Edge': {rating:0.55, features:['a geyser','a jump tower','a zipline']},
+    'Storm Point':       {rating:0.70, features:['a gravity cannon','a zipline']},
+    'E-District':        {rating:0.45, features:['a zipline','a launch pad']},
+    'Broken Moon':       {rating:0.82, features:['a zip rail']}
+  };
 
   // Hop-ups are locked into specific weapons (Season 26 onward) and the pairings
   // rotate by season. This is the current Season 29 pool — including the new
@@ -1632,6 +1641,7 @@ background:var(--acc);padding:1px 4px}
     state.forEach(function(t){ wipeCheck(t, 0); });
 
     const finalZone = pickFinalZone(mapName);
+    const mob = MAP_MOBILITY[mapName] || {rating:0.4, features:['a jump tower']};
     state.forEach(function(t){ t.zoneDist = t.poi ? dist([t.poi.x,t.poi.y], finalZone) : 0.5; });
     for (let ring=1; ring<=RINGS; ring++){
       const alive = aliveTeams();
@@ -1671,11 +1681,22 @@ background:var(--acc);padding:1px 4px}
         const d = dist(t.pos, centre);
         t.inZone = d <= radius;
         if (t.inZone) return;
+        // Map mobility: a squad can take a zip rail, gravity cannon, geyser or
+        // jump tower to cover ground toward the ring. Richer maps offer more,
+        // and mobility-savvy squads (and ones that know where the ring is going)
+        // use them more — a real rotation edge that pays off in positioning.
+        let mobBoost = 0;
+        const useOdds = mob.rating * (0.45 + squadFx(t,'rotate')*0.7 + (t.knowsRing ? 0.15 : 0));
+        if (Math.random() < useOdds){
+          mobBoost = 0.05 + mob.rating*0.06;
+          t.usedMob = (t.usedMob||0) + 1;
+          events.push({t:'mobility', ring:ring, team:t.i, feature:pick(mob.features), zone:zoneName});
+        }
         // Move toward the ring; Valkyrie, Pathfinder and Octane cover ground
         // fast, and a squad that already knows where the ring is heading leaves
         // early and takes the direct line.
         const speed = 0.095 + squadFx(t,'rotate')*0.50 + (t.style==='passive' ? 0.02 : 0)
-                    + (t.knowsRing ? 0.05 : 0) + (t.intel||0)*0.004;
+                    + (t.knowsRing ? 0.05 : 0) + (t.intel||0)*0.004 + mobBoost;
         const k = Math.min(1, speed / Math.max(0.01, d));
         t.pos = [t.pos[0] + (centre[0]-t.pos[0])*k, t.pos[1] + (centre[1]-t.pos[1])*k];
         t.rotated++;
@@ -2089,6 +2110,7 @@ background:var(--acc);padding:1px 4px}
       s += squadFx(t,'hold')*1.4 + squadFx(t,'antiPush')*3;     // controllers set up late
       s += squadFx(t,'revive')*3;                              // can pull downs mid-fight
       s += (t.intel||0)*0.9 + (t.knowsRing ? 5 : 0);           // knew where to set up
+      s += (t.usedMob||0)*0.5;                                 // rotated cleanly via map mobility
       s -= (t.sitLean||0)*2.5;                                 // playing safe holds position; sending it exposes you
       live.forEach(function(p){
         if ((p.ult||0) >= 100) s += ultPow(p);                 // ults banked for this
@@ -3060,6 +3082,7 @@ background:var(--acc);padding:1px 4px}
                         ? '\ud83d\udef0\ufe0f ' + nm(e.team) + ' scanned a Survey Beacon'
                         : '\ud83d\udce1 ' + nm(e.team) + ' read a Ring Console')
                         + ' <span class="dim">\u2014 reads the next ring</span>';
+      case 'mobility': return '\ud83e\ude82 ' + nm(e.team) + ' take ' + esc(e.feature) + ' toward <b>' + esc(e.zone) + '</b>';
       case 'endgame': return '\ud83c\udfc1 <b>Endgame</b> \u2014 <b>'+e.alive+' squads</b> stacked in the final ring on <b>'+esc(e.zone)+'</b>';
       case 'upgrade': return '\u2b06\ufe0f <b>'+esc(e.player)+'</b> took <span class="upw">'+esc(e.name)+
                              '</span> <span class="dim">('+esc(e.tier)+')</span>';
