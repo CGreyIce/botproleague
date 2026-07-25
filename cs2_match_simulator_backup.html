@@ -151,6 +151,10 @@ border-top:1px solid rgba(255,255,255,.05)}
 .kit .kp.r3{background:#b06bff;border-color:#b06bff}
 .kit .hopdot{color:#ff7a3d;font-size:8px;margin-left:2px}
 .kit .hopdot.locked{color:#4a515c}
+.ultw{color:#c07bff;font-weight:600;text-shadow:0 0 8px rgba(176,107,255,.35)}
+.mps .ultm{color:#c07bff;font-size:8.5px;margin-left:2px}
+.upw{color:#5ad1c0;font-weight:600}
+.mps .upm{color:#5ad1c0;font-size:8.5px;margin-left:2px;cursor:default}
 .kit .ords{font-size:8.5px;margin-left:3px;letter-spacing:-1px;filter:saturate(.9)}
 .pshead,.psrow{display:grid;grid-template-columns:34px 1fr 1fr 46px 62px;gap:8px;align-items:center;
 padding:6px 11px;font-size:12px}
@@ -427,7 +431,81 @@ background:var(--acc);padding:1px 4px}
   /* ===================== REFERENCE DATA ===================== */
   const LEGENDS = {};
   const LEGEND_FX = {};
-  LEGEND_DATA.forEach(function(L){ LEGENDS[L.n] = L.c; LEGEND_FX[L.n] = L.fx; });
+  const LEGEND_ULT = {};
+  LEGEND_DATA.forEach(function(L){ LEGENDS[L.n] = L.c; LEGEND_FX[L.n] = L.fx; LEGEND_ULT[L.n] = L.u; });
+  // Ult economy: how much popping a legend's ultimate swings a single fight.
+  // Zoning and area-denial ults (bombardments, gas, walls, minigun) hit hardest;
+  // pure mobility/loot ults are worth less in the trade itself but still matter
+  // for getting the drop or escaping. Anything unlisted uses a middling default.
+  const ULT_POW = {
+    'Gibraltar':10,'Bangalore':9,'Fuse':9,'Ballistic':9,'Caustic':9,'Rampart':9,
+    'Newcastle':9,'Bloodhound':9,'Crypto':10,'Horizon':10,'Revenant':10,
+    'Catalyst':8,'Seer':8,'Wattson':7,'Conduit':8,'Vantage':8,'Sparrow':7,
+    'Ash':7,'Mad Maggie':8,'Lifeline':7,'Mirage':7,'Wraith':7,'Alter':7,'Axle':7,
+    'Pathfinder':6,'Valkyrie':6,'Octane':6,'Loba':4
+  };
+  function ultPow(p){ return ULT_POW[p.legend] || 6; }
+  function ultName(p){ return LEGEND_ULT[p.legend] || 'ultimate'; }
+
+  // Legend Upgrades: levelling your EVO armor to Blue (L2) and Purple (L3) each
+  // lets you pick one of two perks. We model the real pattern — a spread of
+  // offense / defense / mobility / utility / ult-charge options — and let each
+  // squad's playstyle decide which of the two on offer they take.
+  const UPGRADES = {
+    bigtac:    {n:'Enhanced Tactical',      tag:'offense',  fx:{fight:0.5, initiate:0.05}},
+    ordnance:  {n:'Extra Ordnance',         tag:'offense',  fx:{breakHold:0.08, fight:0.35}},
+    taccharge: {n:'Extra Tactical Charge',  tag:'offense',  fx:{fight:0.45, hold:0.25}},
+    mobile:    {n:'Mobility Boost',         tag:'mobility', fx:{rotate:0.07, escape:0.06}},
+    gapclose:  {n:'Gap Closer',             tag:'mobility', fx:{escape:0.08, initiate:0.05}},
+    recon:     {n:'Enhanced Scan',          tag:'utility',  fx:{initiate:0.07}},
+    recon3:    {n:'Wide Sweep',             tag:'utility',  fx:{initiate:0.10, markDamage:0.05}},
+    zone:      {n:'Fortified Setup',        tag:'defense',  fx:{hold:0.45, antiPush:0.06}},
+    zone3:     {n:'Entrenched',             tag:'defense',  fx:{hold:0.7, damageResist:0.04}},
+    fortified: {n:'Reinforced',             tag:'defense',  fx:{damageResist:0.06}},
+    reviver:   {n:'Battle Medic',           tag:'utility',  fx:{revive:0.10, heal:0.06}},
+    reviver3:  {n:'Field Hospital',         tag:'utility',  fx:{revive:0.16, heal:0.10}},
+    fasthealer:{n:'Swift Mend',             tag:'defense',  fx:{heal:0.12, selfHeal:0.10}},
+    ultaccel:  {n:'Ultimate Accelerant',    tag:'ult',      fx:{}, ultRate:6},
+    ultaccel3: {n:'Ultimate Overdrive',     tag:'ult',      fx:{}, ultRate:9}
+  };
+  const CLASS_UPGRADES = {
+    Assault:    {l2:['bigtac','ordnance'],     l3:['ultaccel3','taccharge']},
+    Skirmisher: {l2:['mobile','bigtac'],       l3:['ultaccel3','gapclose']},
+    Recon:      {l2:['recon','mobile'],        l3:['recon3','ultaccel']},
+    Controller: {l2:['zone','fortified'],      l3:['zone3','ultaccel']},
+    Support:    {l2:['reviver','fasthealer'],  l3:['reviver3','ultaccel']}
+  };
+  // How much each playstyle leans toward each upgrade flavour.
+  const STYLE_PREF = {
+    aggressive: {offense:3.0, ult:3.0, mobility:1.5, defense:0.6, utility:0.8},
+    balanced:   {offense:1.0, ult:1.2, mobility:1.0, defense:1.0, utility:1.0},
+    passive:    {offense:0.7, ult:1.0, mobility:1.0, defense:2.5, utility:2.0},
+    farmer:     {offense:0.5, ult:1.0, mobility:1.5, defense:2.0, utility:2.5}
+  };
+  function pickUpgrade(p, t, level, ring, events){
+    const set = CLASS_UPGRADES[LEGENDS[p.legend]] || CLASS_UPGRADES.Assault;
+    const ids = set[level===2 ? 'l2' : 'l3'] || [];
+    if (!ids.length) return;
+    const pref = STYLE_PREF[t.style] || STYLE_PREF.balanced;
+    const w = ids.map(function(id){ return Math.max(0.1, pref[UPGRADES[id].tag] || 1); });
+    let tot = w.reduce(function(a,b){ return a+b; }, 0), r = Math.random()*tot, i = 0;
+    for (; i<ids.length-1; i++){ r -= w[i]; if (r<=0) break; }
+    const up = UPGRADES[ids[i]];
+    if (!p.upFx) p.upFx = {};
+    Object.keys(up.fx).forEach(function(k){ p.upFx[k] = (p.upFx[k]||0) + up.fx[k]; });
+    if (up.ultRate) p.ultRate = (p.ultRate||0) + up.ultRate;
+    (p.upgrades = p.upgrades || []).push(up.n);
+    events.push({t:'upgrade', ring:ring, team:t.i, player:p.name, level:level,
+                 tier:(level===2?'Blue':'Purple'), name:up.n});
+  }
+  // Resolve any armour levels a player has crossed but not yet taken a perk for.
+  function resolveUpgrades(p, t, ring, events){
+    while ((p.upLevel||1) < (p.evoLevel||1)){
+      const next = (p.upLevel||1) + 1;
+      pickUpgrade(p, t, next, ring, events);
+      p.upLevel = next;
+    }
+  }
   function legendInfo(n){ return LEGEND_DATA.find(function(L){ return L.n===n; }) || null; }
   const LEGEND_NAMES = Object.keys(LEGENDS);
   const CLASS_CODE = {'Assault':'as','Skirmisher':'sk','Recon':'rc','Support':'sp','Controller':'ct'};
@@ -827,7 +905,8 @@ background:var(--acc);padding:1px 4px}
     const c = (CLASS_PERKS[LEGENDS[p.legend]] || {}).fx || {};
     const m = MOVE_FX[p.move || 0] || {};
     const a = (p.amp && ampById(p.amp)) ? ampById(p.amp).fx : {};
-    return (l[key] || 0) + (c[key] || 0) + (m[key] || 0) + (a[key] || 0);
+    const u = p.upFx || {};
+    return (l[key] || 0) + (c[key] || 0) + (m[key] || 0) + (a[key] || 0) + (u[key] || 0);
   }
   // Squad total for an effect, counting only players still up.
   function squadFx(t, key){
@@ -1362,6 +1441,8 @@ background:var(--acc);padding:1px 4px}
                   move:p.move||0, techs:p.techs||[],
                   state:'alive', hp:100, shield:start, shieldMax:start,
                   evo:0, evoLevel:1, over:0, att:newAtt(), ord:newOrd(), hopDmg:{}, hopOn:{},
+                  ult:20+Math.floor(Math.random()*35), ultUsed:0,
+                  upFx:{}, ultRate:0, upLevel:1, upgrades:[],
                   kills:0, assists:0, dmg:0, red:false, banner:false, amp:null};
         }),
         kills:0, place:null, alive:true, pos:[0.5,0.5], inZone:true, rotated:0
@@ -1404,6 +1485,15 @@ background:var(--acc);padding:1px 4px}
       const radius = RING_RADIUS[Math.min(ring, RING_RADIUS.length-1)];
       const zoneName = nearestPoi(mapName, centre);
       events.push({t:'ring', ring:ring, alive:alive.length, zone:zoneName});
+
+      // Ults tick up over the match; a squad banks them for when it counts.
+      // Ultimate-accelerant upgrades speed that up. Also cash in any armour
+      // levels crossed but not yet spent on a Legend Upgrade.
+      alive.forEach(function(t){ t.live.forEach(function(p){
+        if (p.state!=='alive') return;
+        p.ult = Math.min(100, (p.ult||0) + 18 + (p.ultRate||0));
+        resolveUpgrades(p, t, ring, events);
+      }); });
 
       // Rotate. How fast you close on zone depends on your kit and how much
       // you're willing to leave behind.
@@ -1739,11 +1829,13 @@ background:var(--acc);padding:1px 4px}
         if (healed.length) events.push({t:'heal', ring:ring, team:t.i, players:healed});
       });
 
-      // How many engagements this ring: quiet early, frantic late.
+      // How many engagements this ring: quiet early, frantic mid-game, then
+      // easing at the very end so more squads survive into the endgame proper.
       const n = aliveTeams().length;
       let fights = (ring<=2) ? Math.max(1, Math.round(n*0.18))
                  : (ring<=4) ? Math.max(2, Math.round(n*0.32))
-                             : Math.max(2, Math.round(n*0.55));
+                 : (ring===5) ? Math.max(2, Math.round(n*0.50))
+                              : Math.max(1, Math.round(n*0.30));
       for (let f=0; f<fights; f++){
         const pool = aliveTeams();
         if (pool.length<=1) break;
@@ -1795,26 +1887,70 @@ background:var(--acc);padding:1px 4px}
       if (aliveTeams().length<=1) break;
     }
 
-    // Anyone still standing when the rings run out: settle it.
-    let guard = 0;
-    while (aliveTeams().length>1 && guard++ < 200){
-      const pool = aliveTeams();
-      resolveFight(pool[0], pool[1], null, RINGS);
-      settleDowns(pool[0], RINGS); settleDowns(pool[1], RINGS);
-      // If a stalemate somehow persists, force the weaker squad out so the
-      // match can never end with more than one team standing.
-      if (aliveTeams().length > 1 && guard > 40){
-        const weak = aliveTeams().sort(function(a,b){ return teamPower(a)-teamPower(b); })[0];
-        weak.live.forEach(function(p){ if (p.state!=='dead'){ p.state='dead'; } });
-        wipeCheck(weak, RINGS);
-      }
-    }
+    // ===== ENDGAME =====
+    // The rings have closed and whoever's left is stacked into the final circle.
+    // This is its own phase: who holds the zone, who banked ults and Purple
+    // upgrades for it, and who gets collapsed on decides the placements.
+    runEndgame(RINGS, events);
+
     const winner = aliveTeams()[0] || state[0];
     winner.place = 1;
     events.push({t:'win', team:winner.i, kills:winner.kills});
 
     // Fill any places that never got assigned (safety).
     state.forEach(function(t){ if (t.place===null){ t.place = nextPlace; nextPlace--; } });
+
+    // A squad's staying power in the final circle: raw strength, holding the
+    // zone, ults still banked, Purple upgrades, and how topped-up they are.
+    function endStrength(t){
+      const live = t.live.filter(function(p){ return p.state==='alive'; });
+      if (!live.length) return 0;
+      let s = teamPower(t) + live.length*3;
+      s += t.inZone ? 7 : -6;                                   // holding the final zone
+      s += squadFx(t,'hold')*1.4 + squadFx(t,'antiPush')*3;     // controllers set up late
+      s += squadFx(t,'revive')*3;                              // can pull downs mid-fight
+      live.forEach(function(p){
+        if ((p.ult||0) >= 100) s += ultPow(p);                 // ults banked for this
+        if ((p.evoLevel||1) >= 3) s += 2.2;                     // Purple upgrades
+        s += (p.hp + p.shield) * 0.02;                          // topped up
+      });
+      return Math.max(1, s);
+    }
+    // The final phase: everyone's crammed into one small zone. Squads collapse on
+    // the most exposed team, third parties crash in, and teams fall one at a time
+    // (weakest position first, with upset potential) until one is left standing.
+    function runEndgame(ring, events){
+      const zone = nearestPoi(mapName, ringCentre(finalZone, ring));
+      const start = aliveTeams();
+      if (start.length > 1) events.push({t:'endgame', ring:ring, zone:zone, alive:start.length});
+      // Final positioning: whoever rotated cleanest holds the high ground; the
+      // rest have to fight their way in.
+      const ranked = start.slice().sort(function(a,b){
+        return (b.inZone-a.inZone) || (squadFx(b,'rotate')-squadFx(a,'rotate')) || (Math.random()-0.5);
+      });
+      ranked.forEach(function(t,i){ t.inZone = i < Math.ceil(ranked.length*0.45); });
+      let guard = 0;
+      while (aliveTeams().length > 1 && guard++ < 80){
+        const pool = aliveTeams();
+        const scored = pool.map(function(t){ return {t:t, s:endStrength(t)}; })
+                           .sort(function(a,b){ return a.s-b.s; });
+        const weak = scored[0].t;                               // most exposed — the flashpoint
+        const rest = scored.slice(1);
+        const wsum = rest.reduce(function(a,b){ return a+b.s; }, 0) || 1;
+        let r = Math.random()*wsum, ai = 0;
+        for (; ai<rest.length-1; ai++){ r -= rest[ai].s; if (r<=0) break; }
+        const attacker = rest[ai].t;                            // a stronger squad pushes them
+        const others = rest.filter(function(x){ return x.t!==attacker; }).map(function(x){ return x.t; });
+        const third = (others.length && Math.random() < 0.55) ? pick(others) : null;   // third party crashes in
+        resolveFight(weak, attacker, third, ring);
+        [weak, attacker].concat(third?[third]:[]).forEach(function(s){ settleDowns(s, ring); });
+        if (aliveTeams().length > 1 && guard > 45){             // stalemate guard
+          const w = aliveTeams().sort(function(a,b){ return endStrength(a)-endStrength(b); })[0];
+          w.live.forEach(function(p){ if (p.state!=='dead') p.state='dead'; });
+          wipeCheck(w, ring);
+        }
+      }
+    }
 
     // Nobody stays knocked forever. When a fight ends, anyone still down is
     // either dragged up by a surviving team-mate or bleeds out.
@@ -1839,6 +1975,22 @@ background:var(--acc);padding:1px 4px}
       const sides = [A,B].concat(C?[C]:[]);
       events.push({t:'engage', ring:ring, teams:sides.map(function(s){ return s.i; })});
       sides.forEach(function(s){ s.coverHp = 0; s.coverFor = null; });
+      // Ult economy: teams sit on ults early and spend them when a fight is worth
+      // it — late rings, or a committed multi-squad brawl. A popped ult gives a
+      // fight-long edge and resets the charge.
+      const contested = sides.length >= 3;
+      const popChance = [0,0.08,0.12,0.28,0.46,0.66,0.82,0.93][Math.min(ring,7)] + (contested?0.08:0);
+      sides.forEach(function(s){
+        s.ultEdge = 0;
+        s.live.forEach(function(p){
+          if (p.state!=='alive' || (p.ult||0) < 100) return;
+          if (Math.random() < popChance){
+            p.ult = 8; p.ultUsed = (p.ultUsed||0) + 1;
+            s.ultEdge += ultPow(p);
+            events.push({t:'ult', ring:ring, team:s.i, player:p.name, legend:p.legend, name:ultName(p)});
+          }
+        });
+      });
       let rounds = 0;
       while (rounds++ < 14){
         // Safety: a squad with nobody up and nobody down is finished.
@@ -1870,6 +2022,7 @@ background:var(--acc);padding:1px 4px}
           v += squadFx(me,'breakHold')*6;                      // drills, grenades
           v += ordFightBonus(mp, me.inZone && !foe.inZone);    // their frags / arc stars / thermites
           v += squadFx(me,'shieldStrip')*6;                    // EMP
+          v += (me.ultEdge || 0);                              // ultimates popped this fight
           if (fp.hp < 55) v += squadFx(me,'finishLow')*9;       // Seer/Revenant close it out
           return Math.max(1, v);
         };
@@ -1880,6 +2033,7 @@ background:var(--acc);padding:1px 4px}
         // shooter is credited with what it actually took to put them down.
         const dealt = winner.q.shield + winner.q.hp + Math.floor(Math.random()*45);
         winner.p.dmg += dealt;
+        winner.p.ult = Math.min(100, (winner.p.ult||0) + dealt*0.03);   // fighting builds ult
         // The victim gets return fire in before they go down.
         const taken = 25 + Math.floor(Math.random()*60);
         winner.q.dmg += taken;
@@ -2026,6 +2180,7 @@ background:var(--acc);padding:1px 4px}
                         evo:Math.round(p.evo||0), evoLevel:p.evoLevel||1,
                         att:cloneAtt(p.att), ord:cloneOrd(p.ord),
                         cls:mainClass(p), fullkit:isFullyKitted(p, mainClass(p)),
+                        ultUsed:p.ultUsed||0, upgrades:(p.upgrades||[]).slice(),
                         hopup:(hopGun(mainGun(p)) ? hopGun(mainGun(p)).n : null),
                         hopOn:hopUnlocked(p, mainGun(p))}; })};
     });
@@ -2635,6 +2790,10 @@ background:var(--acc);padding:1px 4px}
                         ? '\u26a1 <b>'+esc(e.player)+'</b> stuck an arc star on '+nm(e.vteam)
                         : '\ud83d\udd25 <b>'+esc(e.player)+'</b> thermited '+nm(e.vteam)+' off the ground')
                         + ' <span class="dim">(\u2212'+e.dmg+')</span>';
+      case 'ult':     return '\ud83d\udca5 <b>'+esc(e.player)+'</b> popped <span class="ultw">'+esc(e.name)+'</span>';
+      case 'endgame': return '\ud83c\udfc1 <b>Endgame</b> \u2014 <b>'+e.alive+' squads</b> stacked in the final ring on <b>'+esc(e.zone)+'</b>';
+      case 'upgrade': return '\u2b06\ufe0f <b>'+esc(e.player)+'</b> took <span class="upw">'+esc(e.name)+
+                             '</span> <span class="dim">('+esc(e.tier)+')</span>';
       case 'kitted':  return '\ud83d\udd27 <b>'+esc(e.player)+'</b> fully kitted their <i>'+esc(e.gun)+'</i>';
       case 'hopup':   return (e.booster
                         ? '\ud83d\udd29 <b>'+esc(e.player)+'</b> boosted their <i>'+esc(e.gun)+'</i> \u2014 '
@@ -2891,6 +3050,8 @@ background:var(--acc);padding:1px 4px}
                  (p.assists?'/'+p.assists+'A':'')+' \u00b7 '+p.dmg +
                  (p.move===2?' <span class="mv2">\u26a1</span>':(p.move===1?' <span class="mv1">\u26a1</span>':'')) +
                  (p.sling?' <span class="goldw">\u2b50</span>':'') + (p.red?' <span class="redw">\u2726</span>':'') +
+                 (p.ultUsed?' <span class="ultm" title="Ults used">\u2726'+(p.ultUsed>1?'\u00d7'+p.ultUsed:'')+'</span>':'') +
+                 ((p.upgrades&&p.upgrades.length)?' <span class="upm" title="'+esc(p.upgrades.join(' \u00b7 '))+'">\u2b06'+p.upgrades.length+'</span>':'') +
                  kitChipsHtml(p) + '</span>';
         }).join('');
         return '<div class="rrow'+cls+'"><span class="stpos">'+r.place+'</span>' +
