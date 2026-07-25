@@ -155,6 +155,14 @@ border-top:1px solid rgba(255,255,255,.05)}
 .mps .ultm{color:#c07bff;font-size:8.5px;margin-left:2px}
 .upw{color:#5ad1c0;font-weight:600}
 .mps .upm{color:#5ad1c0;font-size:8.5px;margin-left:2px;cursor:default}
+.bans{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 0 2px;
+  font-family:'IBM Plex Mono',monospace;font-size:10px}
+.bans .lbl{color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-right:2px}
+.bans .b{padding:2px 7px;border:1px solid var(--line);border-radius:3px;color:#c7ccd4;
+  background:rgba(255,255,255,.03);text-decoration:line-through;text-decoration-color:#e5484d}
+.bans .b.newban{border-color:#e5484d;color:#ff8a8d;background:rgba(229,72,77,.10);
+  text-decoration:none;font-weight:600}
+.bans .none{color:var(--mut);font-style:italic}
 .kit .ords{font-size:8.5px;margin-left:3px;letter-spacing:-1px;filter:saturate(.9)}
 .pshead,.psrow{display:grid;grid-template-columns:34px 1fr 1fr 46px 62px;gap:8px;align-items:center;
 padding:6px 11px;font-size:12px}
@@ -380,6 +388,7 @@ background:var(--acc);padding:1px 4px}
     <button class="btn" id="mSimAll">⏭ SIM REST OF TOURNAMENT</button>
   </div>
   <div class="banner" id="mBanner" style="display:none"></div>
+  <div class="bans" id="mBans" style="display:none"></div>
   <div class="btns" id="mBtns"></div>
   <div class="feed" id="mFeed"></div>
   <div class="note" id="mAliveHead">ALIVE</div>
@@ -393,6 +402,7 @@ background:var(--acc);padding:1px 4px}
   <div class="hdr"><div><div class="kick" id="sKick">STANDINGS</div>
     <div class="h1" id="sTitle">Standings</div></div></div>
   <div class="snote" id="sNote"></div>
+  <div class="bans" id="sBans" style="display:none"></div>
   <div class="btns" id="sBtns"></div>
   <div id="sBody"></div>
 </div>
@@ -509,6 +519,60 @@ background:var(--acc);padding:1px 4px}
   function legendInfo(n){ return LEGEND_DATA.find(function(L){ return L.n===n; }) || null; }
   const LEGEND_NAMES = Object.keys(LEGENDS);
   const CLASS_CODE = {'Assault':'as','Skirmisher':'sk','Recon':'rc','Support':'sp','Controller':'ct'};
+
+  /* ===================== ALGS LEGEND BANS ===================== */
+  // A series starts with every legend open. After each match the legend the most
+  // TEAMS fielded is banned for the rest of the series, so the meta keeps moving.
+  // One legend per class is always kept available: if a class would be wiped out,
+  // its longest-standing ban is lifted.
+  function banReset(series){ series.bans = []; series.banOrder = []; }
+  function classesWiped(bans){
+    const open = {};
+    LEGEND_NAMES.forEach(function(l){ const c=LEGENDS[l]; if (bans.indexOf(l)===-1) open[c]=(open[c]||0)+1; });
+    const CLASSES = ['Assault','Skirmisher','Recon','Support','Controller'];
+    return CLASSES.filter(function(c){ return !(open[c] > 0); });
+  }
+  // The legend a player actually fields this match: their main, unless it's
+  // banned — then the best still-open legend, preferring their own class and
+  // avoiding a duplicate on the same squad.
+  function effectiveLegend(p, bans, used){
+    if (!bans || !bans.length || bans.indexOf(p.legend) === -1) return p.legend;
+    const myClass = LEGENDS[p.legend];
+    const avail = LEGEND_NAMES.filter(function(l){ return bans.indexOf(l)===-1 && !used[l]; });
+    if (!avail.length) return p.legend;
+    const sameClass = avail.filter(function(l){ return LEGENDS[l]===myClass; });
+    const pool = sameClass.length ? sameClass : avail;
+    return pool[hashStr('sub:'+p.name+':'+bans.join(','))%pool.length];
+  }
+  // Tally the match and ban the legend the most teams ran. Returns the new ban.
+  function banMostPicked(series, res){
+    if (!series.bans) banReset(series);
+    const teamCount = {};
+    res.results.forEach(function(r){
+      const seen = {};
+      (r.players||[]).forEach(function(p){
+        const l = p.legend; if (!l || seen[l]) return;
+        seen[l] = true; teamCount[l] = (teamCount[l]||0) + 1;
+      });
+    });
+    let best = null, bestN = -1;
+    Object.keys(teamCount).forEach(function(l){
+      if (series.bans.indexOf(l) !== -1) return;
+      if (teamCount[l] > bestN){ bestN = teamCount[l]; best = l; }
+    });
+    if (!best) return null;
+    series.bans.push(best); series.banOrder.push(best);
+    // Class protection: never let a whole class be banned out.
+    classesWiped(series.bans).forEach(function(c){
+      const idx = series.banOrder.findIndex(function(l){ return LEGENDS[l]===c; });
+      if (idx !== -1){
+        const restore = series.banOrder[idx];
+        series.banOrder.splice(idx,1);
+        series.bans.splice(series.bans.indexOf(restore),1);
+      }
+    });
+    return best;
+  }
 
   // cls: what the gun is for. base: raw strength before the meta moves it.
   const WEAPONS = {
@@ -1433,14 +1497,21 @@ background:var(--acc);padding:1px 4px}
         seen[p.legend] = true;
       });
     });
+    const bans = (opts && opts.bans) || [];
     const state = teams.map(function(t, i){
+      // Legend bans: banned mains get substituted. Reserve non-banned mains
+      // first so a substitute never collides with a squadmate's legend.
+      const usedLeg = {};
+      t.roster.forEach(function(p){ if (bans.indexOf(p.legend)===-1) usedLeg[p.legend] = true; });
       return {
         i:i, ref:t, name:t.name, tag:t.tag, emblem:t.emblem,
         live: t.roster.map(function(p){
+          const leg = effectiveLegend(p, bans, usedLeg);
+          usedLeg[leg] = true;
           // Everyone drops with a Level 1 Shield Core; armor grows from EVO.
-          const oc = ((CLASS_PERKS[LEGENDS[p.legend]]||{}).fx||{}).shieldOvercharge || 0;
+          const oc = ((CLASS_PERKS[LEGENDS[leg]]||{}).fx||{}).shieldOvercharge || 0;
           const start = 50 + (oc ? 25 : 0);
-          return {name:p.name, legend:p.legend, gun:p.gun, guns:(p.guns||[p.gun]).slice(),
+          return {name:p.name, legend:leg, gun:p.gun, guns:(p.guns||[p.gun]).slice(),
                   sling:p.sling||null, skill:p.skill, igl:p.igl,
                   move:p.move||0, techs:p.techs||[],
                   state:'alive', hp:100, shield:start, shieldMax:start,
@@ -2301,17 +2372,21 @@ background:var(--acc);padding:1px 4px}
     // trying to play a 37th group match that doesn't exist.
     if (m.pendingSurvival) beginSurvival();
     const lobby = majorLobby();
+    // Bans run per stage — a fresh series each time the stage changes.
+    if (m.banStage !== m.stage){ m.banStage = m.stage; banReset(m); }
     const mapName = (m.stage==='group') ? m.queue[m.qi].map
                                         : MAPS[((m.stage==='survival'?m.svMatch:m.poMatch)) % MAPS.length];
-    const res = simulateMatch(lobby, mapName, {draft:true});
+    const bansInEffect = m.bans.slice();
+    const res = simulateMatch(lobby, mapName, {draft:true, bans: m.bans});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = lobby[r.i];
       t.pts += r.pts; t.kills += r.kills;
       t.gp = (t.gp||0) + 1;
     });
-    m.log.push({res:res, label:majorShortLabel(), map:mapName, stage:m.stage});
+    m.log.push({res:res, label:majorShortLabel(), map:mapName, stage:m.stage, bans:bansInEffect});
     m.lastLobby = lobby;
+    m.newBan = banMostPicked(m, res);
     openMajorMatch(res, mapName);
     save();
   }
@@ -2643,28 +2718,55 @@ background:var(--acc);padding:1px 4px}
     if (!tour) return;
     if (tour.matchNo >= tour.total){ showStandings(true); return; }
     tour.matchNo++;
+    if (!tour.bans) banReset(tour);
     const mapName = MAPS[(tour.matchNo-1) % MAPS.length];
-    const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier});
+    const bansInEffect = tour.bans.slice();
+    const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = tour.teams[r.i];
       t.pts += r.pts; t.kills += r.kills;
     });
-    tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName});
+    tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName, bans:bansInEffect});
+    tour.newBan = banMostPicked(tour, res);   // most-fielded legend is banned for the rest of the series
     openMatch(res);
     save();
   }
 
   /* ===================== LIVE MATCH SCREEN ===================== */
   let live = null;   // {res, idx, timer, view}
+  // Which ban series is currently in play, and the most recent ban in it.
+  function currentBans(){
+    if (tour && tour.isMajor && major) return major.bans || [];
+    if (tour) return tour.bans || [];
+    if (major) return major.bans || [];
+    return [];
+  }
+  function currentNewBan(){
+    if (tour && tour.isMajor && major) return major.newBan || null;
+    if (tour) return tour.newBan || null;
+    if (major) return major.newBan || null;
+    return null;
+  }
+  function renderBanStrip(elId, bans, newBan){
+    const el = document.getElementById(elId); if (!el) return;
+    if (!bans || !bans.length){ el.style.display='none'; el.innerHTML=''; return; }
+    el.style.display = 'flex';
+    el.innerHTML = '<span class="lbl">\ud83d\udeab Legends banned</span>' + bans.map(function(l){
+      return '<span class="b'+(l===newBan?' newban':'')+'">'+esc(l)+'</span>';
+    }).join('');
+  }
   function openMatch(res){
     showScreen('matchScreen');
-    // Fresh view state the events will mutate as they replay.
+    // Fresh view state the events will mutate as they replay. Source from the
+    // simulated state so any ban substitutions show the legend actually fielded.
     const view = res.state.map(function(t){
+      const roster = t.ref.roster;
       return {i:t.i, name:t.name, tag:t.tag, emblem:t.emblem, kills:0, place:null, alive:true,
               poi:null, style:t.style, inZone:true,
-              live:t.ref.roster.map(function(p){
-                return {name:p.name, legend:p.legend, gun:p.gun,
+              live:roster.map(function(p, j){
+                const leg = (t.live[j] && t.live[j].legend) || p.legend;   // ban substitution
+                return {name:p.name, legend:leg, gun:p.gun,
                         guns:(p.guns||[p.gun]).slice(), sling:p.sling||null,
                         move:p.move||0, techs:p.techs||[], amp:null, ampName:null,
                         state:'alive', hp:100, shield:50, shieldMax:50,
@@ -2676,6 +2778,7 @@ background:var(--acc);padding:1px 4px}
     // Clear any banner left over from the previous match/major (e.g. "X win the
     // Major.") so it doesn't linger on the fresh match screen.
     const bEl = document.getElementById('mBanner'); if (bEl){ bEl.textContent=''; bEl.style.display='none'; }
+    renderBanStrip('mBans', currentBans(), null);   // legends unavailable this match
     document.getElementById('mMap').textContent = res.map;
     document.getElementById('mKick').textContent =
       (tour.isQualifier ? 'OPEN QUALIFIER \u00b7 TOP 2 EARN ORG STATUS \u00b7 MATCH '
@@ -2881,6 +2984,7 @@ background:var(--acc);padding:1px 4px}
   }
   function finishMatch(){
     renderMatchResult();
+    renderBanStrip('mBans', currentBans(), currentNewBan());   // now includes the freshly banned legend
     const bar = document.getElementById('mBtns');
     if (!bar) return;
     if (major && !major.done){
@@ -2922,11 +3026,13 @@ background:var(--acc);padding:1px 4px}
       // In the group stage, stop when the current round is done.
       if (startStage==='group' && Math.floor(major.qi/6) !== startRound) break;
       const lobby = majorLobby();
+      if (major.banStage !== major.stage){ major.banStage = major.stage; banReset(major); }
       const mapName = MAPS[guard % MAPS.length];
-      const res = simulateMatch(lobby, mapName, {draft:true});
+      const res = simulateMatch(lobby, mapName, {draft:true, bans: major.bans});
       recordMatch(res);
       res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
-      major.log.push({res:res, label:majorShortLabel(), map:mapName, stage:major.stage});
+      major.log.push({res:res, label:majorShortLabel(), map:mapName, stage:major.stage, bans:major.bans.slice()});
+      major.newBan = banMostPicked(major, res);
       live = {res:res, idx:0, view:[], feed:[], ring:0, playing:false, timer:null};
       const step = advanceMajor();
       if (step.banner) banner = step.banner;
@@ -2940,6 +3046,7 @@ background:var(--acc);padding:1px 4px}
   function showMajorTable(finalDone, banner){
     showScreen('standScreen');
     const m = major;
+    renderBanStrip('sBans', currentBans(), currentNewBan());
     const pool = (m.stage==='group') ? m.field : (m.stage==='survival' ? m.survivalTeams : m.playoffTeams);
     let rows = pool.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
     if (m.done && m.champion){
@@ -3083,7 +3190,7 @@ background:var(--acc);padding:1px 4px}
                  (p.sling?' <span class="goldw">\u2b50</span>':'') + (p.red?' <span class="redw">\u2726</span>':'') +
                  (p.ultUsed?' <span class="ultm" title="Ults used">\u2726'+(p.ultUsed>1?'\u00d7'+p.ultUsed:'')+'</span>':'') +
                  ((p.upgrades&&p.upgrades.length)?' <span class="upm" title="'+esc(p.upgrades.join(' \u00b7 '))+'">\u2b06'+p.upgrades.length+'</span>':'') +
-                 kitChipsHtml(p) + '</span>';
+                 '</span>';
         }).join('');
         return '<div class="rrow'+cls+'"><span class="stpos">'+r.place+'</span>' +
           '<span class="stname">'+esc(r.name)+
@@ -3199,6 +3306,7 @@ background:var(--acc);padding:1px 4px}
   /* ===================== STANDINGS ===================== */
   function showStandings(finalDone){
     showScreen('standScreen');
+    renderBanStrip('sBans', currentBans(), currentNewBan());
     const rows = tour.teams.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
     document.getElementById('sKick').textContent = finalDone
       ? (tour.isQualifier ? 'QUALIFIER COMPLETE \u2014 TOP 2 PROMOTED' : 'TOURNAMENT COMPLETE')
@@ -3569,12 +3677,16 @@ background:var(--acc);padding:1px 4px}
     if (!tour) return;
     stopPlayback();
     while (live && live.idx < live.res.events.length) applyEvent(live.res.events[live.idx++]);
+    if (!tour.bans) banReset(tour);
     while (tour.matchNo < tour.total){
       tour.matchNo++;
-      const res = simulateMatch(tour.teams, MAPS[(tour.matchNo-1)%MAPS.length], {draft: !tour.isQualifier});
+      const mapName = MAPS[(tour.matchNo-1)%MAPS.length];
+      const bansInEffect = tour.bans.slice();
+      const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans});
       recordMatch(res);
       res.results.forEach(function(r){ const t=tour.teams[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
-      tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:MAPS[(tour.matchNo-1)%MAPS.length]});
+      tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName, bans:bansInEffect});
+      tour.newBan = banMostPicked(tour, res);
     }
     save();
     showStandings(true);
