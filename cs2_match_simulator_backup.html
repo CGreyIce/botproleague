@@ -426,6 +426,18 @@ margin-bottom:7px;color:var(--acc2)}
   flex-shrink:0;letter-spacing:.04em}
 .twtag.poach{background:var(--acc);color:#fff}
 .twtag.sign{background:#5aa9f0;color:#08131f}
+.schedrow{display:flex;gap:5px;margin:10px 0 2px;flex-wrap:wrap}
+.schip{width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;
+  border:1px solid var(--line);color:var(--mut);background:rgba(255,255,255,.02)}
+.schip.done{color:var(--good);border-color:rgba(74,222,128,.4);background:rgba(74,222,128,.08)}
+.schip.now{color:#fff;border-color:var(--acc);background:var(--acc)}
+.seastable{display:flex;flex-direction:column;gap:2px}
+.searow{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:6px 10px;
+  background:rgba(255,255,255,.02);font-size:13px}
+.searow.q{border-left:2px solid var(--acc2)}
+.seapos{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.seaname{color:var(--txt)}
+.seapts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--acc)}
 @media(max-width:560px){.recrow{grid-template-columns:1fr auto}.recwho{grid-column:1/-1;text-align:left}}
 .dosroster{font-size:12.5px;color:var(--mut);margin:2px 0 14px}
 .troph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
@@ -507,6 +519,7 @@ background:var(--acc);padding:1px 4px}
     </div>
   </div>
   <div class="card" id="careerCard" style="display:none"></div>
+  <div class="card" id="seasonCard"></div>
   <div class="lanrow">
     <span class="lanlab">FORMAT</span>
     <div class="lantoggle">
@@ -638,7 +651,7 @@ background:var(--acc);padding:1px 4px}
 <div id="dossierOverlay" class="ivover" style="display:none">
   <div class="ivbox">
     <div class="ivtop">
-      <div><div class="kick">CAREER DOSSIER</div><div class="h1">Your Legacy</div></div>
+      <div><div class="kick" id="dosKick">CAREER DOSSIER</div><div class="h1" id="dosH1">Your Legacy</div></div>
       <button class="btn" id="dosClose">&#x2715; CLOSE</button>
     </div>
     <div id="dosBody"></div>
@@ -3555,6 +3568,7 @@ background:var(--acc);padding:1px 4px}
       const el = document.getElementById(s);
       if (el) el.style.display = (s===id) ? 'block' : 'none';
     });
+    if (id==='setupScreen'){ try{ renderSeasonCard(); renderCareerCard(); }catch(e){} }
     window.scrollTo(0,0);
   }
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
@@ -4022,6 +4036,11 @@ background:var(--acc);padding:1px 4px}
         logCareerFromMajor(m);
         updateEventRecords();
         checkHallOfFame();
+        if (m.seasonEvent){
+          const poolSorted = (m.playoffTeams||[]).slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+          const ordered = m.champion ? [m.champion].concat(poolSorted.filter(function(t){ return t!==m.champion; })) : poolSorted;
+          awardSeasonAndAdvance(ordered.map(function(t){ return t.name; }), m.seasonType||'major');
+        }
         m.finalized = true;
         save();
       }
@@ -4293,6 +4312,7 @@ background:var(--acc);padding:1px 4px}
         logCareerFromTournament(rows, tour.isQualifier ? 'qualifier' : 'tournament');
         updateEventRecords();
         checkHallOfFame();
+        if (tour.seasonEvent) awardSeasonAndAdvance(rows.map(function(t){ return t.name; }), 'tournament');
         save();
         tour.finalRm = runRostermania();
         tour.finalPromoted = promoted;
@@ -4639,6 +4659,8 @@ background:var(--acc);padding:1px 4px}
       html += '<div class="dim" style="font-size:12.5px">No events played yet. Enter a tournament or Major to start your career.</div>';
     }
     document.getElementById('dosBody').innerHTML = html;
+    const dk=document.getElementById('dosKick'), dt=document.getElementById('dosH1');
+    if (dk) dk.textContent='CAREER DOSSIER'; if (dt) dt.textContent='Your Legacy';
     document.getElementById('dossierOverlay').style.display = 'flex';
   }
   function topBy(store, key){
@@ -4764,6 +4786,113 @@ background:var(--acc);padding:1px 4px}
     document.getElementById('twBody').innerHTML = html;
     document.getElementById('transferOverlay').style.display = 'flex';
     renderCareerCard();
+  }
+
+  /* ===================== SEASON / FRANCHISE CALENDAR ===================== */
+  // A season is a fixed schedule of events. Each awards championship points toward
+  // a season-long race; the Year-End Championship crowns the season champion. It's
+  // ZPG: press "play next event" and the calendar advances itself.
+  const SEASON_SCHEDULE = [
+    {type:'tournament',   name:'Split 1 \u00b7 Cup 1'},
+    {type:'tournament',   name:'Split 1 \u00b7 Cup 2'},
+    {type:'major',        name:'Split 1 Major'},
+    {type:'tournament',   name:'Split 2 \u00b7 Cup 1'},
+    {type:'tournament',   name:'Split 2 \u00b7 Cup 2'},
+    {type:'major',        name:'Split 2 Major'},
+    {type:'championship', name:'Year-End Championship'}
+  ];
+  const SEASON_PTS = [0,15,12,10,8,7,6,5,4,3,2,1,1,1,1,1,1,1,1,1,1];
+  function seasonPts(place, type){
+    const base = SEASON_PTS[Math.min(place, 20)] || 0;
+    return base * (type==='championship' ? 3 : (type==='major' ? 2 : 1));
+  }
+  function startSeason(){
+    const prev = world.season ? world.season.num : ((meta&&meta.season>1)?meta.season-1:0);
+    world.season = { num: prev+1, schedule: SEASON_SCHEDULE.map(function(e){ return {type:e.type, name:e.name}; }),
+                     idx:0, points:{}, done:false, champion:null };
+    save();
+    renderSeasonCard();
+  }
+  function seasonLeader(){
+    const S = world.season; if (!S) return null;
+    let best = null;
+    Object.keys(S.points).forEach(function(n){ if (!best || S.points[n]>best.pts) best = {name:n, pts:S.points[n]}; });
+    return best;
+  }
+  function awardSeasonAndAdvance(orderedNames, type){
+    const S = world.season; if (!S || S.done) return;
+    orderedNames.forEach(function(name, i){ S.points[name] = (S.points[name]||0) + seasonPts(i+1, type); });
+    if (type==='championship') S.champion = orderedNames[0] || null;
+    S.idx++;
+    if (S.idx >= S.schedule.length) S.done = true;
+    save();
+  }
+  function playNextSeasonEvent(){
+    const S = world.season; if (!S || S.done) return;
+    const ev = S.schedule[S.idx]; if (!ev) return;
+    if (ev.type==='tournament'){ startTournament(); if (tour){ tour.seasonEvent=true; tour.seasonType='tournament'; tour.seasonName=ev.name; } }
+    else { startMajor(); if (major){ major.seasonEvent=true; major.seasonType=ev.type; major.seasonName=ev.name; } }
+  }
+  function startNextSeason(){
+    // Roll the patch and run a transfer window between seasons, then open the new one.
+    rollMeta(); renderMeta();
+    runTransferWindow();
+    startSeason();
+  }
+  function renderSeasonCard(){
+    const card = document.getElementById('seasonCard'); if (!card) return;
+    const S = world.season;
+    if (!S){
+      card.innerHTML = '<div class="cardh">\ud83d\uddd3\ufe0f SEASON MODE</div>' +
+        '<div class="ccbody">Run a full competitive year \u2014 a schedule of cups and Majors feeding a championship-points race, capped by a Year-End Championship. Your results (and your career team) carry through it all.</div>' +
+        '<div class="btns" style="margin-top:10px;margin-bottom:0"><button class="btn pri" id="seasonStart">\u25b6 START SEASON</button></div>';
+      document.getElementById('seasonStart').onclick = startSeason;
+      return;
+    }
+    const lead = seasonLeader();
+    let sched = '<div class="schedrow">' + S.schedule.map(function(e, i){
+      const cls = i<S.idx ? 'done' : (i===S.idx && !S.done ? 'now' : '');
+      const ic = e.type==='championship' ? '\ud83c\udfc6' : (e.type==='major' ? '\u2605' : '\u00b7');
+      return '<span class="schip '+cls+'" title="'+esc(e.name)+'">'+ic+'</span>';
+    }).join('') + '</div>';
+    let body;
+    if (S.done){
+      const champ = S.champion || '\u2014';
+      body = '<div class="ccbody"><b>Season '+S.num+' complete.</b><br>' +
+        '\ud83c\udfc6 Champion: <b>'+esc(champ)+'</b><br>' +
+        '\ud83e\udd47 Points leader: <b>'+(lead?esc(lead.name)+' ('+lead.pts+' pts)':'\u2014')+'</b></div>' + sched +
+        '<div class="btns" style="margin-top:10px;margin-bottom:0">' +
+        '<button class="btn" id="seasonTable">\ud83d\udcca SEASON STANDINGS</button>' +
+        '<button class="btn pri" id="seasonNext">\u25b6 START SEASON '+(S.num+1)+'</button></div>';
+    } else {
+      const ev = S.schedule[S.idx];
+      body = '<div class="ccbody">Event '+(S.idx+1)+' of '+S.schedule.length+' \u00b7 up next: <b>'+esc(ev.name)+'</b>' +
+        (lead ? '<br>Points leader: <b>'+esc(lead.name)+'</b> ('+lead.pts+' pts)' : '') + '</div>' + sched +
+        '<div class="btns" style="margin-top:10px;margin-bottom:0">' +
+        '<button class="btn" id="seasonTable">\ud83d\udcca SEASON STANDINGS</button>' +
+        '<button class="btn pri" id="seasonNext">\u25b6 PLAY: '+esc(ev.name)+'</button></div>';
+    }
+    card.innerHTML = '<div class="cardh">\ud83d\uddd3\ufe0f SEASON '+S.num+'</div>' + body;
+    document.getElementById('seasonNext').onclick = S.done ? startNextSeason : playNextSeasonEvent;
+    const st = document.getElementById('seasonTable'); if (st) st.onclick = showSeasonStandings;
+  }
+  function showSeasonStandings(){
+    const S = world.season; if (!S) return;
+    const rows = Object.keys(S.points).map(function(n){ return {name:n, pts:S.points[n]}; })
+      .sort(function(a,b){ return b.pts-a.pts; });
+    let html = '<div class="dosh">Season '+S.num+' \u00b7 Championship Points</div>';
+    if (!rows.length){ html += '<div class="dim" style="font-size:12.5px">No points yet \u2014 play the first event.</div>'; }
+    else {
+      html += '<div class="seastable">' + rows.map(function(r, i){
+        return '<div class="searow'+(i<10?' q':'')+'"><span class="seapos">'+(i+1)+'</span>' +
+          '<span class="seaname">'+esc(r.name)+'</span><span class="seapts">'+r.pts+'</span></div>';
+      }).join('') + '</div>' +
+      '<div class="dim" style="font-size:11px;margin-top:8px">Top finishers of each event earn championship points. Majors pay double, the Year-End Championship triple.</div>';
+    }
+    document.getElementById('dosBody').innerHTML = html;
+    const k=document.getElementById('dosKick'), t=document.getElementById('dosH1');
+    if (k) k.textContent='SEASON '+S.num; if (t) t.textContent='Championship Points';
+    document.getElementById('dossierOverlay').style.display = 'flex';
   }
   function openCareer(){
     // Populate the pickers fresh each time (new players may have been added).
@@ -5077,6 +5206,7 @@ background:var(--acc);padding:1px 4px}
   load();
   renderMeta();
   renderCareerCard();
+  renderSeasonCard();
   document.getElementById('startBtn').addEventListener('click', function(){ major=null; startTournament(); });
   document.getElementById('majorBtn').addEventListener('click', startMajor);
   document.getElementById('qualBtn').addEventListener('click', startQualifier);
@@ -5108,7 +5238,7 @@ background:var(--acc);padding:1px 4px}
     world = {meta:null, teamStats:{}, playerStats:{}, permanent:[], events:0};
     meta = {season:1, legendUp:[], legendDown:[], gunUp:[], gunDown:[]};
     try{ localStorage.removeItem(KEY); }catch(e){}
-    renderMeta(); renderCareerCard();
+    renderMeta(); renderCareerCard(); renderSeasonCard();
   });
   document.getElementById('mPlay').addEventListener('click', function(){
     if (!live) return;
