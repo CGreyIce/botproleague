@@ -418,6 +418,14 @@ margin-bottom:7px;color:var(--acc2)}
 .hofn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;text-transform:uppercase;color:var(--txt)}
 .hofr{font-size:12px;color:#ffd94a}
 .hofs{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut)}
+.twlist{display:flex;flex-direction:column;gap:4px}
+.twrow{display:flex;align-items:baseline;gap:8px;padding:8px 11px;background:rgba(255,255,255,.02);
+  border-left:2px solid var(--line);font-size:13px;color:var(--mut);line-height:1.45}
+.twrow b{color:var(--txt);font-weight:600}
+.twtag{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;padding:2px 5px;border-radius:2px;
+  flex-shrink:0;letter-spacing:.04em}
+.twtag.poach{background:var(--acc);color:#fff}
+.twtag.sign{background:#5aa9f0;color:#08131f}
 @media(max-width:560px){.recrow{grid-template-columns:1fr auto}.recwho{grid-column:1/-1;text-align:left}}
 .dosroster{font-size:12.5px;color:var(--mut);margin:2px 0 14px}
 .troph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
@@ -492,6 +500,7 @@ background:var(--acc);padding:1px 4px}
       <button class="btn pri" id="metaBtn">🔄 ROLL NEW PATCH</button>
       <button class="btn" id="rankBtn">🌐 WORLD RANKING</button>
       <button class="btn" id="recordsBtn">📖 RECORD BOOK</button>
+      <button class="btn" id="transferBtn">🔁 TRANSFER WINDOW</button>
       <button class="btn" id="legendBtn">🎭 LEGENDS &amp; CLASS PERKS</button>
       <button class="btn" id="careerBtn">🎮 CAREER MODE</button>
       <button class="btn" id="resetBtn">🗑 RESET WORLD</button>
@@ -642,6 +651,15 @@ background:var(--acc);padding:1px 4px}
       <button class="btn" id="recClose">&#x2715; CLOSE</button>
     </div>
     <div id="recBody"></div>
+  </div>
+</div>
+<div id="transferOverlay" class="ivover" style="display:none">
+  <div class="ivbox">
+    <div class="ivtop">
+      <div><div class="kick">TRANSFER WINDOW</div><div class="h1">Roster Moves</div></div>
+      <button class="btn" id="twClose">&#x2715; CLOSE</button>
+    </div>
+    <div id="twBody"></div>
   </div>
 </div>
 <script>
@@ -4654,6 +4672,86 @@ background:var(--acc);padding:1px 4px}
     document.getElementById('recBody').innerHTML = html;
     document.getElementById('recordsOverlay').style.display = 'flex';
   }
+
+  /* ---- Transfer window / free agency ---- */
+  // A proactive market shuffle: strong orgs poach standouts from weaker ones,
+  // and orgs upgrade their weakest link from the free-agent pool. The player's
+  // own career team is never touched.
+  function runTransferWindow(){
+    const news = [];
+    const career = careerOrg();
+    // Transfer value: base skill always counts (so unplayed prospects have worth),
+    // with proven event form adding on top. playerRating alone is 0 until a player
+    // has match history, which would freeze the market in a fresh world.
+    const rate = function(name){ return skillOf(name) + Math.min(30, playerRating(name)*0.08); };
+    const onTeams = {};
+    world.permanent.forEach(function(o){ o.roster.forEach(function(r){ onTeams[r.name]=true; }); });
+    const freeAgents = function(){
+      return PLAYERS.map(function(p){ return p.n; })
+        .filter(function(n){ return !onTeams[n]; })
+        .sort(function(a,b){ return rate(b)-rate(a); });
+    };
+    const movable = world.permanent.filter(function(o){ return o!==career && o.roster && o.roster.length>=3; });
+    if (movable.length < 2) return news;
+    const weakest = function(o){ return o.roster.slice().sort(function(a,b){ return rate(a.name)-rate(b.name); })[0]; };
+    const best    = function(o){ return o.roster.slice().sort(function(a,b){ return rate(b.name)-rate(a.name); })[0]; };
+    const avg     = function(o){ return o.roster.reduce(function(s,r){ return s+rate(r.name); },0)/o.roster.length; };
+    const budget = Math.min(8, Math.max(2, Math.round(movable.length*0.35)));
+    let moves = 0;
+
+    // Poaches: the strongest orgs grab a standout from a clearly weaker org.
+    const byStrength = movable.slice().sort(function(a,b){ return avg(b)-avg(a); });
+    for (let i=0; i<byStrength.length && moves<Math.ceil(budget/2); i++){
+      const strong = byStrength[i], wk = weakest(strong);
+      let target=null, gapBest=0, star=null;
+      movable.forEach(function(other){
+        if (other===strong || avg(other) >= avg(strong)) return;
+        const s = best(other), gap = rate(s.name) - rate(wk.name);
+        if (gap > 5 && gap > gapBest){ gapBest=gap; target=other; star=s; }
+      });
+      if (target && star){
+        const fa = freeAgents()[0];
+        strong.roster = strong.roster.map(function(r){ return r.name===wk.name ? {name:star.name} : r; });
+        delete onTeams[wk.name];
+        let backfill;
+        if (fa){ target.roster = target.roster.map(function(r){ return r.name===star.name ? {name:fa} : r; }); onTeams[fa]=true; backfill=fa; }
+        else   { target.roster = target.roster.map(function(r){ return r.name===star.name ? {name:wk.name} : r; }); onTeams[wk.name]=true; backfill=wk.name; }
+        news.push({type:'poach', to:strong.name, player:star.name, from:target.name, out:wk.name, backfill:backfill});
+        moves++;
+      }
+    }
+    // Free-agent upgrades: orgs swap their weakest for a clearly better free agent.
+    const shuffled = movable.slice().sort(function(){ return Math.random()-0.5; });
+    for (let i=0; i<shuffled.length && moves<budget; i++){
+      const o = shuffled[i], wk = weakest(o), fa = freeAgents()[0];
+      if (fa && rate(fa) > rate(wk.name) + 4){
+        o.roster = o.roster.map(function(r){ return r.name===wk.name ? {name:fa} : r; });
+        onTeams[fa]=true; delete onTeams[wk.name];
+        news.push({type:'sign', team:o.name, in:fa, out:wk.name});
+        moves++;
+      }
+    }
+    save();
+    return news;
+  }
+  function showTransferWindow(){
+    const news = runTransferWindow();
+    let html;
+    if (!news.length){
+      html = '<div class="dim" style="font-size:12.5px">The market was quiet \u2014 no moves this window. Play more events (or sign more orgs by winning) to shake up ratings and open the market.</div>';
+    } else {
+      html = '<div class="twlist">' + news.map(function(n){
+        if (n.type==='poach')
+          return '<div class="twrow"><span class="twtag poach">POACH</span> <b>'+esc(n.to)+'</b> sign <b>'+
+            esc(n.player)+'</b> from '+esc(n.from)+', releasing '+esc(n.out)+'. '+esc(n.from)+' bring in '+esc(n.backfill)+'.</div>';
+        return '<div class="twrow"><span class="twtag sign">SIGNING</span> <b>'+esc(n.team)+'</b> sign free agent <b>'+
+          esc(n.in)+'</b>, releasing '+esc(n.out)+'.</div>';
+      }).join('') + '</div>';
+    }
+    document.getElementById('twBody').innerHTML = html;
+    document.getElementById('transferOverlay').style.display = 'flex';
+    renderCareerCard();
+  }
   function openCareer(){
     // Populate the pickers fresh each time (new players may have been added).
     const pp = document.getElementById('cwPlayerPool');
@@ -4977,6 +5075,13 @@ background:var(--acc);padding:1px 4px}
   });
   document.getElementById('rankBtn').addEventListener('click', showRankings);
   document.getElementById('recordsBtn').addEventListener('click', showRecords);
+  document.getElementById('transferBtn').addEventListener('click', showTransferWindow);
+  (function(){
+    const tov = document.getElementById('transferOverlay');
+    const tc = document.getElementById('twClose');
+    if (tc) tc.onclick = function(){ tov.style.display = 'none'; };
+    if (tov) tov.addEventListener('click', function(e){ if (e.target===tov) tov.style.display='none'; });
+  })();
   (function(){
     const rov = document.getElementById('recordsOverlay');
     const rc = document.getElementById('recClose');
