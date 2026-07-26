@@ -421,6 +421,13 @@ margin-bottom:7px;color:var(--acc2)}
 .doshead{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:var(--acc2);
   text-transform:uppercase;border-top:1px solid rgba(255,255,255,.07);padding-top:12px;margin-bottom:8px}
 .doslog{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow:auto}
+.lanrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 8px}
+.lanlab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--mut)}
+.lantoggle{display:inline-flex;border:1px solid var(--line)}
+.lanopt{background:transparent;border:none;color:var(--mut);font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:13px;letter-spacing:.03em;text-transform:uppercase;padding:6px 14px;cursor:pointer}
+.lanopt.active{background:var(--acc);color:#fff}
+.lanhint{font-size:11px;color:var(--mut);flex:1;min-width:140px}
 .dosrow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;
   padding:6px 8px;background:rgba(255,255,255,.02);font-size:12.5px}
 .dosev{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;padding:2px 5px;
@@ -473,6 +480,14 @@ background:var(--acc);padding:1px 4px}
     </div>
   </div>
   <div class="card" id="careerCard" style="display:none"></div>
+  <div class="lanrow">
+    <span class="lanlab">FORMAT</span>
+    <div class="lantoggle">
+      <button class="lanopt active" id="lanOnline">&#x1F310; ONLINE</button>
+      <button class="lanopt" id="lanLan">&#x1F3DF; LAN</button>
+    </div>
+    <span class="lanhint">LAN cranks up nerves &amp; clutch &#x2014; favourites are less safe, big-game players shine</span>
+  </div>
   <div class="startrow">
     <button class="startbtn" id="startBtn">Start Tournament</button>
     <button class="startbtn alt" id="qualBtn">Open Qualifier</button>
@@ -1804,6 +1819,9 @@ background:var(--acc);padding:1px 4px}
   // plus final placements and per-player stats.
   function simulateMatch(teams, mapName, opts){
     const drafted = !!(opts && opts.draft);
+    // On LAN the crowd and stakes crank up the pressure: nerves and clutch matter
+    // more, so high-clutch players rise further and low-clutch players fold harder.
+    const lanMul = (opts && opts.lan) ? 1.6 : 1.0;
     // Guard against a squad arriving without a full kit (e.g. rebuilt from a
     // stored roster). Repair rather than silently producing NaN power.
     teams.forEach(function(t){
@@ -2368,7 +2386,7 @@ background:var(--acc);padding:1px 4px}
         if ((p.ult||0) >= 100) s += ultPow(p);                 // ults banked for this
         if ((p.evoLevel||1) >= 3) s += 2.2;                     // Purple upgrades
         s += (p.hp + p.shield) * 0.02;                          // topped up
-        s += ((p.clutch||0.6) - 0.62) * 14;                     // clutch players rise in the final circle
+        s += ((p.clutch||0.6) - 0.62) * 14 * lanMul;             // clutch players rise in the final circle (more so on LAN)
       });
       return Math.max(1, s);
     }
@@ -2524,7 +2542,7 @@ background:var(--acc);padding:1px 4px}
           const meN = me.live.filter(function(p){ return p.state==='alive'; }).length;
           const foeN = foe.live.filter(function(p){ return p.state==='alive'; }).length;
           const pressure = (ring>=5?0.5:0) + (meN < foeN ? 0.5 : (ring>=6?0.2:0));
-          if (pressure > 0) v += ((mp.clutch||0.6) - 0.62) * pressure * 18;
+          if (pressure > 0) v += ((mp.clutch||0.6) - 0.62) * pressure * 18 * lanMul;
           v += squadFx(me,'initiate')*9;                       // scans, drones, snares
           if (me.knowsRing) v += 6;                            // knows the ring/positions — sees them first
           // Frame-perfect tech doesn't land every time, even for pros.
@@ -2753,7 +2771,7 @@ background:var(--acc);padding:1px 4px}
     });
     resetEventAgg();
     major = {stage:'group', log:[], field:field, groups:groups, queue:queue, qi:0,
-             survivors:[], playoffTeams:[], poMatch:0, done:false};
+             survivors:[], playoffTeams:[], poMatch:0, done:false, lan:lanMode};
     tour = null;
     nextMajorMatch();
   }
@@ -2813,7 +2831,7 @@ background:var(--acc);padding:1px 4px}
     const bansInEffect = m.bans.slice();
     const leans = situationalLeans(lobby, {progress: majorProgress(m),
                     matchPointPts: (m.stage==='playoffs') ? 50 : null});
-    const res = simulateMatch(lobby, mapName, {draft:true, bans: m.bans, leans: leans});
+    const res = simulateMatch(lobby, mapName, {draft:true, bans: m.bans, leans: leans, lan: !!(major&&major.lan)});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = lobby[r.i];
@@ -3474,7 +3492,7 @@ background:var(--acc);padding:1px 4px}
     const full = perms.concat(filler).slice(0,20);
     full.forEach(function(t){ t.pts=0; t.kills=0; });
     resetEventAgg(); viewMatch = null;
-    tour = {teams:full, matchNo:0, total:6, log:[]};
+    tour = {teams:full, matchNo:0, total:6, log:[], lan:lanMode};
     nextMatch();
   }
   // Open qualifier: permanent orgs sit this one out entirely, so unsigned
@@ -3511,7 +3529,7 @@ background:var(--acc);padding:1px 4px}
     const mapName = MAPS[(tour.matchNo-1) % MAPS.length];
     const bansInEffect = tour.bans.slice();
     const leans = situationalLeans(tour.teams, {progress: (tour.matchNo-1)/tour.total});
-    const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans, leans: leans});
+    const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans, leans: leans, lan: !!tour.lan});
     recordMatch(res);
     res.results.forEach(function(r){
       const t = tour.teams[r.i];
@@ -3824,7 +3842,7 @@ background:var(--acc);padding:1px 4px}
       const mapName = MAPS[guard % MAPS.length];
       const leans = situationalLeans(lobby, {progress: majorProgress(major),
                       matchPointPts: (major.stage==='playoffs') ? 50 : null});
-      const res = simulateMatch(lobby, mapName, {draft:true, bans: major.bans, leans: leans});
+      const res = simulateMatch(lobby, mapName, {draft:true, bans: major.bans, leans: leans, lan: !!major.lan});
       recordMatch(res);
       res.results.forEach(function(r){ const t=lobby[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       major.log.push({res:res, label:majorShortLabel(), map:mapName, stage:major.stage, bans:major.bans.slice()});
@@ -3849,7 +3867,7 @@ background:var(--acc);padding:1px 4px}
       // Winning the Major puts you first, whatever the points say.
       rows = [m.champion].concat(rows.filter(function(t){ return t !== m.champion; }));
     }
-    document.getElementById('sKick').textContent = majorStageLabel();
+    document.getElementById('sKick').textContent = (m.lan ? '\ud83c\udfdf LAN \u00b7 ' : '\ud83c\udf10 ONLINE \u00b7 ') + majorStageLabel();
     document.getElementById('sTitle').textContent = m.done ? 'MAJOR CHAMPION' :
       (m.stage==='group' ? 'GROUP STAGE STANDINGS' : m.stage==='survival' ? 'SURVIVAL STANDINGS' : 'PLAYOFF STANDINGS');
     // Cut lines are only meaningful once everyone has played the same number of
@@ -4136,10 +4154,10 @@ background:var(--acc);padding:1px 4px}
     showScreen('standScreen');
     renderBanStrip('sBans', currentBans(), currentNewBan());
     const rows = tour.teams.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
-    document.getElementById('sKick').textContent = finalDone
+    document.getElementById('sKick').textContent = (tour.lan ? '\ud83c\udfdf LAN \u00b7 ' : '\ud83c\udf10 ONLINE \u00b7 ') + (finalDone
       ? (tour.isQualifier ? 'QUALIFIER COMPLETE \u2014 TOP 2 PROMOTED' : 'TOURNAMENT COMPLETE')
       : ('AFTER MATCH ' + tour.matchNo + ' OF ' + tour.total +
-         (tour.isQualifier ? ' \u00b7 TOP 2 EARN ORG STATUS' : ''));
+         (tour.isQualifier ? ' \u00b7 TOP 2 EARN ORG STATUS' : '')));
     document.getElementById('sTitle').textContent = finalDone ? 'FINAL STANDINGS' : 'STANDINGS';
     const cut = tour.isQualifier ? 2 : 3;
     if (viewMatch !== null){
@@ -4829,6 +4847,14 @@ background:var(--acc);padding:1px 4px}
   }
 
   /* ===================== BOOT ===================== */
+  let lanMode = false;
+  (function(){
+    const on = document.getElementById('lanOnline'), lan = document.getElementById('lanLan');
+    if (on && lan){
+      on.onclick = function(){ lanMode = false; on.classList.add('active'); lan.classList.remove('active'); };
+      lan.onclick = function(){ lanMode = true; lan.classList.add('active'); on.classList.remove('active'); };
+    }
+  })();
   load();
   renderMeta();
   renderCareerCard();
@@ -4869,7 +4895,7 @@ background:var(--acc);padding:1px 4px}
       const mapName = MAPS[(tour.matchNo-1)%MAPS.length];
       const bansInEffect = tour.bans.slice();
       const leans = situationalLeans(tour.teams, {progress: (tour.matchNo-1)/tour.total});
-      const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans, leans: leans});
+      const res = simulateMatch(tour.teams, mapName, {draft: !tour.isQualifier, bans: tour.bans, leans: leans, lan: !!tour.lan});
       recordMatch(res);
       res.results.forEach(function(r){ const t=tour.teams[r.i]; t.pts+=r.pts; t.kills+=r.kills; });
       tour.log.push({res:res, label:'MATCH ' + tour.matchNo, map:mapName, bans:bansInEffect});
