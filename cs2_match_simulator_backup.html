@@ -365,9 +365,19 @@ margin-bottom:7px;color:var(--acc2)}
 .cwform input{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--txt);
   font-family:inherit;font-size:13.5px;padding:8px 10px;outline:none}
 .cwform input:focus{border-color:var(--acc2)}
+.cwform select{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--txt);
+  font-family:inherit;font-size:13.5px;padding:8px 10px;outline:none;width:100%}
+.cwform select:focus{border-color:var(--acc2)}
+.cwsplit{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cwsplit>div{display:flex;flex-direction:column;gap:3px}
+.cwcheck{display:flex;align-items:center;gap:8px;margin-top:13px;font-family:'IBM Plex Mono',monospace;
+  font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--acc2);cursor:pointer}
+.cwcheck input{width:15px;height:15px;accent-color:var(--acc);cursor:pointer}
 .cwerr{color:#ff8a8d;font-size:12px;min-height:16px;margin-top:8px}
 .ccbody{font-size:13px;color:var(--mut);line-height:1.6;margin-top:6px}
 .ccbody b{color:var(--txt);font-size:15px}
+.ccpref{margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.03em;
+  text-transform:uppercase;color:var(--acc2)}
 .ccyou{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;color:#141414;
   background:var(--acc2);padding:1px 4px;margin-left:3px;border-radius:2px;vertical-align:middle}
 .rpop-n{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -506,6 +516,26 @@ background:var(--acc);padding:1px 4px}
       <input id="cwTeam" placeholder="Your team's name" autocomplete="off" spellcheck="false">
       <label>TAG <span class="dim">(2&ndash;5 letters)</span></label>
       <input id="cwTag" placeholder="e.g. YT" maxlength="5" autocomplete="off" spellcheck="false">
+      <datalist id="cwLegendPool"></datalist>
+      <datalist id="cwGunPool"></datalist>
+      <div class="cwsplit">
+        <div><label>YOUR MAIN LEGEND</label>
+          <input id="cwLegend" list="cwLegendPool" placeholder="e.g. Bloodhound" autocomplete="off" spellcheck="false"></div>
+        <div><label>YOUR ROLE</label>
+          <select id="cwRole">
+            <option value="">Auto</option>
+            <option value="entry">Entry (fragger)</option>
+            <option value="anchor">Anchor (holds)</option>
+            <option value="support">Support (enables)</option>
+          </select></div>
+      </div>
+      <div class="cwsplit">
+        <div><label>PRIMARY WEAPON</label>
+          <input id="cwGun" list="cwGunPool" placeholder="e.g. R-301" autocomplete="off" spellcheck="false"></div>
+        <div><label>SECONDARY WEAPON</label>
+          <input id="cwGun2" list="cwGunPool" placeholder="optional" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <label class="cwcheck"><input type="checkbox" id="cwIgl"> Make me the in-game leader (IGL / shotcaller)</label>
       <div id="cwErr" class="cwerr"></div>
     </div>
     <div class="btns" style="margin-top:14px">
@@ -829,9 +859,22 @@ background:var(--acc);padding:1px 4px}
     for (let i=0;i<n && copy.length;i++) out.push(copy.splice(Math.floor(rnd()*copy.length),1)[0]);
     return out;
   }
-  function favLegendOf(name){ return LEGEND_NAMES[hashStr('legend:'+name) % LEGEND_NAMES.length]; }
-  function favGunOf(name){ return WEAPON_NAMES[hashStr('gun:'+name) % WEAPON_NAMES.length]; }
+  function favLegendOf(name){
+    const pr = careerPrefFor(name);
+    if (pr && pr.legend) return pr.legend;
+    return LEGEND_NAMES[hashStr('legend:'+name) % LEGEND_NAMES.length];
+  }
+  function favGunOf(name){
+    const pr = careerPrefFor(name);
+    if (pr && pr.gun) return pr.gun;
+    return WEAPON_NAMES[hashStr('gun:'+name) % WEAPON_NAMES.length];
+  }
   function nationOf(name){ const p = PLAYER_INDEX[name]; return p ? p.c : ''; }
+  // Career players get to lock in their own main legend, loadout and role.
+  function careerPrefFor(name){
+    const o = (world && world.permanent) ? world.permanent.find(function(x){ return x.career; }) : null;
+    return (o && o.pref && o.careerPlayer===name) ? o.pref : null;
+  }
 
   /* ---- Player role, clutch, consistency ---- */
   // A player is more than a skill number. Their ROLE shapes what they add — an
@@ -841,6 +884,8 @@ background:var(--acc);padding:1px 4px}
   // variance: a steady pro plays near their skill every map, a boom-or-bust
   // player no-shows one game and pops off the next. All are stable per player.
   function roleOf(name){
+    const pr = careerPrefFor(name);
+    if (pr && pr.role) return pr.role;
     const h = hashStr('role:'+name) % 100, mv = movementTier(name);
     // Movement-heavy players lean entry; steadier hands anchor or support.
     if (mv >= 2)  return h<70 ? 'entry' : (h<86 ? 'anchor' : 'support');
@@ -902,6 +947,8 @@ background:var(--acc);padding:1px 4px}
   }
   // The legend actually played: main if it's not being punished, else the best backup.
   function activeLegend(name){
+    const pr = careerPrefFor(name);
+    if (pr && pr.legend) return pr.legend;   // your main is locked to your pick
     const fav = favLegendOf(name);
     if (meta.legendDown.indexOf(fav)===-1) return fav;
     const b = backupLegendsOf(name);
@@ -910,8 +957,10 @@ background:var(--acc);padding:1px 4px}
   // A full loadout: two weapons, picked to cover different ranges. Ballistic
   // adds a third in his sling, which his ultimate upgrades to gold.
   function activeGuns(name){
+    const pr = careerPrefFor(name);
     const rnd = rngFrom('loadout:'+name+':'+meta.season);
     const primary = activeGun(name);
+    if (pr && pr.gun2 && pr.gun2 !== primary && WEAPONS[pr.gun2]) return [primary, pr.gun2];
     const pcls = (WEAPONS[primary]||{}).cls;
     const floor = WEAPON_NAMES.filter(function(g){
       return g!==primary && !isCareWeapon(g) && meta.gunDown.indexOf(g)===-1;
@@ -924,6 +973,8 @@ background:var(--acc);padding:1px 4px}
   }
   // Loadout follows the meta too — a nerfed favourite gets shelved.
   function activeGun(name){
+    const pr = careerPrefFor(name);
+    if (pr && pr.gun && WEAPONS[pr.gun]) return pr.gun;   // your main weapon is locked
     const fav = favGunOf(name);
     // If their main is in the care package this patch, it isn't on the floor.
     if (isCareWeapon(fav)){
@@ -1034,9 +1085,11 @@ background:var(--acc);padding:1px 4px}
       }
       return p;
     });
-    // The most experienced hand calls it.
+    // The most experienced hand calls it — unless a career player wants the mic.
     let iglIdx = 0;
     roster.forEach(function(p,i){ if (hashStr('igl:'+p.name) > hashStr('igl:'+roster[iglIdx].name)) iglIdx = i; });
+    const cIgl = roster.findIndex(function(p){ const pr = careerPrefFor(p.name); return pr && pr.igl; });
+    if (cIgl !== -1) iglIdx = cIgl;
     roster[iglIdx].igl = true;
     return {name:teamName, tag:tag, emblem:emblemFor(teamName, tag), roster:roster,
             permanent:false, pts:0, kills:0};
@@ -4287,9 +4340,15 @@ background:var(--acc);padding:1px 4px}
     const nats = {}; PLAYERS.forEach(function(p){ nats[p.c]=true; });
     document.getElementById('cwNationPool').innerHTML =
       Object.keys(nats).sort().map(function(n){ return '<option value="'+esc(n)+'">'; }).join('');
-    ['cwPlayer','cwNation','cwMate1','cwMate2','cwTeam','cwTag'].forEach(function(id){
+    document.getElementById('cwLegendPool').innerHTML =
+      LEGEND_NAMES.slice().sort().map(function(l){ return '<option value="'+esc(l)+'">'; }).join('');
+    document.getElementById('cwGunPool').innerHTML =
+      WEAPON_NAMES.slice().sort().map(function(g){ return '<option value="'+esc(g)+'">'; }).join('');
+    ['cwPlayer','cwNation','cwMate1','cwMate2','cwTeam','cwTag','cwLegend','cwGun','cwGun2'].forEach(function(id){
       document.getElementById(id).value = '';
     });
+    document.getElementById('cwRole').value = '';
+    document.getElementById('cwIgl').checked = false;
     document.getElementById('cwErr').textContent = '';
     document.getElementById('careerOverlay').style.display = 'flex';
   }
@@ -4312,12 +4371,26 @@ background:var(--acc);padding:1px 4px}
       err.textContent = 'That team name is already taken.'; return;
     }
     if (!tag) tag = team.replace(/[^A-Za-z0-9]/g,'').slice(0,4).toUpperCase() || 'YOU';
+    // Build the preference object from whatever the user filled in (all optional).
+    // Invalid legend/weapon names are ignored so the player just falls back to defaults.
+    const pref = {};
+    const legRaw = document.getElementById('cwLegend').value.trim();
+    const gunRaw = document.getElementById('cwGun').value.trim();
+    const gun2Raw = document.getElementById('cwGun2').value.trim();
+    const roleRaw = document.getElementById('cwRole').value;
+    const findCI = function(list, v){ return list.find(function(x){ return x.toLowerCase()===v.toLowerCase(); }); };
+    if (legRaw){ const L = findCI(LEGEND_NAMES, legRaw); if (L) pref.legend = L; }
+    if (gunRaw){ const G = findCI(WEAPON_NAMES, gunRaw); if (G) pref.gun = G; }
+    if (gun2Raw){ const G2 = findCI(WEAPON_NAMES, gun2Raw); if (G2 && G2 !== pref.gun) pref.gun2 = G2; }
+    if (roleRaw==='entry' || roleRaw==='anchor' || roleRaw==='support') pref.role = roleRaw;
+    if (document.getElementById('cwIgl').checked) pref.igl = true;
     // Your player can be brand new — add them to the pool if so.
     if (!PLAYER_INDEX[you]) addPlayer(you, nation || 'Unknown');
     // Any existing career team steps aside for the new one.
     world.permanent = world.permanent.filter(function(o){ return !o.career; });
     world.permanent.push({name:team, tag:tag, career:true, careerPlayer:you,
-      roster:names.map(function(n){ return {name:n}; })});
+      roster:names.map(function(n){ return {name:n}; }),
+      pref: Object.keys(pref).length ? pref : undefined});
     save();
     document.getElementById('careerOverlay').style.display = 'none';
     showScreen('setupScreen');
@@ -4328,11 +4401,18 @@ background:var(--acc);padding:1px 4px}
     const o = careerOrg();
     if (!o){ card.style.display = 'none'; return; }
     card.style.display = 'block';
+    const pr = o.pref || {};
+    const bits = [];
+    if (pr.legend) bits.push(esc(pr.legend));
+    if (pr.role) bits.push(pr.role.charAt(0).toUpperCase()+pr.role.slice(1));
+    if (pr.igl) bits.push('IGL');
+    if (pr.gun) bits.push(esc(pr.gun) + (pr.gun2 ? ' / '+esc(pr.gun2) : ''));
+    const prefLine = bits.length ? '<div class="ccpref">'+bits.join(' \u00b7 ')+'</div>' : '';
     card.innerHTML = '<div class="cardh">\ud83c\udfae YOUR TEAM \u2014 CAREER</div>' +
       '<div class="ccbody"><b>'+esc(o.name)+'</b> <span class="dim">['+esc(o.tag)+']</span><br>' +
       o.roster.map(function(r){
         return esc(r.name) + (r.name===o.careerPlayer ? ' <span class="ccyou">YOU</span>' : '');
-      }).join(' \u00b7 ') + '</div>' +
+      }).join(' \u00b7 ') + prefLine + '</div>' +
       '<div class="btns" style="margin-top:10px;margin-bottom:0">' +
       '<button class="btn" id="ccIntv">\ud83c\udf99 INTERVIEW</button>' +
       '<button class="btn" id="ccDisband">\ud83d\uddd1 DISBAND</button></div>';
