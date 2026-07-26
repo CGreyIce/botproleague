@@ -86,6 +86,14 @@ letter-spacing:.04em;margin-bottom:12px;display:flex;align-items:center;gap:10px
 .chip{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 6px;border:1px solid}
 .chip.up{color:var(--good);border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.08)}
 .chip.down{color:var(--acc);border-color:rgba(232,69,44,.45);background:rgba(232,69,44,.08)}
+.pnhead{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--acc2);
+  text-transform:uppercase;border-top:1px solid rgba(255,255,255,.07);padding-top:10px;margin-top:4px;margin-bottom:7px}
+.pnotes{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px}
+.pnote{font-size:11.5px;color:var(--mut);padding:1px 0;line-height:1.4}
+.pnote b{color:var(--txt);font-weight:600}
+.pnote .pnup{color:var(--good);font-size:8px}
+.pnote .pndown{color:#ff7a7a;font-size:8px}
+@media(max-width:560px){.pnotes{grid-template-columns:1fr}}
 .strow{display:grid;grid-template-columns:30px 20px auto 1fr auto auto;gap:9px;align-items:center;
 background:var(--panel);border:1px solid var(--line);padding:8px 11px;margin-bottom:4px;font-size:13px}
 .strow.st-top{border-color:var(--acc);background:linear-gradient(90deg,rgba(232,69,44,.10),var(--panel) 55%)}
@@ -4728,6 +4736,40 @@ background:var(--acc);padding:1px 4px}
   }
 
   /* ===================== META PANEL ===================== */
+  // Turn the season's buff/nerf lists into readable patch-note lines. Stable per
+  // season (seeded), regenerated fresh each patch \u2014 no extra storage needed.
+  const PATCH_NOTES = {
+    legendUp:  ['tactical cooldown \u2212{t}s','ultimate cost \u2212{p}%','passive buffed',
+                'tactical duration +{d}s','ability radius +{p}%','hitbox reduced {p}%','ultimate charge rate +{p}%'],
+    legendDown:['tactical cooldown +{t}s','ultimate cost +{p}%','passive nerfed',
+                'tactical duration \u2212{d}s','ability radius \u2212{p}%','hitbox increased {p}%','ultimate charge rate \u2212{p}%'],
+    gunUp:     ['damage +{n}','fire rate +{p}%','recoil pattern eased','magazine +{n}','reload time \u2212{r}s',
+                'projectile speed +{p}%','hipfire spread tightened'],
+    gunDown:   ['damage \u2212{n}','fire rate \u2212{p}%','recoil increased','magazine \u2212{n}','reload time +{r}s',
+                'projectile speed \u2212{p}%','hipfire spread widened']
+  };
+  function patchNote(pool, name){
+    const rnd = rngFrom('patch:'+pool+':'+name+':'+meta.season);
+    const arr = PATCH_NOTES[pool];
+    return arr[Math.floor(rnd()*arr.length)]
+      .replace('{t}', 1+Math.floor(rnd()*5))
+      .replace('{p}', 4+Math.floor(rnd()*12))
+      .replace('{d}', (0.5+Math.floor(rnd()*6)*0.5).toFixed(1))
+      .replace('{n}', 1+Math.floor(rnd()*4))
+      .replace('{r}', (0.2+Math.floor(rnd()*5)*0.1).toFixed(1));
+  }
+  function patchNotesHtml(){
+    const line = function(name, note, up){
+      return '<div class="pnote"><span class="pn'+(up?'up':'down')+'">'+(up?'\u25b2':'\u25bc')+'</span> <b>'+
+             esc(name)+'</b> \u00b7 '+esc(note)+'</div>';
+    };
+    let h = '';
+    meta.legendUp.forEach(function(l){ h += line(l, patchNote('legendUp', l), true); });
+    meta.gunUp.forEach(function(g){ h += line(g, patchNote('gunUp', g), true); });
+    meta.legendDown.forEach(function(l){ h += line(l, patchNote('legendDown', l), false); });
+    meta.gunDown.forEach(function(g){ h += line(g, patchNote('gunDown', g), false); });
+    return h;
+  }
   function renderMeta(){
     const el = document.getElementById('metaBox');
     if (!el) return;
@@ -4743,7 +4785,9 @@ background:var(--acc);padding:1px 4px}
         (meta.gunDown.map(function(g){ return chip(g,false); }).join('') || '<i>none yet</i>') + '</div>' +
       '<div class="metarow"><span class="mlab">CARE PACKAGE</span>' +
         careList().map(function(g){ return '<span class="chip care">'+esc(g)+'</span>'; }).join('') +
-        '<span class="mnote">pulled from floor loot</span></div>';
+        '<span class="mnote">pulled from floor loot</span></div>' +
+      '<div class="pnhead">PATCH NOTES \u00b7 SEASON ' + meta.season + '</div>' +
+      '<div class="pnotes">' + patchNotesHtml() + '</div>';
     document.getElementById('metaSeason').textContent = 'SEASON ' + meta.season;
   }
 
