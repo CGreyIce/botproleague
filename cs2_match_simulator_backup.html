@@ -186,6 +186,19 @@ padding:6px 11px;font-size:12px}
 text-overflow:ellipsis;white-space:nowrap}
 .psd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--acc2);text-align:right}
 .elwrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.potgwrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.potg{border:1px solid var(--line);border-left:3px solid var(--acc);padding:11px 13px;
+  background:linear-gradient(100deg,rgba(232,69,44,.10),rgba(255,255,255,.02) 60%)}
+.potg.play{border-left-color:#ffd94a;background:linear-gradient(100deg,rgba(255,217,74,.10),rgba(255,255,255,.02) 60%)}
+.potgk{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;color:var(--acc2);
+  text-transform:uppercase;margin-bottom:5px}
+.potg.play .potgk{color:#ffd94a}
+.potgn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:19px;text-transform:uppercase;
+  letter-spacing:.02em;color:var(--txt);line-height:1}
+.potgt{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:400;color:var(--mut);
+  text-transform:none;letter-spacing:0;margin-left:5px}
+.potgd{font-size:12px;color:var(--mut);margin-top:4px}
+@media(max-width:700px){.potgwrap{grid-template-columns:1fr}}
 .elrow{display:grid;grid-template-columns:28px 1fr 1fr auto;gap:8px;align-items:center;
 background:var(--panel);border:1px solid var(--line);padding:6px 10px;margin-bottom:3px;font-size:12px}
 @media(max-width:700px){.ldrow,.elwrap{grid-template-columns:1fr}
@@ -3037,13 +3050,20 @@ background:var(--acc);padding:1px 4px}
   }
   // Running per-event totals so we can name the event's best performers.
   let eventAgg = null;
-  function resetEventAgg(){ eventAgg = {}; }
+  let eventBest = null;      // the single highest-kill game of the event
+  let eventMatchNo = 0;
+  function resetEventAgg(){ eventAgg = {}; eventBest = null; eventMatchNo = 0; }
   function aggEvent(res){
     if (!eventAgg) return;
+    eventMatchNo++;
     res.results.forEach(function(r){
       r.players.forEach(function(p){
         const a = eventAgg[p.name] = eventAgg[p.name] || {kills:0, dmg:0, matches:0, team:r.name};
         a.kills += p.kills; a.dmg += p.dmg; a.matches++; a.team = r.name;
+        // Remember the best single-game performance for Play of the Day.
+        if (!eventBest || p.kills > eventBest.kills || (p.kills===eventBest.kills && p.dmg > eventBest.dmg)){
+          eventBest = {name:p.name, team:r.name, kills:p.kills, dmg:p.dmg, match:eventMatchNo};
+        }
       });
     });
   }
@@ -3913,6 +3933,7 @@ background:var(--acc);padding:1px 4px}
             : '\ud83d\udd01 <b>'+esc(n.team)+'</b> dropped '+esc(n.out)+' for '+esc(n.in);
         }).join('<br>') + '</div>';
       }
+      document.getElementById('sNote').innerHTML += eventLeaderHtml();
     } else {
       if (m.pendingSurvival){
         bar.innerHTML = '<button class="btn pri" id="sSurv">\u2192 BEGIN SURVIVAL STAGE</button>' +
@@ -4197,6 +4218,22 @@ background:var(--acc);padding:1px 4px}
   }
 
   // Top performers across the whole event, shown when it finishes.
+  function potgHtml(){
+    const L = eventLeaders();
+    const mvp = L ? L.kills[0] : null;
+    let h = '';
+    if (mvp){
+      h += '<div class="potg mvp"><div class="potgk">\u2b50 PLAYER OF THE EVENT</div>' +
+        '<div class="potgn">'+esc(mvp.name)+' <span class="potgt">'+esc(mvp.team)+'</span></div>' +
+        '<div class="potgd">'+mvp.kills+' kills \u00b7 '+mvp.dmg.toLocaleString()+' dmg \u00b7 '+mvp.kpm.toFixed(1)+' kills/game</div></div>';
+    }
+    if (eventBest && eventBest.kills>0){
+      h += '<div class="potg play"><div class="potgk">\ud83c\udfac PLAY OF THE DAY</div>' +
+        '<div class="potgn">'+esc(eventBest.name)+' <span class="potgt">'+esc(eventBest.team)+'</span></div>' +
+        '<div class="potgd">'+eventBest.kills+' kills, '+eventBest.dmg.toLocaleString()+' dmg in a single game (Match '+eventBest.match+')</div></div>';
+    }
+    return h ? '<div class="potgwrap">'+h+'</div>' : '';
+  }
   function eventLeaderHtml(){
     const L = eventLeaders();
     if (!L) return '';
@@ -4206,7 +4243,7 @@ background:var(--acc);padding:1px 4px}
         '<span class="psteam">'+esc(p.team)+'</span>' +
         '<span class="psd">'+val+'</span></div>';
     };
-    return '<div class="elwrap">' +
+    return potgHtml() + '<div class="elwrap">' +
       '<div><div class="note">EVENT TOP FRAGGERS</div>' +
         L.kills.slice(0,5).map(function(p,i){ return row(p,i,p.kills+' K'); }).join('') + '</div>' +
       '<div><div class="note">EVENT TOP DAMAGE</div>' +
