@@ -402,6 +402,23 @@ margin-bottom:7px;color:var(--acc2)}
 .dosh{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;text-transform:uppercase}
 .cchead{margin-top:8px;font-size:12.5px;color:var(--txt);font-style:italic;border-left:2px solid var(--acc);
   padding-left:9px;line-height:1.4}
+.recsec{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:var(--acc2);
+  text-transform:uppercase;border-top:1px solid rgba(255,255,255,.07);padding-top:12px;margin:14px 0 8px}
+.recsec:first-child{border-top:none;padding-top:0;margin-top:0}
+.recrow{display:grid;grid-template-columns:1.4fr auto 1.2fr;gap:10px;align-items:baseline;
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.reclab{color:var(--mut)}
+.recval{text-align:right;color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:12px}
+.recval b{font-family:'Barlow Condensed',sans-serif;font-size:17px;color:var(--acc);font-weight:700}
+.recwho{text-align:right;font-size:11px;color:var(--mut)}
+.hoflist{display:flex;flex-direction:column;gap:3px}
+.hofrow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+  padding:8px 11px;background:linear-gradient(100deg,rgba(255,217,74,.08),rgba(255,255,255,.02) 60%);
+  border-left:2px solid #ffd94a}
+.hofn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;text-transform:uppercase;color:var(--txt)}
+.hofr{font-size:12px;color:#ffd94a}
+.hofs{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut)}
+@media(max-width:560px){.recrow{grid-template-columns:1fr auto}.recwho{grid-column:1/-1;text-align:left}}
 .dosroster{font-size:12.5px;color:var(--mut);margin:2px 0 14px}
 .troph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .trbox{background:rgba(255,255,255,.035);border:1px solid var(--line);padding:10px 8px;text-align:center}
@@ -474,6 +491,7 @@ background:var(--acc);padding:1px 4px}
     <div class="btns" style="margin-top:12px;margin-bottom:0">
       <button class="btn pri" id="metaBtn">🔄 ROLL NEW PATCH</button>
       <button class="btn" id="rankBtn">🌐 WORLD RANKING</button>
+      <button class="btn" id="recordsBtn">📖 RECORD BOOK</button>
       <button class="btn" id="legendBtn">🎭 LEGENDS &amp; CLASS PERKS</button>
       <button class="btn" id="careerBtn">🎮 CAREER MODE</button>
       <button class="btn" id="resetBtn">🗑 RESET WORLD</button>
@@ -615,6 +633,15 @@ background:var(--acc);padding:1px 4px}
       <button class="btn" id="dosClose">&#x2715; CLOSE</button>
     </div>
     <div id="dosBody"></div>
+  </div>
+</div>
+<div id="recordsOverlay" class="ivover" style="display:none">
+  <div class="ivbox">
+    <div class="ivtop">
+      <div><div class="kick">THE CIRCUIT</div><div class="h1">Record Book &amp; Hall of Fame</div></div>
+      <button class="btn" id="recClose">&#x2715; CLOSE</button>
+    </div>
+    <div id="recBody"></div>
   </div>
 </div>
 <script>
@@ -3455,6 +3482,39 @@ background:var(--acc);padding:1px 4px}
       });
     });
     world.events++;
+    // All-time single-match records.
+    world.records = world.records || {};
+    const rec = world.records, sn = (meta&&meta.season)||1;
+    res.results.forEach(function(r){
+      if (!rec.teamKills || r.kills > rec.teamKills.n) rec.teamKills = {name:r.name, n:r.kills, season:sn};
+      r.players.forEach(function(p){
+        if (!rec.matchKills || p.kills > rec.matchKills.n) rec.matchKills = {name:p.name, team:r.name, n:p.kills, season:sn};
+        if (!rec.matchDmg   || p.dmg   > rec.matchDmg.n)   rec.matchDmg   = {name:p.name, team:r.name, n:p.dmg,   season:sn};
+      });
+    });
+  }
+  // Called once per finished event: most kills in the event, and Hall of Fame checks.
+  function updateEventRecords(){
+    const L = eventLeaders(); if (!L || !L.kills.length) return;
+    const top = L.kills[0];
+    world.records = world.records || {};
+    if (!world.records.eventKills || top.kills > world.records.eventKills.n)
+      world.records.eventKills = {name:top.name, team:top.team, n:top.kills, season:(meta&&meta.season)||1};
+  }
+  // Enshrine any player who has crossed a legendary threshold.
+  function checkHallOfFame(){
+    world.hof = world.hof || [];
+    const inHof = {}; world.hof.forEach(function(h){ inHof[h.name]=true; });
+    Object.keys(world.playerStats||{}).forEach(function(name){
+      if (inHof[name]) return;
+      const ps = world.playerStats[name];
+      const majors = ps.majors||0, titles = ps.titles||0, kills = ps.kills||0;
+      let reason = null;
+      if (majors >= 3) reason = majors + '\u00d7 Major champion';
+      else if (titles >= 6) reason = titles + ' tournament titles';
+      else if (kills >= 1200) reason = kills.toLocaleString() + ' career kills';
+      if (reason) world.hof.push({name:name, reason:reason, season:(meta&&meta.season)||1});
+    });
   }
 
   /* ===================== SCREENS ===================== */
@@ -3929,6 +3989,8 @@ background:var(--acc);padding:1px 4px}
           m.newOrg = m.champion.name;
         }
         logCareerFromMajor(m);
+        updateEventRecords();
+        checkHallOfFame();
         m.finalized = true;
         save();
       }
@@ -4198,6 +4260,8 @@ background:var(--acc);padding:1px 4px}
           const ps = world.playerStats[p.name]; if (ps) ps.titles = (ps.titles||0)+1;
         });
         logCareerFromTournament(rows, tour.isQualifier ? 'qualifier' : 'tournament');
+        updateEventRecords();
+        checkHallOfFame();
         save();
         tour.finalRm = runRostermania();
         tour.finalPromoted = promoted;
@@ -4546,6 +4610,50 @@ background:var(--acc);padding:1px 4px}
     document.getElementById('dosBody').innerHTML = html;
     document.getElementById('dossierOverlay').style.display = 'flex';
   }
+  function topBy(store, key){
+    let best = null;
+    Object.keys(store||{}).forEach(function(n){
+      const v = store[n][key]||0;
+      if (v>0 && (!best || v>best.v)) best = {name:n, v:v};
+    });
+    return best;
+  }
+  function showRecords(){
+    const r = world.records || {};
+    const recRow = function(label, rec, unit){
+      if (!rec) return '<div class="recrow"><span class="reclab">'+label+'</span><span class="recval dim">\u2014</span><span></span></div>';
+      return '<div class="recrow"><span class="reclab">'+label+'</span>' +
+        '<span class="recval"><b>'+rec.n.toLocaleString()+'</b> '+unit+'</span>' +
+        '<span class="recwho">'+esc(rec.name)+(rec.team?' \u00b7 '+esc(rec.team):'')+' \u00b7 S'+rec.season+'</span></div>';
+    };
+    const compRow = function(label, best, unit){
+      if (!best) return '<div class="recrow"><span class="reclab">'+label+'</span><span class="recval dim">\u2014</span><span></span></div>';
+      return '<div class="recrow"><span class="reclab">'+label+'</span>' +
+        '<span class="recval"><b>'+best.v.toLocaleString()+'</b> '+unit+'</span>' +
+        '<span class="recwho">'+esc(best.name)+'</span></div>';
+    };
+    let html = '<div class="recsec">SINGLE-MATCH &amp; EVENT RECORDS</div>' +
+      recRow('Most kills, one match', r.matchKills, 'K') +
+      recRow('Most damage, one match', r.matchDmg, 'dmg') +
+      recRow('Most team kills, one match', r.teamKills, 'K') +
+      recRow('Most kills in an event', r.eventKills, 'K') +
+      '<div class="recsec">ALL-TIME LEADERS</div>' +
+      compRow('Most tournament titles', topBy(world.teamStats,'titles'), 'titles') +
+      compRow('Most Majors', topBy(world.teamStats,'majors'), 'Majors') +
+      compRow('Most career kills', topBy(world.playerStats,'kills'), 'K') +
+      '<div class="recsec">\ud83c\udfc5 HALL OF FAME</div>';
+    const hof = world.hof || [];
+    if (hof.length){
+      html += '<div class="hoflist">' + hof.slice().reverse().map(function(h){
+        return '<div class="hofrow"><span class="hofn">'+esc(h.name)+'</span>' +
+          '<span class="hofr">'+esc(h.reason)+'</span><span class="hofs">S'+h.season+'</span></div>';
+      }).join('') + '</div>';
+    } else {
+      html += '<div class="dim" style="font-size:12.5px">No inductees yet. Players are enshrined at 3 Majors, 6 titles, or 1,200 career kills.</div>';
+    }
+    document.getElementById('recBody').innerHTML = html;
+    document.getElementById('recordsOverlay').style.display = 'flex';
+  }
   function openCareer(){
     // Populate the pickers fresh each time (new players may have been added).
     const pp = document.getElementById('cwPlayerPool');
@@ -4868,6 +4976,13 @@ background:var(--acc);padding:1px 4px}
     rollMeta(); renderMeta(); save();
   });
   document.getElementById('rankBtn').addEventListener('click', showRankings);
+  document.getElementById('recordsBtn').addEventListener('click', showRecords);
+  (function(){
+    const rov = document.getElementById('recordsOverlay');
+    const rc = document.getElementById('recClose');
+    if (rc) rc.onclick = function(){ rov.style.display = 'none'; };
+    if (rov) rov.addEventListener('click', function(e){ if (e.target===rov) rov.style.display='none'; });
+  })();
   document.getElementById('legendBtn').addEventListener('click', showLegends);
   document.getElementById('careerBtn').addEventListener('click', openCareer);
   document.getElementById('resetBtn').addEventListener('click', function(){
