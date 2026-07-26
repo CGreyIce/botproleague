@@ -438,6 +438,26 @@ margin-bottom:7px;color:var(--acc2)}
 .seapos{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
 .seaname{color:var(--txt)}
 .seapts{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--acc)}
+.awgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.awcard{border:1px solid var(--line);padding:12px 13px;background:rgba(255,255,255,.02);text-align:center}
+.awcard.big{grid-column:span 1;border-color:rgba(255,217,74,.4);
+  background:linear-gradient(120deg,rgba(255,217,74,.10),rgba(255,255,255,.02) 60%)}
+.awlab{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;color:var(--acc2);
+  text-transform:uppercase;margin-bottom:6px}
+.awcard.big .awlab{color:#ffd94a}
+.awname{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;
+  letter-spacing:.02em;color:var(--txt);line-height:1.05}
+.awsub{font-size:11px;color:var(--mut);margin-top:4px}
+.awhead{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:var(--acc2);
+  text-transform:uppercase;border-top:1px solid rgba(255,255,255,.07);padding-top:12px;margin:12px 0 8px}
+.awpro{display:flex;flex-direction:column;gap:3px}
+.awprorow{display:grid;grid-template-columns:28px 1fr auto auto;gap:10px;align-items:center;
+  padding:7px 11px;background:rgba(255,255,255,.02);border-left:2px solid var(--acc2);font-size:13px}
+.awpos{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--acc2)}
+.awpn{color:var(--txt);font-weight:600}
+.awpt{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut)}
+.awpk{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--acc)}
+@media(max-width:560px){.awgrid{grid-template-columns:1fr}}
 @media(max-width:560px){.recrow{grid-template-columns:1fr auto}.recwho{grid-column:1/-1;text-align:left}}
 .dosroster{font-size:12.5px;color:var(--mut);margin:2px 0 14px}
 .troph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
@@ -673,6 +693,15 @@ background:var(--acc);padding:1px 4px}
       <button class="btn" id="twClose">&#x2715; CLOSE</button>
     </div>
     <div id="twBody"></div>
+  </div>
+</div>
+<div id="awardsOverlay" class="ivover" style="display:none">
+  <div class="ivbox">
+    <div class="ivtop">
+      <div><div class="kick">END OF SEASON</div><div class="h1">Awards Ceremony</div></div>
+      <button class="btn" id="awClose">&#x2715; CLOSE</button>
+    </div>
+    <div id="awBody"></div>
   </div>
 </div>
 <script>
@@ -3536,6 +3565,16 @@ background:var(--acc);padding:1px 4px}
         if (!rec.matchDmg   || p.dmg   > rec.matchDmg.n)   rec.matchDmg   = {name:p.name, team:r.name, n:p.dmg,   season:sn};
       });
     });
+    // Season player aggregate, for end-of-season awards (only during a live season event).
+    if (world.season && !world.season.done && ((tour&&tour.seasonEvent) || (major&&major.seasonEvent))){
+      const pa = world.season.playerAgg = world.season.playerAgg || {};
+      res.results.forEach(function(r){
+        r.players.forEach(function(p){
+          const a = pa[p.name] = pa[p.name] || {kills:0, dmg:0, matches:0, team:r.name};
+          a.kills += p.kills; a.dmg += p.dmg; a.matches++; a.team = r.name;
+        });
+      });
+    }
   }
   // Called once per finished event: most kills in the event, and Hall of Fame checks.
   function updateEventRecords(){
@@ -4819,12 +4858,42 @@ background:var(--acc);padding:1px 4px}
     Object.keys(S.points).forEach(function(n){ if (!best || S.points[n]>best.pts) best = {name:n, pts:S.points[n]}; });
     return best;
   }
+  // The shot-caller of a team: a career IGL pick, else the highest igl-hash player.
+  function iglOf(teamName){
+    const names = rosterOf(teamName); if (!names || !names.length) return null;
+    const org = careerOrg();
+    if (org && org.name===teamName && org.pref && org.pref.igl) return org.careerPlayer;
+    let best = names[0], bh = hashStr('igl:'+names[0]);
+    names.forEach(function(n){ const h = hashStr('igl:'+n); if (h>bh){ bh=h; best=n; } });
+    return best;
+  }
+  function computeSeasonAwards(S){
+    const agg = S.playerAgg || {};
+    const arr = Object.keys(agg).map(function(n){
+      const a = agg[n];
+      return {name:n, kills:a.kills, dmg:a.dmg, matches:a.matches, team:a.team,
+              score: a.kills*1.0 + a.dmg*0.0016};
+    }).filter(function(p){ return p.matches >= 3; });
+    arr.sort(function(a,b){ return b.score-a.score; });
+    const lead = seasonLeader();
+    const iglName = lead ? iglOf(lead.name) : null;
+    const iglRec = iglName ? (arr.find(function(p){ return p.name===iglName; }) ||
+                    {name:iglName, team:lead.name, kills:(agg[iglName]||{}).kills||0}) : null;
+    return {
+      champion: S.champion,
+      leader: lead,
+      mvp: arr[0] || null,
+      fragger: arr.slice().sort(function(a,b){ return b.kills-a.kills; })[0] || null,
+      igl: iglRec,
+      allPro: arr.slice(0, 3)
+    };
+  }
   function awardSeasonAndAdvance(orderedNames, type){
     const S = world.season; if (!S || S.done) return;
     orderedNames.forEach(function(name, i){ S.points[name] = (S.points[name]||0) + seasonPts(i+1, type); });
     if (type==='championship') S.champion = orderedNames[0] || null;
     S.idx++;
-    if (S.idx >= S.schedule.length) S.done = true;
+    if (S.idx >= S.schedule.length){ S.done = true; S.awards = computeSeasonAwards(S); }
     save();
   }
   function playNextSeasonEvent(){
@@ -4862,7 +4931,8 @@ background:var(--acc);padding:1px 4px}
         '\ud83c\udfc6 Champion: <b>'+esc(champ)+'</b><br>' +
         '\ud83e\udd47 Points leader: <b>'+(lead?esc(lead.name)+' ('+lead.pts+' pts)':'\u2014')+'</b></div>' + sched +
         '<div class="btns" style="margin-top:10px;margin-bottom:0">' +
-        '<button class="btn" id="seasonTable">\ud83d\udcca SEASON STANDINGS</button>' +
+        '<button class="btn" id="seasonAwards">\ud83c\udfc5 AWARDS</button>' +
+        '<button class="btn" id="seasonTable">\ud83d\udcca STANDINGS</button>' +
         '<button class="btn pri" id="seasonNext">\u25b6 START SEASON '+(S.num+1)+'</button></div>';
     } else {
       const ev = S.schedule[S.idx];
@@ -4875,6 +4945,38 @@ background:var(--acc);padding:1px 4px}
     card.innerHTML = '<div class="cardh">\ud83d\uddd3\ufe0f SEASON '+S.num+'</div>' + body;
     document.getElementById('seasonNext').onclick = S.done ? startNextSeason : playNextSeasonEvent;
     const st = document.getElementById('seasonTable'); if (st) st.onclick = showSeasonStandings;
+    const aw = document.getElementById('seasonAwards'); if (aw) aw.onclick = showAwards;
+  }
+  function showAwards(){
+    const S = world.season; if (!S || !S.awards) return;
+    const A = S.awards;
+    const big = function(label, name, sub){
+      if (!name) return '';
+      return '<div class="awcard big"><div class="awlab">'+label+'</div><div class="awname">'+esc(name)+
+        '</div>'+(sub?'<div class="awsub">'+esc(sub)+'</div>':'')+'</div>';
+    };
+    const small = function(label, name, sub){
+      if (!name) return '';
+      return '<div class="awcard"><div class="awlab">'+label+'</div><div class="awname">'+esc(name)+
+        '</div>'+(sub?'<div class="awsub">'+esc(sub)+'</div>':'')+'</div>';
+    };
+    let html = '<div class="awgrid">' +
+      big('\ud83c\udfc6 SEASON CHAMPION', A.champion, 'Year-End Championship winner') +
+      big('\ud83e\udd47 POINTS LEADER', A.leader?A.leader.name:null, A.leader?A.leader.pts+' championship points':'') +
+      small('\u2b50 SEASON MVP', A.mvp?A.mvp.name:null, A.mvp?(A.mvp.team+' \u00b7 '+A.mvp.kills+' kills'):'') +
+      small('\ud83d\udd2b TOP FRAGGER', A.fragger?A.fragger.name:null, A.fragger?(A.fragger.kills+' kills'):'') +
+      small('\ud83c\udf99 BEST IGL', A.igl?A.igl.name:null, A.igl?A.igl.team:'') +
+      '</div>';
+    if (A.allPro && A.allPro.length){
+      html += '<div class="awhead">ALL-PRO TEAM</div><div class="awpro">' +
+        A.allPro.map(function(p, i){
+          return '<div class="awprorow"><span class="awpos">'+(i+1)+'</span>' +
+            '<span class="awpn">'+esc(p.name)+'</span><span class="awpt">'+esc(p.team)+'</span>' +
+            '<span class="awpk">'+p.kills+' K</span></div>';
+        }).join('') + '</div>';
+    }
+    document.getElementById('awBody').innerHTML = html;
+    document.getElementById('awardsOverlay').style.display = 'flex';
   }
   function showSeasonStandings(){
     const S = world.season; if (!S) return;
@@ -5224,6 +5326,10 @@ background:var(--acc);padding:1px 4px}
     const tc = document.getElementById('twClose');
     if (tc) tc.onclick = function(){ tov.style.display = 'none'; };
     if (tov) tov.addEventListener('click', function(e){ if (e.target===tov) tov.style.display='none'; });
+    const aov = document.getElementById('awardsOverlay');
+    const ac = document.getElementById('awClose');
+    if (ac) ac.onclick = function(){ aov.style.display = 'none'; };
+    if (aov) aov.addEventListener('click', function(e){ if (e.target===aov) aov.style.display='none'; });
   })();
   (function(){
     const rov = document.getElementById('recordsOverlay');
