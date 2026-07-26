@@ -352,6 +352,12 @@ margin-bottom:7px;color:var(--acc2)}
 .iva .ivrole{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;padding:1px 4px;margin-left:4px;
   border:1px solid var(--line);border-radius:2px;color:var(--mut);vertical-align:middle}
 .iva .ivrole.igl{color:#ffd94a;border-color:rgba(255,217,74,.45)}
+.ivbanter{font-size:12.5px;color:var(--mut);margin:4px 0 0 22px;padding:5px 11px;
+  border-left:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.02);font-style:italic}
+.ivbanter .ivbname{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-style:normal;
+  text-transform:uppercase;letter-spacing:.02em;color:#c7ccd4;font-size:12px}
+.ivq.ivfollow{color:var(--mut);font-size:12.5px;margin-top:12px;padding-left:14px}
+.ivq.ivfollow b{color:var(--acc2)}
 .cwform{display:flex;flex-direction:column;gap:3px}
 .cwform label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
   color:var(--acc2);margin-top:11px}
@@ -2964,12 +2970,62 @@ background:var(--acc);padding:1px 4px}
   function ivPick(a){ return a[Math.floor(Math.random()*a.length)]; }
   function vibeOf(name){ return ['humble','cocky','analytical','funny','intense'][hashStr('ivvibe:'+name)%5]; }
   function V(p, m){ return m[p.vibe] || m.humble || m[Object.keys(m)[0]]; }
+
+  // Each player has a fuller, stable persona so they sound like themselves:
+  // a temperament (vibe), an energy level, a verbal tic and their own word for
+  // the squad. Answers get decorated with these so every player feels alive.
+  const IV_TICS = ['honestly','not gonna lie','look','man','listen','I mean','for real though','see','I\u2019ll be real'];
+  const IV_TEAMWORDS = ['the boys','my guys','these two','the squad','the fellas','my dawgs','the team','us'];
+  function personaFields(name){
+    return { energy: hashStr('iven:'+name)%3,                          // 0 deadpan, 1 normal, 2 hyped
+             tic: IV_TICS[hashStr('ivtic:'+name)%IV_TICS.length],
+             team: IV_TEAMWORDS[hashStr('ivtw:'+name)%IV_TEAMWORDS.length] };
+  }
+  function ivCap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+  const IV_OPENERS = {honestly:1,look:1,man:1,listen:1,see:1,i:1,not:1,for:1,nah:1,relief:1,everything:1,hungry:1};
+  // Decorate a line: occasional verbal tic and hyped energy, randomised per
+  // render so regenerating the interview feels fresh.
+  function voice(text, p){
+    let t = text;
+    const first = (t.split(/[ ,]/)[0]||'').toLowerCase().replace(/[^a-z]/g,'');
+    if (!IV_OPENERS[first] && Math.random() < 0.30){
+      t = ivCap(p.tic) + ', ' + t.charAt(0).toLowerCase() + t.slice(1);
+    }
+    if (p.energy===2 && /\.$/.test(t) && Math.random() < 0.4) t = t.slice(0,-1) + '!';
+    return t;
+  }
+  function mateOf(c, speaker){
+    const others = c.players.filter(function(x){ return x!==speaker; });
+    return others.length ? ivPick(others) : speaker;
+  }
+  // Fill {team} (their word for the squad) and {mate} (a real teammate's name).
+  function fill(text, p, c){
+    return text.replace(/\{team\}/g, p.team)
+               .replace(/\{mate\}/g, function(){ return mateOf(c, p).name; });
+  }
+  function say(text, p, c){ return voice(fill(text, p, c), p); }
+  // A teammate cutting in on the answer — banter flavored by THEIR persona.
+  const IV_BANTER = {
+    cocky:     ['Don\u2019t believe a word {s} says \u2014 I carried that one.','{s} loves a camera, huh?','Cute answer. I did more.'],
+    funny:     ['{s} rehearsed that in the mirror, I watched them.','He\u2019s been sitting on that line all week.','Ignore {s}, they\u2019re on two hours of sleep.'],
+    humble:    ['Nah, {s} is underselling it \u2014 they were unreal today.','Don\u2019t let {s} be modest, that was a carry.','{s} makes my job easy, for real.'],
+    analytical:['{s}\u2019s right, but that was off the rotation I called.','Accurate\u2026 mostly.','I\u2019d add we drilled that exact scenario.'],
+    intense:   ['{s} knows we\u2019re not satisfied. None of us are.','We\u2019re not done. {s} said it.','Good. Now we run it back.']
+  };
+  function banterLine(c, speaker){
+    const t = mateOf(c, speaker);
+    if (t === speaker) return null;
+    const line = ivPick(IV_BANTER[t.vibe] || IV_BANTER.funny).replace(/\{s\}/g, speaker.name);
+    return { by:t, text: voice(line, t) };
+  }
   function interviewCtx(teamName, teamTag, roster, eventType){
     const players = roster.map(function(p){
       const a = (eventAgg && eventAgg[p.name]) || {kills:0, dmg:0, matches:0};
+      const pf = personaFields(p.name);
       return {name:p.name, role:p.role||roleOf(p.name), igl:!!p.igl,
               nation:p.nation||nationOf(p.name), legend:p.legend,
-              kills:a.kills, dmg:a.dmg, matches:a.matches, vibe:vibeOf(p.name)};
+              kills:a.kills, dmg:a.dmg, matches:a.matches, vibe:vibeOf(p.name),
+              energy:pf.energy, tic:pf.tic, team:pf.team};
     });
     const top = players.slice().sort(function(a,b){ return b.kills-a.kills; })[0];
     const igl = players.find(function(p){ return p.igl; }) || players[0];
@@ -3007,7 +3063,14 @@ background:var(--acc);padding:1px 4px}
         cocky:'I was just hitting my shots. When I\u2019m reading a lobby like that, it\u2019s kind of over for everyone else.',
         analytical:'Teams were over-rotating, so I played the edges and cleaned up the third parties. Pure discipline.',
         funny:'Turns out if you shoot the enemy enough times, they fall over. Revolutionary strat, I know.',
-        intense:'I told the boys before the final I was taking every duel. I meant it. Nobody was beating me today.'}); } },
+        intense:'I told the boys before the final I was taking every duel. I meant it. Nobody was beating me today.'}); },
+      fq:function(c){ return 'Was there a moment you knew it was your day?'; },
+      fa:function(c,p){ return V(p,{
+        humble:'When {mate} kept setting me up. I just had to hit the shots.',
+        cocky:'First fight. I opened three of them and knew the lobby was mine.',
+        analytical:'Third game. Our rotations clicked and the reads never stopped.',
+        funny:'When I stopped missing. Genuinely shocked everyone, myself included.',
+        intense:'From the drop. I\u2019d already decided today was mine.'}); } },
     { cat:'endgame', want:'igl',
       q:function(c){ return 'That final circle was carnage. Walk us through how you closed it out.'; },
       a:function(c,p){ return V(p,{
@@ -3079,15 +3142,67 @@ background:var(--acc);padding:1px 4px}
         cocky:'Shoutout to me, honestly. But also the boys. Mostly me, though.',
         analytical:'Our analysts and coach \u2014 the prep behind the scenes is why we\u2019re holding this trophy.',
         funny:'Shoutout to my mom, my energy drink, and whoever disconnected on the enemy team in game four.',
-        intense:'To everyone who doubted us \u2014 thank you. That\u2019s the fuel. We remember all of it.'}); } }
+        intense:'To everyone who doubted us \u2014 thank you. That\u2019s the fuel. We remember all of it.'}); } },
+    { cat:'praise', want:'any',
+      q:function(c){ return 'Who stepped up for you today?'; },
+      a:function(c,p){ return V(p,{
+        humble:'{mate}, without a doubt. Held {team} together when it got rough.',
+        cocky:'Me, obviously \u2014 but {mate} did their job too. Credit where it\u2019s due.',
+        analytical:'{mate}. Quietly the most consistent player on the server if you watch the tape.',
+        funny:'{mate}. Carried me so hard I felt bad. Not bad enough to apologise, though.',
+        intense:'{mate}. Nobody outworked them today. Nobody.'}); } },
+    { cat:'rivalry', want:'igl',
+      q:function(c){ return 'Was there a team out there you especially wanted to beat?'; },
+      a:function(c,p){ return V(p,{
+        humble:'Every team earns respect at this level. We just wanted to play clean.',
+        cocky:'All of them. I love the silence in the lobby when we drop on you.',
+        analytical:'We had a couple squads flagged from VOD review. We neutralised their tempo.',
+        funny:'Whoever kept landing on us in scrims. You know who you are. We remember.',
+        intense:'Doesn\u2019t matter the name. If you\u2019re across from us, we want you gone first.'}); },
+      fq:function(c){ return 'And if they\u2019re watching right now?'; },
+      fa:function(c,p){ return V(p,{ humble:'Respect. Run it back anytime.', cocky:'Hi. Bye.',
+        analytical:'We\u2019ll see them in the next lobby. We\u2019re ready.', funny:'Hi mom!\u2026 wait, wrong camera.',
+        intense:'We\u2019ll be waiting.'}); } },
+    { cat:'nerves', want:'any',
+      q:function(c){ return 'How were the nerves in that final lobby?'; },
+      a:function(c,p){ return V(p,{
+        humble:'Terrifying, honestly. I just leaned on {mate} and trusted the calls.',
+        cocky:'Nerves? For what? I\u2019ve wanted these lights my whole life.',
+        analytical:'You channel it into focus. Slow the breathing, trust the prep, execute.',
+        funny:'I was shaking so hard my crosshair had its own movement tech. Worked out.',
+        intense:'I want the nerves. The day I stop feeling them is the day I\u2019m done.'}); } },
+    { cat:'funnymoment', want:'any',
+      q:function(c){ return 'Any moment out there that made you laugh mid-game?'; },
+      a:function(c,p){ return V(p,{
+        humble:'{mate} whiffed a whole mag then got the knock anyway. We won\u2019t let them forget it.',
+        cocky:'A guy tried to 1v1 me. Singular. Bold. Wrong.',
+        analytical:'Not really \u2014 I was locked in. Ask me once I\u2019ve reviewed the VOD.',
+        funny:'I pinged \u201cenemy\u201d at a rock for a full minute. The rock never pushed. We held.',
+        intense:'No. I don\u2019t laugh mid-game. There\u2019s time for that after we win.'}); } },
+    { cat:'grind', want:'any',
+      q:function(c){ return 'How much work went into getting here?'; },
+      a:function(c,p){ return V(p,{
+        humble:'So much \u2014 and most of it isn\u2019t mine. It\u2019s the staff and {mate} grinding late.',
+        cocky:'Enough that I\u2019ve earned the right to talk. Put in the hours, then you can too.',
+        analytical:'Structured blocks, VOD every night, ranked to stay sharp. It compounds.',
+        funny:'I haven\u2019t seen sunlight since the last patch. Is it still out there? The sun?',
+        intense:'Every day. No off days. This is what it costs and I\u2019ll pay it every time.'}); } },
+    { cat:'fans', want:'any',
+      q:function(c){ return 'Anything for the people watching at home?'; },
+      a:function(c,p){ return V(p,{
+        humble:'Thank you, truly. Every message, every clip shared \u2014 it means everything.',
+        cocky:'Told you. You can say you were here when it started.',
+        analytical:'Appreciate everyone tuning in. Stick around, the best is ahead.',
+        funny:'Touch grass. Then come back and watch us win again. In that order.',
+        intense:'We felt you in that last ring. That energy carried us. Thank you.'}); } }
   ];
   function buildInterview(teamName, teamTag, roster, eventType){
     const c = interviewCtx(teamName, teamTag, roster, eventType);
-    const middles = ['mvp','endgame','bans','adversity','igl','entry']
-      .slice().sort(function(){ return Math.random()-0.5; }).slice(0,3);
+    const pool = ['mvp','endgame','bans','adversity','igl','entry','praise','rivalry','nerves','funnymoment','grind','fans'];
+    const middles = pool.slice().sort(function(){ return Math.random()-0.5; }).slice(0, 4);
     const order = ['win'].concat(middles, ['goals','shoutout']);
     const exchanges = []; let last = null;
-    order.forEach(function(cat){
+    order.forEach(function(cat, i){
       const ex = IV_EXCHANGES.find(function(e){ return e.cat===cat; });
       if (!ex) return;
       let p = pickAnswerer(c, ex.want);
@@ -3096,7 +3211,17 @@ background:var(--acc);padding:1px 4px}
         if (alt.length) p = ivPick(alt);
       }
       last = p;
-      exchanges.push({q:ex.q(c), player:p, answer:ex.a(c,p)});
+      const row = {q:ex.q(c), player:p, answer:say(ex.a(c,p), p, c)};
+      // The interviewer sometimes probes for a bit more.
+      if (ex.fq && Math.random() < 0.55){
+        row.fq = ex.fq(c); row.fa = say(ex.fa(c,p), p, c);
+      }
+      // A teammate cuts in \u2014 not on the very first or last beat.
+      if (i>0 && i<order.length-1 && c.players.length>1 && Math.random() < 0.38){
+        const b = banterLine(c, p);
+        if (b){ row.banterBy = b.by; row.banter = b.text; }
+      }
+      exchanges.push(row);
     });
     return {interviewer:c.interviewer, team:teamName, eventName:c.evName, exchanges:exchanges};
   }
@@ -3152,13 +3277,18 @@ background:var(--acc);padding:1px 4px}
     const c = interviewCtx(teamName, '', roster, 'profile');
     c.focus = focusName ? (c.players.find(function(p){ return p.name===focusName; }) || null) : null;
     const exchanges = [];
-    IV_PROFILE.forEach(function(ex){
+    IV_PROFILE.forEach(function(ex, i){
       let p = c.focus ? c.focus : (ex.want==='igl' ? c.igl : ivPick(c.players));
       if (c.focus && Math.random() < 0.3){
         const others = c.players.filter(function(x){ return x!==c.focus; });
         if (others.length) p = ivPick(others);
       }
-      exchanges.push({q:ex.q(c), player:p, answer:ex.a(c,p)});
+      const row = {q:ex.q(c), player:p, answer:say(ex.a(c,p), p, c)};
+      if (i>0 && i<IV_PROFILE.length-1 && c.players.length>1 && Math.random() < 0.32){
+        const b = banterLine(c, p);
+        if (b){ row.banterBy = b.by; row.banter = b.text; }
+      }
+      exchanges.push(row);
     });
     return {interviewer:c.interviewer, team:teamName, eventName:'the season ahead', exchanges:exchanges};
   }
@@ -4123,12 +4253,20 @@ background:var(--acc);padding:1px 4px}
       ? (iv.team + ' \u2014 looking ahead') : (iv.team + ' \u2014 Champions of ' + iv.eventName);
     let html = '<div class="ivhost">\ud83c\udf99\ufe0f ' + esc(iv.interviewer) + ' \u00b7 at the broadcast desk</div>';
     iv.exchanges.forEach(function(x){
-      const roleTag = x.player.igl ? 'IGL' : (x.player.role || '').toUpperCase();
+      const nameChip = function(pl){
+        const roleTag = pl.igl ? 'IGL' : (pl.role || '').toUpperCase();
+        return esc(pl.name) + '<span class="ivrole' + (pl.igl?' igl':'') + '">' + esc(roleTag) + '</span>' +
+               (pl.nation ? ' <span class="dim" style="font-size:9px">' + esc(pl.nation) + '</span>' : '');
+      };
       html += '<div class="ivq"><b>' + esc(iv.interviewer) + ':</b> ' + esc(x.q) + '</div>';
-      html += '<div class="iva"><div class="ivname">' + esc(x.player.name) +
-              '<span class="ivrole' + (x.player.igl?' igl':'') + '">' + esc(roleTag) + '</span>' +
-              (x.player.nation ? ' <span class="dim" style="font-size:9px">' + esc(x.player.nation) + '</span>' : '') +
-              '</div>' + esc(x.answer) + '</div>';
+      html += '<div class="iva"><div class="ivname">' + nameChip(x.player) + '</div>' + esc(x.answer) + '</div>';
+      if (x.banter){
+        html += '<div class="ivbanter"><span class="ivbname">' + esc(x.banterBy.name) + ':</span> ' + esc(x.banter) + '</div>';
+      }
+      if (x.fq){
+        html += '<div class="ivq ivfollow"><b>' + esc(iv.interviewer) + ':</b> ' + esc(x.fq) + '</div>';
+        html += '<div class="iva"><div class="ivname">' + nameChip(x.player) + '</div>' + esc(x.fa) + '</div>';
+      }
     });
     document.getElementById('ivBody').innerHTML = html;
   }
