@@ -378,6 +378,35 @@ margin-bottom:7px;color:var(--acc2)}
 .ccbody b{color:var(--txt);font-size:15px}
 .ccpref{margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.03em;
   text-transform:uppercase;color:var(--acc2)}
+.dosh{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;text-transform:uppercase}
+.cchead{margin-top:8px;font-size:12.5px;color:var(--txt);font-style:italic;border-left:2px solid var(--acc);
+  padding-left:9px;line-height:1.4}
+.dosroster{font-size:12.5px;color:var(--mut);margin:2px 0 14px}
+.troph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.trbox{background:rgba(255,255,255,.035);border:1px solid var(--line);padding:10px 8px;text-align:center}
+.trbox.big{border-color:rgba(232,69,44,.4)}
+.trbox .trn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;color:var(--txt);line-height:1}
+.trbox.big .trn{color:var(--acc)}
+.trbox .trl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.08em;color:var(--mut);
+  text-transform:uppercase;margin-top:4px}
+.dossub{font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.dossub .hot{color:#ff8a3d}
+.dosform{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;color:var(--mut);
+  text-transform:uppercase;display:flex;align-items:center;gap:4px;margin-bottom:14px}
+.fchip{display:inline-block;min-width:22px;text-align:center;padding:2px 4px;border-radius:2px;
+  font-size:10px;letter-spacing:0;color:#141414;font-weight:700}
+.fchip.f1{background:#ffd94a}.fchip.f3{background:#79d17a}.fchip.f10{background:#5aa9f0}
+.fchip.fx{background:#5a6472;color:#c7ccd4}
+.doshead{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;color:var(--acc2);
+  text-transform:uppercase;border-top:1px solid rgba(255,255,255,.07);padding-top:12px;margin-bottom:8px}
+.doslog{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow:auto}
+.dosrow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;
+  padding:6px 8px;background:rgba(255,255,255,.02);font-size:12.5px}
+.dosev{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;padding:2px 5px;
+  border:1px solid var(--line);color:var(--mut);border-radius:2px}
+.dosev.maj{color:var(--acc);border-color:rgba(232,69,44,.4)}
+.doshl{color:var(--txt)}
+.dospr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#79d17a}
 .ccyou{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;color:#141414;
   background:var(--acc2);padding:1px 4px;margin-left:3px;border-radius:2px;vertical-align:middle}
 .rpop-n{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -541,6 +570,15 @@ background:var(--acc);padding:1px 4px}
     <div class="btns" style="margin-top:14px">
       <button class="btn pri" id="cwCreate">&#x2713; CREATE TEAM &amp; JOIN THE CIRCUIT</button>
     </div>
+  </div>
+</div>
+<div id="dossierOverlay" class="ivover" style="display:none">
+  <div class="ivbox">
+    <div class="ivtop">
+      <div><div class="kick">CAREER DOSSIER</div><div class="h1">Your Legacy</div></div>
+      <button class="btn" id="dosClose">&#x2715; CLOSE</button>
+    </div>
+    <div id="dosBody"></div>
   </div>
 </div>
 <script>
@@ -3844,6 +3882,7 @@ background:var(--acc);padding:1px 4px}
             roster:m.champion.roster.map(function(p){ return {name:p.name}; })});
           m.newOrg = m.champion.name;
         }
+        logCareerFromMajor(m);
         m.finalized = true;
         save();
       }
@@ -4111,6 +4150,7 @@ background:var(--acc);padding:1px 4px}
         champ.roster.forEach(function(p){
           const ps = world.playerStats[p.name]; if (ps) ps.titles = (ps.titles||0)+1;
         });
+        logCareerFromTournament(rows, tour.isQualifier ? 'qualifier' : 'tournament');
         save();
         tour.finalRm = runRostermania();
         tour.finalPromoted = promoted;
@@ -4333,6 +4373,116 @@ background:var(--acc);padding:1px 4px}
 
   /* ===================== CAREER MODE ===================== */
   function careerOrg(){ return (world.permanent||[]).find(function(o){ return o.career; }) || null; }
+
+  /* ---- Career history: results, trophies, prize money, headlines ---- */
+  function ordinal(n){
+    const s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]);
+  }
+  function prizeFor(eventType, place){
+    if (!place) return 0;
+    if (eventType==='major')
+      return place===1?200000:place===2?120000:place===3?80000:place<=6?40000:place<=10?20000:8000;
+    return place===1?50000:place===2?30000:place===3?20000:place<=5?12000:place<=10?6000:2000;
+  }
+  function careerHeadline(o, ev, place, kills, mvpOurs){
+    const s = o.stats, evName = ev==='major'?'Major':'tournament';
+    let h;
+    if (place===1){
+      if (ev==='major') h = s.majors===1 ? '\ud83c\udfc6 ' + o.name + ' win their FIRST Major!' : '\ud83c\udfc6 ' + o.name + ' are Major champions again!';
+      else h = s.titles===1 ? '\ud83c\udfc6 ' + o.name + ' lift their maiden trophy!' : '\ud83c\udfc6 ' + o.name + ' win the tournament!';
+      if (s.streak>=2) h += ' ' + s.streak + ' in a row!';
+    } else if (place && place<=3){
+      h = '\ud83e\udd48 ' + o.name + ' finish ' + ordinal(place) + ' \u2014 another podium at the ' + evName + '.';
+    } else if (place && place<=10){
+      h = o.name + ' place ' + ordinal(place) + ' at the ' + evName + '.';
+    } else if (place){
+      h = o.name + ' finish ' + ordinal(place) + ' at the ' + evName + '.';
+    } else {
+      h = o.name + ' bow out before the ' + evName + ' playoffs.';
+    }
+    if (mvpOurs) h += ' ' + o.careerPlayer + ' was the event\u2019s top fragger (' + kills + ' K).';
+    return h;
+  }
+  // Called once when an event the career team played reaches its result.
+  function recordCareerResult(o, eventType, place, playerKills, mvpOurs){
+    o.stats = o.stats || {events:0, titles:0, majors:0, podiums:0, best:99, kills:0, mvps:0, earnings:0, streak:0, form:[]};
+    o.history = o.history || [];
+    const s = o.stats;
+    s.events++;
+    s.kills += playerKills||0;
+    if (mvpOurs) s.mvps++;
+    const prize = prizeFor(eventType, place);
+    s.earnings += prize;
+    if (place){
+      if (place < s.best) s.best = place;
+      if (place<=3) s.podiums++;
+      if (place===1){ if (eventType==='major') s.majors++; else s.titles++; s.streak = (s.streak||0)+1; }
+      else s.streak = 0;
+      s.form = (s.form||[]).concat(place).slice(-6);
+    } else { s.streak = 0; s.form = (s.form||[]).concat(21).slice(-6); }
+    const headline = careerHeadline(o, eventType, place, playerKills, mvpOurs);
+    o.history.unshift({ev:eventType, place:place||null, kills:playerKills||0, prize:prize,
+                       mvp:!!mvpOurs, headline:headline, season:(meta&&meta.season)||1});
+    if (o.history.length>50) o.history.length = 50;
+    o.lastHeadline = headline;
+  }
+  // Find the career team's finish in a finished event and log it.
+  function logCareerFromTournament(rows, eventType){
+    const o = careerOrg(); if (!o) return;
+    const idx = rows.findIndex(function(t){ return t.name===o.name; });
+    if (idx===-1) return;
+    const pk = (eventAgg && eventAgg[o.careerPlayer]) ? eventAgg[o.careerPlayer].kills : 0;
+    const ld = eventLeaders();
+    const mvpOurs = !!(ld && ld.kills[0] && ld.kills[0].name===o.careerPlayer);
+    recordCareerResult(o, eventType, idx+1, pk, mvpOurs);
+  }
+  function logCareerFromMajor(m){
+    const o = careerOrg(); if (!o) return;
+    let place = null;
+    if (m.playoffTeams && m.playoffTeams.some(function(t){ return t.name===o.name; })){
+      const sorted = m.playoffTeams.slice().sort(function(a,b){ return b.pts-a.pts || b.kills-a.kills; });
+      const ordered = m.champion ? [m.champion].concat(sorted.filter(function(t){ return t!==m.champion; })) : sorted;
+      const i = ordered.findIndex(function(t){ return t.name===o.name; });
+      if (i!==-1) place = i+1;
+    }
+    const pk = (eventAgg && eventAgg[o.careerPlayer]) ? eventAgg[o.careerPlayer].kills : 0;
+    const ld = eventLeaders();
+    const mvpOurs = !!(ld && ld.kills[0] && ld.kills[0].name===o.careerPlayer);
+    recordCareerResult(o, 'major', place, pk, mvpOurs);
+  }
+  function money(n){ return '$' + (n||0).toLocaleString(); }
+  function showDossier(){
+    const o = careerOrg(); if (!o){ return; }
+    const s = o.stats || {events:0,titles:0,majors:0,podiums:0,best:99,kills:0,mvps:0,earnings:0,streak:0,form:[]};
+    const trophy = function(n, lbl, big){ return '<div class="trbox'+(big?' big':'')+'"><div class="trn">'+n+'</div><div class="trl">'+lbl+'</div></div>'; };
+    let html = '<div class="dosh">'+esc(o.name)+' <span class="dim">['+esc(o.tag)+']</span></div>' +
+      '<div class="dosroster">'+o.roster.map(function(r){ return esc(r.name)+(r.name===o.careerPlayer?' <span class="ccyou">YOU</span>':''); }).join(' \u00b7 ')+'</div>' +
+      '<div class="troph">' +
+        trophy(s.majors, 'MAJORS', true) + trophy(s.titles, 'TITLES', true) +
+        trophy(s.podiums, 'PODIUMS') + trophy(s.events, 'EVENTS') +
+        trophy(s.best<99?ordinal(s.best):'\u2014', 'BEST') + trophy(money(s.earnings), 'EARNINGS') +
+      '</div>' +
+      '<div class="dossub">' + esc(o.careerPlayer) + ' \u00b7 ' + (s.kills||0) + ' career kills \u00b7 ' + (s.mvps||0) + ' event MVPs' +
+        (s.streak>=2 ? ' \u00b7 <span class="hot">\ud83d\udd25 '+s.streak+'-win streak</span>' : '') + '</div>';
+    if (s.form && s.form.length){
+      html += '<div class="dosform">RECENT FORM &nbsp;' + s.form.map(function(p){
+        const c = p===1?'f1':(p<=3?'f3':(p<=10?'f10':'fx'));
+        return '<span class="fchip '+c+'">'+(p>20?'\u2013':ordinal(p))+'</span>';
+      }).join('') + '</div>';
+    }
+    html += '<div class="doshead">EVENT LOG</div>';
+    if (o.history && o.history.length){
+      html += '<div class="doslog">' + o.history.map(function(e){
+        return '<div class="dosrow"><span class="dosev '+(e.ev==='major'?'maj':'')+'">'+(e.ev==='major'?'MAJOR':'TOUR')+'</span>' +
+          '<span class="doshl">'+esc(e.headline)+'</span>' +
+          '<span class="dospr">'+(e.prize?money(e.prize):'')+'</span></div>';
+      }).join('') + '</div>';
+    } else {
+      html += '<div class="dim" style="font-size:12.5px">No events played yet. Enter a tournament or Major to start your career.</div>';
+    }
+    document.getElementById('dosBody').innerHTML = html;
+    document.getElementById('dossierOverlay').style.display = 'flex';
+  }
   function openCareer(){
     // Populate the pickers fresh each time (new players may have been added).
     const pp = document.getElementById('cwPlayerPool');
@@ -4408,14 +4558,28 @@ background:var(--acc);padding:1px 4px}
     if (pr.igl) bits.push('IGL');
     if (pr.gun) bits.push(esc(pr.gun) + (pr.gun2 ? ' / '+esc(pr.gun2) : ''));
     const prefLine = bits.length ? '<div class="ccpref">'+bits.join(' \u00b7 ')+'</div>' : '';
+    const s = o.stats;
+    let recLine = '';
+    if (s && s.events){
+      const parts = [];
+      if (s.majors) parts.push(s.majors+' \ud83c\udfc6 Major'+(s.majors>1?'s':''));
+      if (s.titles) parts.push(s.titles+' title'+(s.titles>1?'s':''));
+      parts.push(s.events+' events');
+      parts.push(money(s.earnings));
+      if (s.streak>=2) parts.push('\ud83d\udd25 '+s.streak+'-win streak');
+      recLine = '<div class="ccpref" style="color:var(--mut)">'+parts.join(' \u00b7 ')+'</div>';
+    }
+    const headLine = o.lastHeadline ? '<div class="cchead">'+esc(o.lastHeadline)+'</div>' : '';
     card.innerHTML = '<div class="cardh">\ud83c\udfae YOUR TEAM \u2014 CAREER</div>' +
       '<div class="ccbody"><b>'+esc(o.name)+'</b> <span class="dim">['+esc(o.tag)+']</span><br>' +
       o.roster.map(function(r){
         return esc(r.name) + (r.name===o.careerPlayer ? ' <span class="ccyou">YOU</span>' : '');
-      }).join(' \u00b7 ') + prefLine + '</div>' +
+      }).join(' \u00b7 ') + prefLine + recLine + headLine + '</div>' +
       '<div class="btns" style="margin-top:10px;margin-bottom:0">' +
+      '<button class="btn" id="ccDossier">\ud83d\udcdc CAREER DOSSIER</button>' +
       '<button class="btn" id="ccIntv">\ud83c\udf99 INTERVIEW</button>' +
       '<button class="btn" id="ccDisband">\ud83d\uddd1 DISBAND</button></div>';
+    document.getElementById('ccDossier').onclick = showDossier;
     document.getElementById('ccIntv').onclick = function(){ showTeamInterview(o.name); };
     document.getElementById('ccDisband').onclick = function(){
       world.permanent = world.permanent.filter(function(x){ return !x.career; });
@@ -4428,6 +4592,10 @@ background:var(--acc);padding:1px 4px}
     if (cc) cc.onclick = function(){ co.style.display = 'none'; };
     if (cr) cr.onclick = createCareer;
     if (co) co.addEventListener('click', function(e){ if (e.target===co) co.style.display='none'; });
+    const dov = document.getElementById('dossierOverlay');
+    const dc = document.getElementById('dosClose');
+    if (dc) dc.onclick = function(){ dov.style.display = 'none'; };
+    if (dov) dov.addEventListener('click', function(e){ if (e.target===dov) dov.style.display='none'; });
   })();
 
   // Who plays for a team \u2014 the permanent roster if it has one, otherwise the
