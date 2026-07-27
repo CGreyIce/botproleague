@@ -1256,6 +1256,11 @@ background:var(--acc);padding:1px 4px}
             permanent:false, pts:0, kills:0};
   }
   // Pair players of similar rank together, so scratch squads are coherent.
+  // A named team's current roster, honouring any persisted override (e.g. a member
+  // was signed to the career team and replaced by a free agent).
+  function namedRoster(T){
+    return (world.teamRosters && world.teamRosters[T.n]) ? world.teamRosters[T.n] : T.r;
+  }
   function buildScratchTeams(count, exclude){
     const used = exclude || {};
     // Free agents ranked by standing; an unproven player is judged on raw skill
@@ -1267,7 +1272,7 @@ background:var(--acc);padding:1px 4px}
     };
     const pool = NAMED_TEAMS.slice();
     // Locked-roster teams come first — they're real squads, not thrown together.
-    pool.sort(function(a,b){ return (b.r?1:0)-(a.r?1:0) || Math.random()-0.5; });
+    pool.sort(function(a,b){ return (namedRoster(b)?1:0)-(namedRoster(a)?1:0) || Math.random()-0.5; });
     const teams = [], tagsTaken = {};
     const nameTaken = {};
     world.permanent.forEach(function(o){ nameTaken[o.name] = true; });
@@ -1275,10 +1280,11 @@ background:var(--acc);padding:1px 4px}
       const T = pool[i];
       if (nameTaken[T.n]) continue;
       let names;
-      if (T.r){
+      const nr = namedRoster(T);
+      if (nr){
         // A locked squad must field its own three, so skip if any are taken.
-        if (T.r.some(function(n){ return used[n]; })) continue;
-        names = T.r.slice();
+        if (nr.some(function(n){ return used[n]; })) continue;
+        names = nr.slice();
       } else {
         const free = PLAYERS.map(function(p){ return p.n; })
           .filter(function(n){ return !used[n]; })
@@ -5015,6 +5021,32 @@ background:var(--acc);padding:1px 4px}
     document.getElementById('cwErr').textContent = '';
     document.getElementById('careerOverlay').style.display = 'flex';
   }
+  // Pull the given players out of any team they're currently on (org or named team),
+  // backfilling with a free agent, so they end up exclusive to the career squad.
+  function claimPlayersForCareer(names, careerTeamName){
+    world.teamRosters = world.teamRosters || {};
+    const claim = {}; names.forEach(function(n){ claim[n]=true; });
+    const used = {};
+    world.permanent.forEach(function(o){ o.roster.forEach(function(r){ used[r.name]=true; }); });
+    NAMED_TEAMS.forEach(function(T){ const r=namedRoster(T); if (r) r.forEach(function(n){ used[n]=true; }); });
+    const fa = PLAYERS.map(function(p){ return p.n; })
+      .filter(function(n){ return !used[n] && !claim[n]; });
+    const takeFA = function(){ return fa.length ? fa.shift() : null; };
+    world.permanent.forEach(function(o){
+      if (o.name===careerTeamName || o.career) return;
+      o.roster = o.roster.map(function(r){ return claim[r.name] ? {name: takeFA() || r.name} : r; });
+    });
+    NAMED_TEAMS.forEach(function(T){
+      const r = namedRoster(T); if (!r || !r.some(function(n){ return claim[n]; })) return;
+      world.teamRosters[T.n] = r.map(function(n){ return claim[n] ? (takeFA() || n) : n; });
+    });
+  }
+  // Self-healing: make sure an existing career team's players sit on no other team
+  // (covers teams created before this rule existed).
+  function reconcileCareerClaims(){
+    const o = careerOrg();
+    if (o && o.roster) claimPlayersForCareer(o.roster.map(function(r){ return r.name; }), o.name);
+  }
   function createCareer(){
     const err = document.getElementById('cwErr');
     const you = document.getElementById('cwPlayer').value.trim();
@@ -5051,6 +5083,9 @@ background:var(--acc);padding:1px 4px}
     if (!PLAYER_INDEX[you]) addPlayer(you, nation || 'Unknown');
     // Any existing career team steps aside for the new one.
     world.permanent = world.permanent.filter(function(o){ return !o.career; });
+    // Pull the three picks off any team they're currently on (backfilled), so they
+    // appear only on your squad.
+    claimPlayersForCareer(names, team);
     world.permanent.push({name:team, tag:tag, career:true, careerPlayer:you,
       roster:names.map(function(n){ return {name:n}; }),
       pref: Object.keys(pref).length ? pref : undefined});
@@ -5116,6 +5151,7 @@ background:var(--acc);padding:1px 4px}
   function rosterOf(name){
     const org = world.permanent.find(function(o){ return o.name===name; });
     if (org) return org.roster.map(function(r){ return r.name; });
+    if (world.teamRosters && world.teamRosters[name]) return world.teamRosters[name].slice();
     const named = NAMED_TEAMS.find(function(t){ return t.n===name; });
     if (named && named.r) return named.r.slice();
     return null;
@@ -5306,6 +5342,7 @@ background:var(--acc);padding:1px 4px}
     }
   })();
   load();
+  reconcileCareerClaims();
   renderMeta();
   renderCareerCard();
   renderSeasonCard();
